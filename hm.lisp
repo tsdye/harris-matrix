@@ -63,6 +63,9 @@
 (defparameter *node-shape-deposit* nil)
 (defparameter *node-fill* nil)
 
+;; global variables not set by configuration file
+(defparameter *ranks* nil)
+
 ;; constants
 (defconstant +transparent+ (read-from-string "transparent"))
 (defconstant +basal+ (read-from-string "basal"))
@@ -175,14 +178,14 @@ variables.  Return t if successful, nil otherwise."
             (color-filter *reachable-not-color* nil)))
     ret))
 
-(defun set-same-ranks (rank-list table)
+(defun set-same-ranks (table)
   (mapcar #'(lambda (x)
               (push (graph-dot::make-rank :value "same"
                                           :node-list (list (first x) (second x)))
-               rank-list))
+               *ranks*))
           table))
 
-(defun set-other-ranks (rank-list table)
+(defun set-other-ranks (table)
   (mapcar #'(lambda (x)
               (when (or (eq (read-from-string (third x)) +basal+)
                         (eq (read-from-string (third x)) +surface+))
@@ -196,7 +199,7 @@ variables.  Return t if successful, nil otherwise."
                                  (read-from-string
                                   (format nil "~:@(~s~)" (first x)))
                                  (first x))))
-                      rank-list)))
+                      *ranks*)))
           table))
 
 (defun set-node-shapes (table)
@@ -232,32 +235,38 @@ variables.  Return t if successful, nil otherwise."
   (mapcar #'(lambda (x)
               (setf (gethash (read-from-string (second x)) nodes)
                     (read-from-string (third x)))
-              (setf (gethash (read-from-string (second x)) units)
-                    *legend-node-shape*)
+              (when *symbolize-unit-type*
+                (setf (gethash (read-from-string (second x)) units)
+                      *legend-node-shape*))
               (when *url-include*
                 (setf (gethash (read-from-string (second x)) urls)
                       (fourth x)))
+              (push
+               (graph-dot::make-rank
+                :value "sink"
+                :node-list (list (format nil "~s" (read-from-string (second x)))))
+               *ranks*)
               (graph:add-node graph (read-from-string (second x))))
           table))
 
 (defun make-reachable-legend (graph nodes units urls)
   (setf (gethash +reachable+ nodes) *reachable-color*)
   (setf (gethash +not-reachable+ nodes) *reachable-not-color*)
-  (setf (gethash +reachable+ units) *legend-node-shape*)
-  (setf (gethash +not-reachable+ units) *legend-node-shape*)
+  (when *symbolize-unit-type* 
+    (setf (gethash +reachable+ units) *legend-node-shape*)
+    (setf (gethash +not-reachable+ units) *legend-node-shape*))
   (when *url-include*
     (setf (gethash +reachable+ urls) (if *url-default* *url-default* ""))
     (setf (gethash +not-reachable+ urls) (if *url-default* *url-default* "")))
   (push (graph-dot::make-rank :value "sink"
                               :node-list (list +reachable+ +not-reachable+))
-        ranks)
+        *ranks*)
   (graph:add-node graph +reachable+)
   (graph:add-node graph +not-reachable+))
 
 (defun hm-draw (cnf-file-path)
   "Write a dot file"
   (let ((rejected)
-        (ranks)
         (node-fills)
         (unit-types)
         (arc-urls)
@@ -268,6 +277,7 @@ variables.  Return t if successful, nil otherwise."
         (inference-table)
         (period-table)
         (phase-table))
+    (setq *ranks* nil)
     (if (hm-read-cnf-file cnf-file-path)
         (progn
           ;; required tables
@@ -284,24 +294,18 @@ variables.  Return t if successful, nil otherwise."
               (return-from hm-draw (format nil "Unable to read ~a"
                                            *observation-table-name*)))
           ;; optional tables
-          (if (and *inference-table-name* (probe-file *inference-table-name*))
+          (when (and *inference-table-name* (probe-file *inference-table-name*))
               (setq inference-table
                     (cl-csv:read-csv (probe-file *inference-table-name*)
-                                     :skip-first-p *inference-table-header*))
-              (return-from hm-draw (format nil "Unable to read ~a"
-                                           *inference-table-name*)))
-          (if (and *period-table-name* (probe-file *period-table-name*))
+                                     :skip-first-p *inference-table-header*)))
+          (when (and *period-table-name* (probe-file *period-table-name*))
               (setq period-table
                     (cl-csv:read-csv (probe-file *period-table-name*)
-                                     :skip-first-p *period-table-header*))
-              (return-from hm-draw (format nil "Unable to read ~a"
-                                           *period-table-name*)))
-          (if (and *phase-table-name* (probe-file *phase-table-name*))
+                                     :skip-first-p *period-table-header*)))
+          (when (and *phase-table-name* (probe-file *phase-table-name*))
               (setq phase-table
                     (cl-csv:read-csv (probe-file *phase-table-name*)
-                                     :skip-first-p *phase-table-header*))
-              (return-from hm-draw (format nil "Unable to read ~a"
-                                           *phase-table-name*)))
+                                     :skip-first-p *phase-table-header*)))
           ;; create graph
           (dolist (node context-table)
             (graph:add-node graph (read-from-string (first node))))
@@ -314,8 +318,8 @@ variables.  Return t if successful, nil otherwise."
                                        
           (if rejected (format t "A cycle includes ~a" (pop rejected))
               (progn                    ; create dot file
-                (set-same-ranks ranks inference-table)
-                (set-other-ranks ranks context-table)
+                (set-same-ranks inference-table)
+                (set-other-ranks context-table)
                 (when *node-fill-by*    ; fill nodes
                   (setq node-fills
                         (cond ((eq *node-fill-by* +levels+)
@@ -350,7 +354,7 @@ variables.  Return t if successful, nil otherwise."
                                                 unit-types node-urls))))
                 (graph-dot:to-dot-file  ; write the dot file
                  graph *out-file*
-                 :ranks ranks
+                 :ranks *ranks*
                  :attributes
                  (list
                   (cons :style (make-attribute *graph-style*))
