@@ -258,8 +258,10 @@ variables.  Return t if successful, nil otherwise."
   (when *url-include*
     (setf (gethash +reachable+ urls) (if *url-default* *url-default* ""))
     (setf (gethash +not-reachable+ urls) (if *url-default* *url-default* "")))
-  (push (graph-dot::make-rank :value "sink"
-                              :node-list (list +reachable+ +not-reachable+))
+  (push (graph-dot::make-rank
+         :value "sink"
+         :node-list (list (format nil "~s" +reachable+)
+                          (format nil "~s" +not-reachable+)))
         *ranks*)
   (graph:add-node graph +reachable+)
   (graph:add-node graph +not-reachable+))
@@ -277,7 +279,7 @@ variables.  Return t if successful, nil otherwise."
         (inference-table)
         (period-table)
         (phase-table))
-    ;; make certain global variables are clean
+    ;; make certain global variables are nil
     (setq *ranks* nil)
     (setq *out-file* nil)
     (setq *context-table-name* nil)
@@ -335,7 +337,7 @@ variables.  Return t if successful, nil otherwise."
     ;; read configuration file
     (if (hm-read-cnf-file cnf-file-path)
         (progn
-          ;; required tables
+          ;; read required tables
           (if (probe-file *context-table-name*)
               (setq context-table
                     (cl-csv:read-csv (probe-file *context-table-name*)
@@ -348,7 +350,7 @@ variables.  Return t if successful, nil otherwise."
                                      :skip-first-p *observation-table-header*))
               (return-from hm-draw (format nil "Unable to read ~a"
                                            *observation-table-name*)))
-          ;; optional tables
+          ;; read optional tables, if necessary
           (when (and *inference-table-name* (probe-file *inference-table-name*))
               (setq inference-table
                     (cl-csv:read-csv (probe-file *inference-table-name*)
