@@ -1,8 +1,8 @@
-;;;; harris-matrix.lisp
+;;;; hm.lisp
 
-;;   (in-package #:harris-matrix)
+;;   (in-package #:hm)
 
-;;; "harris-matrix" goes here. Hacks and glory await!
+;;; "hm" goes here. Hacks and glory await!
 
 (require "graph-dot")
 (require "graph-matrix")
