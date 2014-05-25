@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>hm by tsdye</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 class="header">hm</h1>
+        <p class="header">Write Graphviz dot files for archaeological sequence diagrams</p>
+
+        <ul>
+          <li class="download"><a class="buttons" href="https://github.com/tsdye/harris-matrix/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/tsdye/harris-matrix/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/tsdye/harris-matrix">View On GitHub</a></li>
+        </ul>
+
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/tsdye">tsdye</a></p>
+
+
+      </header>
+      <section>
+        <h1>
+<a name="hm" class="anchor" href="#hm"><span class="octicon octicon-link"></span></a>hm</h1>
+
+<h1></h1>
+
+<p>Write Graphviz dot files for archaeological sequence diagrams</p>
+
+<h2>
+<a name="install" class="anchor" href="#install"><span class="octicon octicon-link"></span></a>Install</h2>
+
+<p>Quicklisp is recommended.</p>
+
+<p><code>cd ~/quicklisp/local-projects</code></p>
+
+<p><code>git clone https://github.com/tsdye/harris-matrix.git</code></p>
+
+<h2>
+<a name="load" class="anchor" href="#load"><span class="octicon octicon-link"></span></a>Load</h2>
+
+<p><code>(ql:quickload "hm")</code></p>
+
+<h2>
+<a name="draw" class="anchor" href="#draw"><span class="octicon octicon-link"></span></a>Draw</h2>
+
+<p><code>(hm-draw "path/to/configuration/file")</code></p>
+
+<h2>
+<a name="overview" class="anchor" href="#overview"><span class="octicon octicon-link"></span></a>Overview</h2>
+
+<p>The hm package produces Graphviz <code>dot</code> source code for archaeological sequence diagrams from tables of stratigraphic observations, inferences, and interpretations.</p>
+
+<p>The hm package provides a single function, <code>hm-draw</code>, which expects a valid path to a configuration file as its sole argument.</p>
+
+<p>The configuration file specifies paths to one or more data files and sets values for about four dozen Graphviz <code>dot</code> variables.</p>
+
+<p>The configuration information and the data are held in comma separated value files.  Together, the configuration and data files can hold a complete description of site stratigraphy and its interpretation. </p>
+
+<h2>
+<a name="example-output" class="anchor" href="#example-output"><span class="octicon octicon-link"></span></a>Example Output</h2>
+
+<p>The stratigraphic section shown in Figure 12 of Edward Harris' book, <em>Principles of Archaeological Stratigraphy</em>.</p>
+
+<p><img src="http://harris-matrix.tsdye.com/img/fig-12-harris-levels-tred.svg" alt="fig-12-harris-levels-tred.svg"></p>
+      </section>
+      <footer>
+        <p><small>Hosted on <a href="http://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+		
+  </body>
+</html>
