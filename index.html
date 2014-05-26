@@ -16,7 +16,7 @@
     <div class="wrapper">
       <header>
         <h1>hm</h1>
-        <p>Write Graphviz dot files for archaeological sequence diagrams</p>
+        <p>Archaeological sequence diagrams</p>
 
         <p class="view"><a href="https://github.com/tsdye/harris-matrix">View the Project on GitHub <small>tsdye/harris-matrix</small></a></p>
 
@@ -33,7 +33,7 @@
 
 <h1></h1>
 
-<p>Write Graphviz dot files for archaeological sequence diagrams.</p>
+<p>Write Graphviz <code>dot</code> files for archaeological sequence diagrams.</p>
 
 <h2>
 <a name="install" class="anchor" href="#install"><span class="octicon octicon-link"></span></a>Install</h2>
@@ -59,9 +59,9 @@
 <h2>
 <a name="overview" class="anchor" href="#overview"><span class="octicon octicon-link"></span></a>Overview</h2>
 
-<p>The hm package produces Graphviz <code>dot</code> source code for archaeological sequence diagrams from tables of stratigraphic observations, inferences, and interpretations.</p>
+<p>The <code>hm</code> package produces Graphviz <code>dot</code> source code for archaeological sequence diagrams from tables of stratigraphic observations, inferences, and interpretations.</p>
 
-<p>The hm package provides a single function, <code>hm-draw</code>, which expects a valid path to a configuration file as its sole argument.</p>
+<p>The <code>hm</code> package provides a single function, <code>hm-draw</code>, which expects a valid path to a configuration file as its sole argument.</p>
 
 <p>The configuration file specifies paths to one or more data files and sets values for about four dozen Graphviz <code>dot</code> variables.</p>
 
@@ -73,6 +73,87 @@
 <p>The stratigraphic section shown in Figure 12 of Edward Harris' book, <em>Principles of Archaeological Stratigraphy</em>.  Note that the symbol for a deposit is a box and for an interface a trapezium. In this example, the nodes are colored according to the directed graph concept of <em>level</em>.</p>
 
 <p><img src="http://harris-matrix.tsdye.com/img/fig-12-harris-levels-tred.svg" alt="fig-12-harris-levels-tred.svg"></p>
+
+<h2>
+<a name="data-tables" class="anchor" href="#data-tables"><span class="octicon octicon-link"></span></a>Data Tables</h2>
+
+<p>There are five data tables used as input to <code>hm</code>.</p>
+
+<h3>
+<a name="units-of-stratification" class="anchor" href="#units-of-stratification"><span class="octicon octicon-link"></span></a>Units of Stratification</h3>
+
+<ul>
+<li>  <strong>label:</strong> context identifier (primary key)</li>
+<li>  <strong>unit-type:</strong> interface or deposit</li>
+<li>  <strong>position:</strong> surface/basal/other</li>
+<li>  <strong>period:</strong> period identifier (foreign key)</li>
+<li>  <strong>phase:</strong> phase identifier (foreign key)</li>
+<li>  <strong>url:</strong> node link (svg output only)</li>
+</ul><table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"><tbody><tr>
+<td>label</td>
+<td>unit-type</td>
+<td>position</td>
+<td>period</td>
+<td>phase</td>
+<td>url</td>
+</tr></tbody></table><h3>
+<a name="observed-stratigraphic-relations" class="anchor" href="#observed-stratigraphic-relations"><span class="octicon octicon-link"></span></a>Observed Stratigraphic Relations</h3>
+
+<p>This table includes observations of stratigraphic superposition.  Its
+first two columns refer to values from the <code>label</code> column of the
+contexts table.</p>
+
+<ul>
+<li>  <strong>younger:</strong> stratigraphically superior context label (foreign key)</li>
+<li>  <strong>older:</strong> stratigraphically inferior context label (foreign key)</li>
+<li>  <strong>url:</strong> arc link (svg output only)</li>
+</ul><table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"><tbody><tr>
+<td>younger</td>
+<td>older</td>
+<td>url</td>
+</tr></tbody></table><h3>
+<a name="inferred-parity-relations" class="anchor" href="#inferred-parity-relations"><span class="octicon octicon-link"></span></a>Inferred Parity Relations</h3>
+
+<p>This table contains inferences of parity between pairs of
+discontiguous contexts.</p>
+
+<ul>
+<li>  <strong>first:</strong> context label (foreign key)</li>
+<li>  <strong>second:</strong> context label (foreign key)</li>
+</ul><table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"><tbody><tr>
+<td>first</td>
+<td>second</td>
+</tr></tbody></table><h3>
+<a name="periods" class="anchor" href="#periods"><span class="octicon octicon-link"></span></a>Periods</h3>
+
+<ul>
+<li>  <strong>id:</strong> a unique integer to identify the period (primary key)</li>
+<li>  <strong>label:</strong> name of the period used in the legend</li>
+<li>  <strong>color:</strong> zero-based integer scale for a <a href="http://www.graphviz.org/doc/info/colors.html#brewer">Brewer color</a>
+</li>
+<li>  <strong>description:</strong> optional field not used by <code>hm</code>
+</li>
+</ul><table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"><tbody><tr>
+<td>id</td>
+<td>label</td>
+<td>color</td>
+<td>description</td>
+</tr></tbody></table><h3>
+<a name="phases" class="anchor" href="#phases"><span class="octicon octicon-link"></span></a>Phases</h3>
+
+<ul>
+<li>  <strong>id:</strong> a unique integer to identify the phase (primary key)</li>
+<li>  <strong>label:</strong> name of the phase used in the legend</li>
+<li>  <strong>color:</strong> zero-based integer scale for a <a href="http://www.graphviz.org/doc/info/colors.html#brewer">Brewer color</a>
+</li>
+<li>  <strong>description:</strong> optional field not used by <code>hm</code>
+</li>
+</ul><table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"><tbody><tr>
+<td>id</td>
+<td>label</td>
+<td>color</td>
+<td>description</td>
+</tr></tbody></table>
       </section>
       <footer>
         <p>This project is maintained by <a href="https://github.com/tsdye">tsdye</a></p>
