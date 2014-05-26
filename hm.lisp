@@ -1,8 +1,10 @@
 ;;;; hm.lisp
 
-;;   (in-package #:hm)
+;; Copyright (C) Thomas Dye 2014
 
-;;; "hm" goes here. Hacks and glory await!
+;; Licensed under the Gnu Public License Version 3 or later
+
+;;   (in-package #:hm)
 
 (require "graph-dot")
 (require "graph-matrix")
