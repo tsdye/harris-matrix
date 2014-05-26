@@ -153,7 +153,284 @@ discontiguous contexts.</p>
 <td>label</td>
 <td>color</td>
 <td>description</td>
-</tr></tbody></table>
+</tr></tbody></table><h2>
+<a name="configuration-file" class="anchor" href="#configuration-file"><span class="octicon octicon-link"></span></a>Configuration File</h2>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<thead><tr>
+<th scope="col">variable</th>
+<th scope="col">value</th>
+<th scope="col">description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>*out-file*</td>
+<td>fig-12-harris-levels.dot</td>
+<td>Output file path</td>
+</tr>
+<tr>
+<td>*context-table-name*</td>
+<td>contexts-eg.csv</td>
+<td>Input file path</td>
+</tr>
+<tr>
+<td>*context-table-header*</td>
+<td>t</td>
+<td>`t` for header, `nil` for no header</td>
+</tr>
+<tr>
+<td>*inference-table-name*</td>
+<td>inference-eg.csv</td>
+<td>Input file path</td>
+</tr>
+<tr>
+<td>*inference-table-header*</td>
+<td>t</td>
+<td>`t` for header, `nil` for no header</td>
+</tr>
+<tr>
+<td>*observation-table-name*</td>
+<td>observations-eg.csv</td>
+<td>Input file path</td>
+</tr>
+<tr>
+<td>*observation-table-header*</td>
+<td>t</td>
+<td>`t` for header, `nil` for no header</td>
+</tr>
+<tr>
+<td>*period-table-name*</td>
+<td>periods-eg.csv</td>
+<td>Input file path</td>
+</tr>
+<tr>
+<td>*period-table-header*</td>
+<td>t</td>
+<td>`t` for header, `nil` for no header</td>
+</tr>
+<tr>
+<td>*phase-table-name*</td>
+<td>phases-eg.csv</td>
+<td>Input file path</td>
+</tr>
+<tr>
+<td>*phase-table-header*</td>
+<td>t</td>
+<td>`t` for header, `nil` for no header</td>
+</tr>
+<tr>
+<td>*color-scheme*</td>
+<td>blues7</td>
+<td>[Brewer color scheme](http://www.graphviz.org/doc/info/colors.html#brewer)</td>
+</tr>
+<tr>
+<td>*color-space*</td>
+<td>x11</td>
+<td>`x11` or `svg`</td>
+</tr>
+<tr>
+<td>*label-break*</td>
+<td>5</td>
+<td>Switch from dark to light label color</td>
+</tr>
+<tr>
+<td>*label-color-dark*</td>
+<td>black</td>
+<td>A color name from the indicated color-space</td>
+</tr>
+<tr>
+<td>*label-color-light*</td>
+<td>white</td>
+<td>A color name from the indicated color-space</td>
+</tr>
+<tr>
+<td>*symbolize-unit-type*</td>
+<td>t</td>
+<td>`t` to distinguish interfaces and deposits, `nil` otherwise</td>
+</tr>
+<tr>
+<td>*reachable-color*</td>
+<td>2</td>
+<td>Color name or number for reachable nodes</td>
+</tr>
+<tr>
+<td>*reachable-from*</td>
+<td>1</td>
+<td>Start node for calculating reachability</td>
+</tr>
+<tr>
+<td>*reachable-limit*</td>
+<td>1</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>*reachable-not-color*</td>
+<td>0</td>
+<td>Color name or number for unreachable nodes</td>
+</tr>
+<tr>
+<td>*url-default*</td>
+<td> </td>
+<td>Default URL</td>
+</tr>
+<tr>
+<td>*url-include*</td>
+<td>nil</td>
+<td>`t` to include, `nil` otherwise</td>
+</tr>
+<tr>
+<td>*graph-bg-color*</td>
+<td>transparent</td>
+<td>`transparent`, a color name, or an integer into a [Brewer color scheme](http://www.graphviz.org/doc/info/colors.html#brewer)</td>
+</tr>
+<tr>
+<td>*graph-dpi*</td>
+<td> </td>
+<td>[See `dot` documentation](http://www.graphviz.org/doc/info/attrs.html#d:dpi)</td>
+</tr>
+<tr>
+<td>*graph-font-color*</td>
+<td>black</td>
+<td>A color name from the indicated color-space</td>
+</tr>
+<tr>
+<td>*graph-font-name*</td>
+<td>helvetica</td>
+<td>`helvetica` or `times`</td>
+</tr>
+<tr>
+<td>*graph-font-size*</td>
+<td>14</td>
+<td>Size in points</td>
+</tr>
+<tr>
+<td>*graph-labelloc*</td>
+<td>t</td>
+<td>`t` for centering title, `nil` otherwise</td>
+</tr>
+<tr>
+<td>*graph-margin*</td>
+<td> </td>
+<td>[See `dot` documentation](http://www.graphviz.org/doc/info/attrs.html#d:margin)</td>
+</tr>
+<tr>
+<td>*graph-page*</td>
+<td> </td>
+<td>[See `dot` documentation](http://www.graphviz.org/doc/info/attrs.html#d:page)</td>
+</tr>
+<tr>
+<td>*graph-ratio*</td>
+<td> </td>
+<td>[See `dot` documentation](http://www.graphviz.org/doc/info/attrs.html#d:ratio)</td>
+</tr>
+<tr>
+<td>*graph-size*</td>
+<td> </td>
+<td>[See `dot` documentation](http://www.graphviz.org/doc/info/attrs.html#d:size)</td>
+</tr>
+<tr>
+<td>*graph-splines*</td>
+<td>ortho</td>
+<td>[See `dot` documentation](http://www.graphviz.org/doc/info/attrs.html#d:splines)</td>
+</tr>
+<tr>
+<td>*graph-style*</td>
+<td> </td>
+<td>[See `dot` documentation](http://www.graphviz.org/doc/info/attrs.html#k:style)</td>
+</tr>
+<tr>
+<td>*graph-title*</td>
+<td> </td>
+<td>Optional title for the graph</td>
+</tr>
+<tr>
+<td>*legend*</td>
+<td>nil</td>
+<td>`t` to include, `nil` otherwise</td>
+</tr>
+<tr>
+<td>*legend-node-shape*</td>
+<td>folder</td>
+<td>[See `dot` documentation](http://www.graphviz.org/doc/info/shapes.html)</td>
+</tr>
+<tr>
+<td>*edge-color*</td>
+<td>black</td>
+<td>A color name from the indicated color-space</td>
+</tr>
+<tr>
+<td>*edge-font-color*</td>
+<td>black</td>
+<td>A color name from the indicated color-space</td>
+</tr>
+<tr>
+<td>*edge-font-name*</td>
+<td>helvetica</td>
+<td>`helvetica` or `times`</td>
+</tr>
+<tr>
+<td>*edge-font-size*</td>
+<td>14</td>
+<td>Size in points</td>
+</tr>
+<tr>
+<td>*edge-style*</td>
+<td>solid</td>
+<td>[See `dot` documentation](http://www.graphviz.org/doc/info/attrs.html#k:style)</td>
+</tr>
+<tr>
+<td>*edge-with-arrow*</td>
+<td>none</td>
+<td>[See `dot` documentation](http://www.graphviz.org/doc/info/attrs.html#k:arrowType)</td>
+</tr>
+<tr>
+<td>*node-color*</td>
+<td>black</td>
+<td>A color name from the indicated color-space</td>
+</tr>
+<tr>
+<td>*node-fill*</td>
+<td>white</td>
+<td>A color name from the indicated color-space</td>
+</tr>
+<tr>
+<td>*node-fill-by*</td>
+<td>levels</td>
+<td>`nil` for no fill, `levels`, `reachable`, `periods`, `phases`</td>
+</tr>
+<tr>
+<td>*node-font-color*</td>
+<td>black</td>
+<td>A color name from the indicated color-space</td>
+</tr>
+<tr>
+<td>*node-font-name*</td>
+<td>helvetica</td>
+<td>`helvetica` or `times`</td>
+</tr>
+<tr>
+<td>*node-font-size*</td>
+<td>14</td>
+<td>Size in points</td>
+</tr>
+<tr>
+<td>*node-shape-deposit*</td>
+<td>box</td>
+<td>[See `dot` documentation](http://www.graphviz.org/doc/info/shapes.html)</td>
+</tr>
+<tr>
+<td>*node-shape-interface*</td>
+<td>trapezium</td>
+<td>[See `dot` documentation](http://www.graphviz.org/doc/info/shapes.html)</td>
+</tr>
+<tr>
+<td>*node-style*</td>
+<td>filled</td>
+<td>[See `dot` documentation](http://www.graphviz.org/doc/info/attrs.html#k:style)</td>
+</tr>
+</tbody>
+</table>
       </section>
       <footer>
         <p>This project is maintained by <a href="https://github.com/tsdye">tsdye</a></p>
