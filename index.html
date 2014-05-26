@@ -432,7 +432,32 @@ discontiguous contexts.</p>
 <td>[See `dot` documentation](http://www.graphviz.org/doc/info/attrs.html#k:style)</td>
 </tr>
 </tbody>
-</table>
+</table><h1>
+<a name="drawing-the-sequence-diagram" class="anchor" href="#drawing-the-sequence-diagram"><span class="octicon octicon-link"></span></a>Drawing the Sequence Diagram</h1>
+
+<p>I have two scripts to automate graph drawing on my Mac OS X system.  They each take two arguments:</p>
+
+<ul>
+<li>path to the <code>dot</code> file, without file extension</li>
+<li><a href="http://www.graphviz.org/content/output-formats">output file type</a></li>
+</ul><p>This one simply plots and opens the graph.  It will display all the arcs.</p>
+
+<p><code>dot -T$2 $1.dot -o $1.$2</code></p>
+
+<p><code>open $1.$2</code></p>
+
+<p>This one plots and opens the transitive reduction of the graph.  Transitive reduction corresponds to Harris' Law of Stratigraphical Succession.</p>
+
+<p><code>tred $1.dot &gt; $1-tred.dot</code></p>
+
+<p><code>dot -T$2 $1-tred.dot -o $1-tred.$2</code></p>
+
+<p><code>open $1-tred.$2</code></p>
+
+<h1>
+<a name="workflow" class="anchor" href="#workflow"><span class="octicon octicon-link"></span></a>Workflow</h1>
+
+<p>Legends are displayed as elements; no attempt at good layout is made.  The <code>svg</code> output from <code>dot</code> can be edited with an application such as <a href="http://www.inkscape.org/en/">Inkscape</a>.</p>
       </section>
       <footer>
         <p>This project is maintained by <a href="https://github.com/tsdye">tsdye</a></p>
