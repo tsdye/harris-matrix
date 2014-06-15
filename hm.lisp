@@ -33,6 +33,8 @@
 (defvar *reachable-limit*)
 (defvar *reachable-color*)
 (defvar *reachable-not-color*)
+(defvar *origin-color*)
+(defvar *adjacent-color*)
 (defvar *url-include*)
 (defvar *url-default*)
 (defvar *graph-title*)
@@ -81,7 +83,10 @@
 (defconstant +interface+ (read-from-string "interface"))
 (defconstant +adjacent+ (read-from-string "adjacent"))
 (defconstant +not-reachable+ (read-from-string "not-reachable"))
-
+(defconstant +distance+ (read-from-string "distance"))
+(defconstant +separated+ 'separated)
+(defconstant +abutting+ 'abutting)
+(defconstant +origin+ 'origin)
 
 (defun hm-read-cnf-file (config-file-name)
   "Read csv file specified by CONFIG-FILE-NAME and set global
@@ -95,6 +100,7 @@ variables.  Return t if successful, nil otherwise."
                  ((string= "phases" (second row)) +phases+)
                  ((string= "levels" (second row)) +levels+)
                  ((string= "connected" (second row)) +connected+)
+                 ((string= "distance" (second row)) +distance+)
                  ((string= "t" (second row)) t)
                  ((string= "nil" (second row)) nil)
                  ((string= "" (second row)) nil)
@@ -168,7 +174,7 @@ variables.  Return t if successful, nil otherwise."
             (color-filter *reachable-not-color* nil)))
     ret))
 
-(defun node-fill-by-connected ()
+(defun node-fill-by-connected (graph)
   (let ((ret (make-hash-table))
         (reachable-list (graph:connected-component graph *reachable-from*
                                                    :type :unilateral)))
@@ -178,6 +184,28 @@ variables.  Return t if successful, nil otherwise."
     (dolist (node (set-difference (graph:nodes graph) reachable-list))
       (setf (gethash (read-from-string (format nil "~a" node)) ret)
             (color-filter *reachable-not-color* nil)))
+    ret))
+
+(defun node-fill-by-distance (graph)
+  (let ((ret (make-hash-table))
+        (d)
+        (distance-matrix (graph-matrix:to-distance-matrix
+                          graph
+                          (make-instance 'graph-matrix:fast-matrix))))
+    (mapc (lambda (node)
+            (setq d (min (graph-matrix:distance-from-to
+                          graph distance-matrix *reachable-from* node)
+                         (graph-matrix:distance-from-to
+                          graph distance-matrix node *reachable-from*)))
+            (setf
+             (gethash (read-from-string (format nil "~a" node)) ret)
+             (cond
+               ((equal d graph-matrix::infinity)
+                (color-filter *reachable-not-color* nil))
+               ((equal d 0) (color-filter *origin-color* nil))
+               ((equal d 1) (color-filter *adjacent-color* nil))
+               (t (color-filter *reachable-color* nil)))))
+          (graph:nodes graph))
     ret))
 
 (defun set-same-ranks (table)
@@ -268,6 +296,34 @@ variables.  Return t if successful, nil otherwise."
   (graph:add-node graph +reachable+)
   (graph:add-node graph +not-reachable+))
 
+(defun make-distance-legend (graph nodes units urls)
+  (setf (gethash +separated+ nodes) *reachable-color*)
+  (setf (gethash +not-reachable+ nodes) *reachable-not-color*)
+  (setf (gethash +origin+ nodes) *origin-color*)
+  (setf (gethash +abutting+ nodes) *adjacent-color*)
+  (when *symbolize-unit-type* 
+    (setf (gethash +origin+ units) *legend-node-shape*)
+    (setf (gethash +abutting+ units) *legend-node-shape*)
+    (setf (gethash +separated+ units) *legend-node-shape*)
+    (setf (gethash +not-reachable+ units) *legend-node-shape*))
+  (when *url-include*
+    (setf (gethash +origin+ urls) (if *url-default* *url-default* ""))
+    (setf (gethash +abutting+ urls) (if *url-default* *url-default* ""))
+    (setf (gethash +reachable+ urls) (if *url-default* *url-default* ""))
+    (setf (gethash +not-reachable+ urls) (if *url-default* *url-default* "")))
+  (push (graph-dot::make-rank
+         :value "sink"
+         :node-list (list (format nil "~s" +separated+)
+                          (format nil "~s" +not-reachable+)
+                          (format nil "~s" +origin+)
+                          (format nil "~s" +abutting+)))
+        *ranks*)
+  (graph:add-node graph +separated+)
+  (graph:add-node graph +not-reachable+) 
+  (graph:add-node graph +origin+)
+  (graph:add-node graph +abutting+)
+  )
+
 (defun hm-draw (cnf-file-path)
   "Write a dot file"
   (let ((rejected)
@@ -305,6 +361,8 @@ variables.  Return t if successful, nil otherwise."
     (setq *reachable-limit* nil)
     (setq *reachable-color* nil)
     (setq *reachable-not-color* nil)
+    (setq *origin-color* nil)
+    (setq *adjacent-color* nil)
     (setq *url-include* nil)
     (setq *url-default* nil)
     (setq *graph-title* nil)
@@ -392,7 +450,10 @@ variables.  Return t if successful, nil otherwise."
                                (node-fill-by-reachable graph))
                               ((and *reachable-from*
                                     (eq *node-fill-by* +connected+))
-                               (node-fill-by-connected))
+                               (node-fill-by-connected graph))
+                              ((and *reachable-from*
+                                    (eq *node-fill-by* +distance+))
+                               (node-fill-by-distance graph))
                               (t (return-from hm-draw
                                    (format t "Incorrect *node-fill-by* value: ~a"
                                            *node-fill-by*))))))
@@ -410,6 +471,9 @@ variables.  Return t if successful, nil otherwise."
                                           unit-types node-urls))
                         ((and *reachable-from* (eq *node-fill-by* +reachable+))
                          (make-reachable-legend graph node-fills
+                                                unit-types node-urls))
+                        ((and *reachable-from* (eq *node-fill-by* +distance+))
+                         (make-distance-legend graph node-fills
                                                 unit-types node-urls))))
                 (graph-dot:to-dot-file  ; write the dot file
                  graph *out-file*
