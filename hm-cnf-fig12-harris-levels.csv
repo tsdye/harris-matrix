@@ -19,6 +19,8 @@
 *reachable-from*,1
 *reachable-limit*,1
 *reachable-not-color*,0
+*origin-color*,0
+*adjacent-color*,0
 *url-default*,
 *url-include*,nil
 *graph-bg-color*,transparent
