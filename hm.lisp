@@ -172,6 +172,7 @@ variables.  Return t if successful, nil otherwise."
     (dolist (node (set-difference (graph:nodes graph) reachable-list))
       (setf (gethash (read-from-string (format nil "~a" node)) ret)
             (color-filter *reachable-not-color* nil)))
+    (setf (gethash *reachable-from* ret) (color-filter *origin-color* nil))
     ret))
 
 (defun node-fill-by-connected (graph)
@@ -200,7 +201,7 @@ variables.  Return t if successful, nil otherwise."
             (setf
              (gethash (read-from-string (format nil "~a" node)) ret)
              (cond
-               ((equal d graph-matrix::infinity)
+               ((equal d graph-matrix:infinity)
                 (color-filter *reachable-not-color* nil))
                ((equal d 0) (color-filter *origin-color* nil))
                ((equal d 1) (color-filter *adjacent-color* nil))
@@ -282,19 +283,24 @@ variables.  Return t if successful, nil otherwise."
 (defun make-reachable-legend (graph nodes units urls)
   (setf (gethash +reachable+ nodes) *reachable-color*)
   (setf (gethash +not-reachable+ nodes) *reachable-not-color*)
+  (setf (gethash +origin+ nodes) *origin-color*)
   (when *symbolize-unit-type* 
+    (setf (gethash +origin+ units) *legend-node-shape*)
     (setf (gethash +reachable+ units) *legend-node-shape*)
     (setf (gethash +not-reachable+ units) *legend-node-shape*))
   (when *url-include*
+    (setf (gethash +origin+ urls) (if *url-default* *url-default* ""))
     (setf (gethash +reachable+ urls) (if *url-default* *url-default* ""))
     (setf (gethash +not-reachable+ urls) (if *url-default* *url-default* "")))
   (push (graph-dot::make-rank
          :value "sink"
          :node-list (list (format nil "~s" +reachable+)
-                          (format nil "~s" +not-reachable+)))
+                          (format nil "~s" +not-reachable+)
+                          (format nil "~s" +origin+)))
         *ranks*)
   (graph:add-node graph +reachable+)
-  (graph:add-node graph +not-reachable+))
+  (graph:add-node graph +not-reachable+)
+  (graph:add-node graph +origin+))
 
 (defun make-distance-legend (graph nodes units urls)
   (setf (gethash +separated+ nodes) *reachable-color*)
