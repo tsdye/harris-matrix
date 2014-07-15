@@ -11,64 +11,85 @@
 (require "cl-csv")
 
 ;; global variables will be set by configuration file
-(defvar *out-file*)
-(defvar *context-table-name*)
-(defvar *observation-table-name*)
-(defvar *inference-table-name*)
-(defvar *period-table-name*)
-(defvar *phase-table-name*)
-(defvar *context-table-header*)
-(defvar *observation-table-header*)
-(defvar *inference-table-header*)
-(defvar *period-table-header*)
-(defvar *phase-table-header*)
-(defvar *symbolize-unit-type*)
-(defvar *node-fill-by*)
-(defvar *label-break*)
-(defvar *color-scheme*)
-(defvar *color-space*)
-(defvar *label-color-dark*)
-(defvar *label-color-light*)
-(defvar *reachable-from*)
-(defvar *reachable-limit*)
-(defvar *reachable-color*)
-(defvar *reachable-not-color*)
-(defvar *origin-color*)
-(defvar *adjacent-color*)
-(defvar *url-include*)
-(defvar *url-default*)
-(defvar *graph-title*)
-(defvar *graph-labelloc*)
-(defvar *graph-style*)
-(defvar *graph-size*)
-(defvar *graph-ratio*)
-(defvar *graph-page*)
-(defvar *graph-dpi*)
-(defvar *graph-margin*)
-(defvar *graph-font-name*)
-(defvar *graph-font-size*)
-(defvar *graph-font-color*)
-(defvar *graph-splines*)
-(defvar *graph-bg-color*)
-(defvar *legend*)
-(defvar *legend-node-shape*)
-(defvar *edge-style*)
-(defvar *edge-with-arrow*)
-(defvar *edge-color*)
-(defvar *edge-font-name*)
-(defvar *edge-font-size*)
-(defvar *edge-font-color*)
-(defvar *node-style*)
-(defvar *node-color*)
-(defvar *node-font-name*)
-(defvar *node-font-size*)
-(defvar *node-font-color*)
-(defvar *node-shape-interface*)
-(defvar *node-shape-deposit*)
-(defvar *node-fill*)
+(defparameter *out-file* nil
+  "Output file path.")
+(defparameter *context-table-name* nil
+  "Input file path for the context table.")
+(defparameter *observation-table-name* nil
+  "Input file path for the observation table.")
+(defparameter *inference-table-name* nil
+  "Optional input file path for the inference table.")
+(defparameter *period-table-name* nil
+  "Optional input file path for the period table.")
+(defparameter *phase-table-name* nil
+  "Optional input file path for the phase table.")
+(defparameter *context-table-header* nil
+  "Switch for a header line in the context table, nil for no header
+  line and non-nil for a header line.")
+(defparameter *observation-table-header* nil
+  "Switch for a header line in the observation table, nil for no header
+  line and non-nil for a header line.")
+(defparameter *inference-table-header* nil
+  "Switch for a header line in the inference table, nil for no header
+  line and non-nil for a header line.")
+(defparameter *period-table-header* nil
+  "Switch for a header line in the period table, nil for no header
+  line and non-nil for a header line.")
+(defparameter *phase-table-header* nil
+  "Switch for a header line in the phase table, nil for no header
+  line and non-nil for a header line.")
+(defparameter *symbolize-unit-type* nil
+  "Switch to distinguish interfaces and deposits, nil for no
+  distinction and non-nil to distinguish.")
+(defparameter *node-fill-by* nil
+  "How to fill the nodes; nil for no fill, or one of '+levels+',
+  '+reachable+', '+periods+', '+phases+', '+connected+', or '+distance+'.")
+(defparameter *label-break* nil)
+(defparameter *color-scheme* nil)
+(defparameter *color-space* nil)
+(defparameter *label-color-dark* nil)
+(defparameter *label-color-light* nil)
+(defparameter *reachable-from* nil)
+(defparameter *reachable-limit* nil)
+(defparameter *reachable-color* nil)
+(defparameter *reachable-not-color* nil)
+(defparameter *origin-color* nil)
+(defparameter *adjacent-color* nil)
+(defparameter *url-include* nil)
+(defparameter *url-default* nil)
+(defparameter *graph-title* nil)
+(defparameter *graph-labelloc* nil)
+(defparameter *graph-style* nil)
+(defparameter *graph-size* nil)
+(defparameter *graph-ratio* nil)
+(defparameter *graph-page* nil)
+(defparameter *graph-dpi* nil)
+(defparameter *graph-margin* nil)
+(defparameter *graph-font-name* nil)
+(defparameter *graph-font-size* nil)
+(defparameter *graph-font-color* nil)
+(defparameter *graph-splines* nil)
+(defparameter *graph-bg-color* nil)
+(defparameter *legend* nil)
+(defparameter *legend-node-shape* nil)
+(defparameter *edge-style* nil)
+(defparameter *edge-with-arrow* nil)
+(defparameter *edge-color* nil)
+(defparameter *edge-font-name* nil)
+(defparameter *edge-font-size* nil)
+(defparameter *edge-font-color* nil)
+(defparameter *node-style* nil)
+(defparameter *node-color* nil)
+(defparameter *node-font-name* nil)
+(defparameter *node-font-size* nil)
+(defparameter *node-font-color* nil)
+(defparameter *node-shape-interface* nil)
+(defparameter *node-shape-deposit* nil)
+(defparameter *node-fill* nil)
+(defparameter *assume-correlations-true* nil)
 
 ;; global variables not set by configuration file
-(defvar *ranks*)
+(defparameter *ranks* nil)
 
 ;; constants
 (defconstant +transparent+ (read-from-string "transparent"))
@@ -110,7 +131,10 @@ variables.  Return t if successful, nil otherwise."
        t))
 
 (defun color-filter (col extra-quotes)
-  "Returns a valid Graphviz dot color designator. The result is either an integer or a color name appended to a color space.  COL can either be an integer, in which case Brewer colors are assumed, or a string with a color name."
+  "Returns a valid Graphviz dot color designator. The result is either
+an integer or a color name appended to a color space.  COL can either
+be an integer, in which case Brewer colors are assumed, or a string
+with a color name."
   (if (integerp col) col
       (if (eq (read-from-string col) +transparent+)
           col
@@ -327,11 +351,10 @@ variables.  Return t if successful, nil otherwise."
   (graph:add-node graph +separated+)
   (graph:add-node graph +not-reachable+) 
   (graph:add-node graph +origin+)
-  (graph:add-node graph +abutting+)
-  )
+  (graph:add-node graph +abutting+))
 
 (defun hm-draw (cnf-file-path)
-  "Write a dot file"
+  "Write a dot file."
   (let ((rejected)
         (node-fills)
         (unit-types)
@@ -343,63 +366,7 @@ variables.  Return t if successful, nil otherwise."
         (inference-table)
         (period-table)
         (phase-table))
-    ;; make certain global variables are nil
-    (setq *ranks* nil)
-    (setq *out-file* nil)
-    (setq *context-table-name* nil)
-    (setq *observation-table-name* nil)
-    (setq *inference-table-name* nil)
-    (setq *period-table-name* nil)
-    (setq *phase-table-name* nil)
-    (setq *context-table-header* nil)
-    (setq *observation-table-header* nil)
-    (setq *inference-table-header* nil)
-    (setq *period-table-header* nil)
-    (setq *phase-table-header* nil)
-    (setq *symbolize-unit-type* nil)
-    (setq *node-fill-by* nil)
-    (setq *label-break* nil)
-    (setq *color-scheme* nil)
-    (setq *color-space* nil)
-    (setq *label-color-dark* nil)
-    (setq *label-color-light* nil)
-    (setq *reachable-from* nil)
-    (setq *reachable-limit* nil)
-    (setq *reachable-color* nil)
-    (setq *reachable-not-color* nil)
-    (setq *origin-color* nil)
-    (setq *adjacent-color* nil)
-    (setq *url-include* nil)
-    (setq *url-default* nil)
-    (setq *graph-title* nil)
-    (setq *graph-labelloc* nil)
-    (setq *graph-style* nil)
-    (setq *graph-size* nil)
-    (setq *graph-ratio* nil)
-    (setq *graph-page* nil)
-    (setq *graph-dpi* nil)
-    (setq *graph-margin* nil)
-    (setq *graph-font-name* nil)
-    (setq *graph-font-size* nil)
-    (setq *graph-font-color* nil)
-    (setq *graph-splines* nil)
-    (setq *graph-bg-color* nil)
-    (setq *legend* nil)
-    (setq *legend-node-shape* nil)
-    (setq *edge-style* nil)
-    (setq *edge-with-arrow* nil)
-    (setq *edge-color* nil)
-    (setq *edge-font-name* nil)
-    (setq *edge-font-size* nil)
-    (setq *edge-font-color* nil)
-    (setq *node-style* nil)
-    (setq *node-color* nil)
-    (setq *node-font-name* nil)
-    (setq *node-font-size* nil)
-    (setq *node-font-color* nil)
-    (setq *node-shape-interface* nil)
-    (setq *node-shape-deposit* nil)
-    (setq *node-fill* nil)
+    
     ;; read configuration file
     (if (hm-read-cnf-file cnf-file-path)
         (progn
@@ -438,145 +405,157 @@ variables.  Return t if successful, nil otherwise."
                                   (read-from-string (second arc))))
             (unless rejected
               (and (graph:cycles graph) (push arc rejected))))
-                                       
-          (if rejected (format t "A cycle includes ~a" (pop rejected))
-              (progn                    ; create dot file
-                (set-same-ranks inference-table)
-                (set-other-ranks context-table)
-                (when *node-fill-by*    ; fill nodes
-                  (setq node-fills
-                        (cond ((eq *node-fill-by* +levels+)
-                               (graph:levels graph))
-                              ((eq *node-fill-by* +periods+)
-                               (node-fill-by-table period-table context-table))
-                              ((eq *node-fill-by* +phases+)
-                               (node-fill-by-table phase-table context-table))
-                              ((and *reachable-from*
-                                    (eq *node-fill-by* +reachable+))
-                               (node-fill-by-reachable graph))
-                              ((and *reachable-from*
-                                    (eq *node-fill-by* +connected+))
-                               (node-fill-by-connected graph))
-                              ((and *reachable-from*
-                                    (eq *node-fill-by* +distance+))
-                               (node-fill-by-distance graph))
-                              (t (return-from hm-draw
-                                   (format t "Incorrect *node-fill-by* value: ~a"
-                                           *node-fill-by*))))))
-                (when *symbolize-unit-type* ; node shapes
-                  (setq unit-types (set-node-shapes context-table)))
-                (when *url-include*     ; add url information
-                  (setq node-urls (get-node-urls-from context-table))
-                  (setq arc-urls (get-arc-urls-from observation-table)))
-                (when *legend*
-                  (cond ((eq *node-fill-by* +periods+)
-                         (make-legend-for period-table graph node-fills
-                                          unit-types node-urls))
+
+          ; if there is a cycle in the graph, shut down
+          (when rejected
+            (return-from hm-draw
+              (format t "A cycle that includes node ~a is present."
+                      (pop rejected))))
+          
+          ;; possibly assume correlated contexts once-whole
+          (when *assume-correlations-true*
+            (dolist (part inference-table)
+              (graph:merge-nodes
+               graph (first part) (second part)
+               :new (read-from-string (format nil "~s=~s" (first part)
+                                              (second part))))))
+
+          (set-same-ranks inference-table)
+          (set-other-ranks context-table)
+          (when *node-fill-by*    ; fill nodes
+            (setq node-fills
+                  (cond ((eq *node-fill-by* +levels+)
+                         (graph:levels graph))
+                        ((eq *node-fill-by* +periods+)
+                         (node-fill-by-table period-table context-table))
                         ((eq *node-fill-by* +phases+)
-                         (make-legend-for phase-table graph node-fills
+                         (node-fill-by-table phase-table context-table))
+                        ((and *reachable-from*
+                              (eq *node-fill-by* +reachable+))
+                         (node-fill-by-reachable graph))
+                        ((and *reachable-from*
+                              (eq *node-fill-by* +connected+))
+                         (node-fill-by-connected graph))
+                        ((and *reachable-from*
+                              (eq *node-fill-by* +distance+))
+                         (node-fill-by-distance graph))
+                        (t (return-from hm-draw
+                             (format t "Incorrect *node-fill-by* value: ~a"
+                                     *node-fill-by*))))))
+          (when *symbolize-unit-type* ; node shapes
+            (setq unit-types (set-node-shapes context-table)))
+          (when *url-include*     ; add url information
+            (setq node-urls (get-node-urls-from context-table))
+            (setq arc-urls (get-arc-urls-from observation-table)))
+          (when *legend*
+            (cond ((eq *node-fill-by* +periods+)
+                   (make-legend-for period-table graph node-fills
+                                    unit-types node-urls))
+                  ((eq *node-fill-by* +phases+)
+                   (make-legend-for phase-table graph node-fills
+                                    unit-types node-urls))
+                  ((and *reachable-from* (eq *node-fill-by* +reachable+))
+                   (make-reachable-legend graph node-fills
                                           unit-types node-urls))
-                        ((and *reachable-from* (eq *node-fill-by* +reachable+))
-                         (make-reachable-legend graph node-fills
-                                                unit-types node-urls))
-                        ((and *reachable-from* (eq *node-fill-by* +distance+))
-                         (make-distance-legend graph node-fills
-                                                unit-types node-urls))))
-                (graph-dot:to-dot-file  ; write the dot file
-                 graph *out-file*
-                 :ranks *ranks*
-                 :attributes
-                 (list
-                  (cons :style (make-attribute *graph-style*))
-                  (cons :colorscheme (make-attribute *color-scheme*))
-                  (cons :dpi (make-attribute *graph-dpi*))
-                  (cons :URL (make-attribute *url-default*))
-                  (cons :margin (make-attribute *graph-margin*))
-                  (cons :bgcolor
-                        (format nil "~(~s~)"
-                                (if *graph-bg-color*
-                                    (color-filter
-                                     *graph-bg-color* nil) "")))
-                  (cons :fontname (make-attribute *graph-font-name*))
-                  (cons :fontsize (make-attribute *graph-font-size*))
-                  (cons :fontcolor
-                        (format nil "~(~s~)"
-                                (if *graph-font-color*
-                                    (color-filter *graph-font-color* nil) "")))
-                  (cons :splines (make-attribute *graph-splines*))
-                  (cons :page (make-attribute *graph-page*))
-                  (cons :size (make-attribute *graph-size*))   
-                  (cons :ratio (make-attribute *graph-ratio*))
-                  (cons :label (make-attribute *graph-title*))
-                  (cons :labelloc (make-attribute *graph-labelloc*)))
-                 :edge-attrs (list
-                              (cons :style
-                                    (constantly-format *edge-style*))
-                              (cons :arrowhead
-                                    (constantly-format *edge-with-arrow*))
-                              (cons :colorscheme
-                                    (constantly-format *color-scheme*))
-                              (cons :color
-                                    (constantly-format
-                                     (if *edge-color*
-                                         (color-filter *edge-color* nil)
-                                         "")))
-                              (cons :fontname
-                                    (constantly-format *edge-font-name*))
-                              (cons :fontsize
-                                    (constantly-format *edge-font-size*))
-                              (cons :fontcolor
-                                    (constantly-format
-                                     (if *edge-font-color*
-                                         (color-filter *edge-font-color* nil)
-                                         "")))
-                              (cons :URL (if (and *url-include* arc-urls
-                                                  (> (hash-table-count arc-urls) 0))
-                                             (lambda (e) 
-                                               (format nil "~s"
-                                                       (gethash e arc-urls)))
-                                             (constantly-format ""))))
-                 :node-attrs (list
-                              (cons :shape
-                                    (if (and *symbolize-unit-type* unit-types
-                                             (> (hash-table-count unit-types) 0))
-                                        (lambda (n) 
-                                          (format nil "~(~s~)"
-                                                  (gethash n unit-types)))
-                                        (constantly-format *node-shape-deposit*)))
-                              (cons :style (constantly-format *node-style*))
-                              (cons :fontname (constantly-format *node-font-name*))
-                              (cons :fontsize (constantly-format *node-font-size*))
-                              (cons :colorscheme
-                                    (constantly-format *color-scheme*))
-                              (cons :color
-                                    (constantly-format
-                                     (if *node-color*
-                                         (color-filter *node-color* nil)
-                                         "")))
-                              (cons :fillcolor
-                                    (if (and node-fills
-                                             (> (hash-table-count node-fills) 0))
-                                        (lambda (n) (+ 1 (gethash n node-fills)))
-                                        (constantly
-                                         (if *node-fill*
-                                             (color-filter *node-fill* t)
-                                             ""))))
-                              (cons :fontcolor
-                                    (if (and node-fills
-                                             (> (hash-table-count node-fills) 0))
-                                        (lambda (n)
-                                          (if (<= *label-break*
-                                                  (gethash n node-fills))
-                                              (color-filter *label-color-light* t)
-                                              (color-filter *label-color-dark* t)))
-                                        (constantly
-                                         (if *node-font-color*
-                                             (color-filter *node-font-color* t) ""))))
-                              (cons :URL 
-                                    (if (and *url-include* node-urls
-                                             (> (hash-table-count node-urls) 0))
-                                        (lambda (n) (format nil "~s"
-                                                       (gethash n node-urls)))
-                                        (constantly-format "")))))))
+                  ((and *reachable-from* (eq *node-fill-by* +distance+))
+                   (make-distance-legend graph node-fills
+                                         unit-types node-urls))))
+          (graph-dot:to-dot-file  ; write the dot file
+           graph *out-file*
+           :ranks *ranks*
+           :attributes
+           (list
+            (cons :style (make-attribute *graph-style*))
+            (cons :colorscheme (make-attribute *color-scheme*))
+            (cons :dpi (make-attribute *graph-dpi*))
+            (cons :URL (make-attribute *url-default*))
+            (cons :margin (make-attribute *graph-margin*))
+            (cons :bgcolor
+                  (format nil "~(~s~)"
+                          (if *graph-bg-color*
+                              (color-filter
+                               *graph-bg-color* nil) "")))
+            (cons :fontname (make-attribute *graph-font-name*))
+            (cons :fontsize (make-attribute *graph-font-size*))
+            (cons :fontcolor
+                  (format nil "~(~s~)"
+                          (if *graph-font-color*
+                              (color-filter *graph-font-color* nil) "")))
+            (cons :splines (make-attribute *graph-splines*))
+            (cons :page (make-attribute *graph-page*))
+            (cons :size (make-attribute *graph-size*))   
+            (cons :ratio (make-attribute *graph-ratio*))
+            (cons :label (make-attribute *graph-title*))
+            (cons :labelloc (make-attribute *graph-labelloc*)))
+           :edge-attrs (list
+                        (cons :style
+                              (constantly-format *edge-style*))
+                        (cons :arrowhead
+                              (constantly-format *edge-with-arrow*))
+                        (cons :colorscheme
+                              (constantly-format *color-scheme*))
+                        (cons :color
+                              (constantly-format
+                               (if *edge-color*
+                                   (color-filter *edge-color* nil)
+                                   "")))
+                        (cons :fontname
+                              (constantly-format *edge-font-name*))
+                        (cons :fontsize
+                              (constantly-format *edge-font-size*))
+                        (cons :fontcolor
+                              (constantly-format
+                               (if *edge-font-color*
+                                   (color-filter *edge-font-color* nil)
+                                   "")))
+                        (cons :URL (if (and *url-include* arc-urls
+                                            (> (hash-table-count arc-urls) 0))
+                                       (lambda (e) 
+                                         (format nil "~s"
+                                                 (gethash e arc-urls)))
+                                       (constantly-format ""))))
+           :node-attrs (list
+                        (cons :shape
+                              (if (and *symbolize-unit-type* unit-types
+                                       (> (hash-table-count unit-types) 0))
+                                  (lambda (n) 
+                                    (format nil "~(~s~)"
+                                            (gethash n unit-types)))
+                                  (constantly-format *node-shape-deposit*)))
+                        (cons :style (constantly-format *node-style*))
+                        (cons :fontname (constantly-format *node-font-name*))
+                        (cons :fontsize (constantly-format *node-font-size*))
+                        (cons :colorscheme
+                              (constantly-format *color-scheme*))
+                        (cons :color
+                              (constantly-format
+                               (if *node-color*
+                                   (color-filter *node-color* nil)
+                                   "")))
+                        (cons :fillcolor
+                              (if (and node-fills
+                                       (> (hash-table-count node-fills) 0))
+                                  (lambda (n) (+ 1 (gethash n node-fills)))
+                                  (constantly
+                                   (if *node-fill*
+                                       (color-filter *node-fill* t)
+                                       ""))))
+                        (cons :fontcolor
+                              (if (and node-fills
+                                       (> (hash-table-count node-fills) 0))
+                                  (lambda (n)
+                                    (if (<= *label-break*
+                                            (gethash n node-fills))
+                                        (color-filter *label-color-light* t)
+                                        (color-filter *label-color-dark* t)))
+                                  (constantly
+                                   (if *node-font-color*
+                                       (color-filter *node-font-color* t) ""))))
+                        (cons :URL 
+                              (if (and *url-include* node-urls
+                                       (> (hash-table-count node-urls) 0))
+                                  (lambda (n) (format nil "~s"
+                                                 (gethash n node-urls)))
+                                  (constantly-format "")))))
           (format t "Wrote ~a" *out-file*))
         (format t "Unable to read from ~a" cnf-file-path))))
