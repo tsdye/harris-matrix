@@ -10,7 +10,7 @@
 (require "graph-matrix")
 (require "cl-csv")
 
-;; declae global variables that will be set by the configuration file
+;; declare global variables that will be set by the configuration file
 (defparameter *out-file* nil
   "Output file path.")
 (defparameter *context-table-name* nil
@@ -44,52 +44,146 @@
 (defparameter *node-fill-by* nil
   "How to fill the nodes; nil for no fill, or one of 'levels',
   'reachable', 'periods', 'phases', 'connected', or 'distance'.")
-(defparameter *label-break* nil)
-(defparameter *color-scheme* nil)
-(defparameter *color-space* nil)
-(defparameter *label-color-dark* nil)
-(defparameter *label-color-light* nil)
-(defparameter *reachable-from* nil)
-(defparameter *reachable-limit* nil)
-(defparameter *reachable-color* nil)
-(defparameter *reachable-not-color* nil)
-(defparameter *origin-color* nil)
-(defparameter *adjacent-color* nil)
-(defparameter *url-include* nil)
-(defparameter *url-default* nil)
-(defparameter *graph-title* nil)
-(defparameter *graph-labelloc* nil)
-(defparameter *graph-style* nil)
-(defparameter *graph-size* nil)
-(defparameter *graph-ratio* nil)
-(defparameter *graph-page* nil)
-(defparameter *graph-dpi* nil)
-(defparameter *graph-margin* nil)
-(defparameter *graph-font-name* nil)
-(defparameter *graph-font-size* nil)
-(defparameter *graph-font-color* nil)
-(defparameter *graph-splines* nil)
-(defparameter *graph-bg-color* nil)
-(defparameter *legend* nil)
-(defparameter *legend-node-shape* nil)
-(defparameter *edge-style* nil)
-(defparameter *edge-with-arrow* nil)
-(defparameter *edge-color* nil)
-(defparameter *edge-font-name* nil)
-(defparameter *edge-font-size* nil)
-(defparameter *edge-font-color* nil)
-(defparameter *node-style* nil)
-(defparameter *node-color* nil)
-(defparameter *node-font-name* nil)
-(defparameter *node-font-size* nil)
-(defparameter *node-font-color* nil)
-(defparameter *node-shape-interface* nil)
-(defparameter *node-shape-deposit* nil)
-(defparameter *node-fill* nil)
-(defparameter *assume-correlations-true* nil)
+(defparameter *label-break* nil
+  "Switch from dark to light label color; 'nil' for no switch, or a
+  number corresponding to the highest level node that is labeled with
+  a dark color--higher level nodes will be light-colored.")
+(defparameter *color-scheme* nil
+  "Either 'nil' for no color scheme, or the name of a Brewer color
+  scheme used by GraphViz dot.")
+(defparameter *color-space* nil
+  "Choose the color space for color names; 'nil' for the GraphViz dot
+  default, or one of 'x11' or 'svg'.")
+(defparameter *label-color-dark* nil
+  "The dark color for labels used with nodes having a light fill
+  color; either a color name from the active color space, or an integer
+  index into a Brewer color scheme.")
+(defparameter *label-color-light* nil
+  "The light color for labels used with nodes having a dark fill
+  color; either a color name from the active color space, or an integer
+  index into a Brewer color scheme.")
+(defparameter *reachable-from* nil
+  "The label of the start node for calculating reachability.")
+(defparameter *reachable-limit* nil
+  "A number that determines the scope of the reachability calculation;
+  < 0 for all reachable nodes, 0 for the start node only, 1 for
+  adjacent nodes, etc.")
+(defparameter *reachable-color* nil
+  "The fill color for reachable nodes; either a color name from the
+  active color space, or an integer index into a Brewer color scheme.")
+(defparameter *reachable-not-color* nil
+  "The fill color for unreachable nodes; either a color name from the
+  active color space, or an integer index into a Brewer color scheme.")
+(defparameter *origin-color* nil
+  "The fill color for the origin node; either a color name from the
+  active color space, or an integer index into a Brewer color scheme.")
+(defparameter *adjacent-color* nil
+  "The fill color for nodes adjacent to the origin node; either a
+  color name from the active color space, or an integer index into a
+  Brewer color scheme.")
+(defparameter *url-include* nil
+  "Switch for URL information for nodes and edges; 'nil' for no URL
+  information, non-nil otherwise.")
+(defparameter *url-default* nil
+  "A default URL to use for nodes and edges if specific URL
+  information is absent.")
+(defparameter *graph-title* nil
+  "An optional title for the graph.")
+(defparameter *graph-labelloc* nil
+  "The location of the title, either non-nil for centered or nil for
+  not centered.")
+(defparameter *graph-style* nil
+  "A valid argument for the GraphViz dot style attribute for a graph.")
+(defparameter *graph-size* nil
+  "The maximum size of the graph in inches; either one value that
+  serves as both width and height, or two values separated by a
+  comma.  Leave this nil for the GraphViz dot default.")
+(defparameter *graph-ratio* nil
+  "A valid argument for the GraphViz dot ratio attribute for a graph;
+  typically a numeric value indicating the aspect ratio, but also
+  various strings that trigger complex responses.")
+(defparameter *graph-page* nil
+  "The maximum size of the page in inches; either one value that
+  serves as both width and height, or two values separated by a
+  comma.  Leave this nil for the GraphViz dot default.")
+(defparameter *graph-dpi* nil
+  "Specify the expected number of pixels per inch on a display device.
+  Leave this nil for the GraphViz dot default.")
+(defparameter *graph-margin* nil
+  "The x and y margins of the graph in inches; either one value that
+  serves as both x and y, or two values separated by a comma.  Leave
+  this nil for the GraphViz dot default.")
+(defparameter *graph-font-name* nil
+  "The font used to render text associated with the graph (rather than
+  the nodes and edges). The possibilities here are device dependent.
+  The values 'times' and 'helvetica' select Roman and sans-serif
+  fonts, respectively, on most platforms.")
+(defparameter *graph-font-size* nil
+  "Font size in points.")
+(defparameter *graph-font-color* nil
+  "The color of text associated with the graph (rather than nodes and
+  edges). Either a color name from the active color space or an
+  integer index into a Brewer color scheme.")
+(defparameter *graph-splines* nil
+  "Controls how, and if, edges are drawn; one of 'none' for no edges,
+  'line' or 'false' for straight line edges, 'polyline' for straight
+  line edges that avoid nodes, 'curved' for curved edges, 'ortho' for
+  orthogonal edges, and 'spline' or 'true' for edges that avoid
+  nodes.")
+(defparameter *graph-bg-color* nil
+  "One of 'transparent', a color name from the active color space, or
+  an integer index into a Brewer color scheme.")
+(defparameter *legend* nil
+  "A switch for creating a rudimentary legend; non-nil to include a
+  legend, nil otherwise.")
+(defparameter *legend-node-shape* nil
+  "A valid GraphViz dot node shape for node entries in the legend.")
+(defparameter *edge-style* nil
+  "A valid GraphViz dot style attribute for edges.")
+(defparameter *edge-with-arrow* nil
+  "A valid GraphViz dot arrowType attribute.")
+(defparameter *edge-color* nil
+  "The color of edges. Either a color name from the active color space
+  or an integer index into a Brewer color scheme.")
+(defparameter *edge-font-name* nil
+  "The font used to render edge labels. The possibilities here are
+  device dependent.  The values 'times' and 'helvetica' select Roman
+  and sans-serif fonts, respectively, on most platforms.")
+(defparameter *edge-font-size* nil
+  "Font size in points of edge labels.")
+(defparameter *edge-font-color* nil
+  "The color of text for edge labels. Either a color name from the
+  active color space or an integer index into a Brewer color scheme.")
+(defparameter *node-style* nil
+  "A valid GraphViz dot style attribute for nodes.")
+(defparameter *node-color* nil
+  "The color of the node outline.  Either a color name from the active
+  color space or an integer index into a Brewer color scheme.")
+(defparameter *node-font-name* nil
+  "The font used to render node labels. The possibilities here are
+  device dependent.  The values 'times' and 'helvetica' select Roman
+  and sans-serif fonts, respectively, on most platforms.")
+(defparameter *node-font-size* nil
+  "Font size in points of node labels.")
+(defparameter *node-font-color* nil
+  "The color used to render node labels.  Either a color name from the
+  active color space or an integer index into a Brewer color scheme.")
+(defparameter *node-shape-interface* nil
+  "A valid GraphViz dot node shape for interfacial contexts.")
+(defparameter *node-shape-deposit* nil
+  "A valid GraphViz dot node shape for depositional contexts.")
+(defparameter *node-fill* nil
+  "The color used to fill nodes.  Either a color name from the active
+  color space or an integer index into a Brewer color scheme.")
+(defparameter *assume-correlations-true* nil
+  "A switch to toggle between a directed graph based solely on
+  observations and one based on observations and inferences; nil for a
+  directed graph based on observations and non-nil for a directed
+  graph based on observations and inferences.")
 
-;; global variables not set by configuration file
-(defparameter *ranks* nil)
+;; global variable not set by the configuration file
+(defparameter *ranks* nil
+  "A list of graph:rank structures.")
 
 (defun hm-read-cnf-file (config-file-name)
   "Read csv file specified by CONFIG-FILE-NAME and set global
