@@ -42,8 +42,8 @@
   "Switch to distinguish interfaces and deposits, nil for no
   distinction and non-nil to distinguish.")
 (defparameter *node-fill-by* nil
-  "How to fill the nodes; nil for no fill, or one of '+levels+',
-  '+reachable+', '+periods+', '+phases+', '+connected+', or '+distance+'.")
+  "How to fill the nodes; nil for no fill, or one of 'levels',
+  'reachable', 'periods', 'phases', 'connected', or 'distance'.")
 (defparameter *label-break* nil)
 (defparameter *color-scheme* nil)
 (defparameter *color-space* nil)
@@ -91,24 +91,6 @@
 ;; global variables not set by configuration file
 (defparameter *ranks* nil)
 
-;; constants
-(defconstant +transparent+ (read-from-string "transparent"))
-(defconstant +basal+ (read-from-string "basal"))
-(defconstant +surface+ (read-from-string "surface"))
-(defconstant +levels+ (read-from-string "levels"))
-(defconstant +periods+ (read-from-string "periods"))
-(defconstant +phases+ (read-from-string "phases"))
-(defconstant +reachable+ (read-from-string "reachable"))
-(defconstant +connected+ (read-from-string "connected"))
-(defconstant +deposit+ (read-from-string "deposit"))
-(defconstant +interface+ (read-from-string "interface"))
-(defconstant +adjacent+ (read-from-string "adjacent"))
-(defconstant +not-reachable+ (read-from-string "not-reachable"))
-(defconstant +distance+ (read-from-string "distance"))
-(defconstant +separated+ 'separated)
-(defconstant +abutting+ 'abutting)
-(defconstant +origin+ 'origin)
-
 (defun hm-read-cnf-file (config-file-name)
   "Read csv file specified by CONFIG-FILE-NAME and set global
 variables.  Return t if successful, nil otherwise."
@@ -116,12 +98,12 @@ variables.  Return t if successful, nil otherwise."
        (cl-csv:do-csv (row (probe-file config-file-name))
          (setf (symbol-value (read-from-string (first row)))
                (cond
-                 ((string= "reachable" (second row)) +reachable+)
-                 ((string= "periods" (second row)) +periods+)
-                 ((string= "phases" (second row)) +phases+)
-                 ((string= "levels" (second row)) +levels+)
-                 ((string= "connected" (second row)) +connected+)
-                 ((string= "distance" (second row)) +distance+)
+                 ((string= "reachable" (second row)) 'reachable)
+                 ((string= "periods" (second row)) 'periods)
+                 ((string= "phases" (second row)) 'phases)
+                 ((string= "levels" (second row)) 'levels)
+                 ((string= "connected" (second row)) 'connected)
+                 ((string= "distance" (second row)) 'distance)
                  ((string= "t" (second row)) t)
                  ((string= "nil" (second row)) nil)
                  ((string= "" (second row)) nil)
@@ -136,7 +118,7 @@ an integer or a color name appended to a color space.  COL can either
 be an integer, in which case Brewer colors are assumed, or a string
 with a color name."
   (if (integerp col) col
-      (if (eq (read-from-string col) +transparent+)
+      (if (eq (read-from-string col) 'transparent)
           col
           (if extra-quotes
               (format nil "\"/~a/~a\"" *color-space* col)
@@ -242,13 +224,13 @@ with a color name."
 
 (defun set-other-ranks (table)
   (mapcar #'(lambda (x)
-              (when (or (eq (read-from-string (third x)) +basal+)
-                        (eq (read-from-string (third x)) +surface+))
+              (when (or (eq (read-from-string (third x)) 'basal)
+                        (eq (read-from-string (third x)) 'surface))
                 (push (graph-dot::make-rank
                        :value
                        (cond
-                         ((eq (read-from-string (third x)) +basal+) "sink")
-                         ((eq (read-from-string (third x)) +surface+) "source"))
+                         ((eq (read-from-string (third x)) 'basal) "sink")
+                         ((eq (read-from-string (third x)) 'surface) "source"))
                        :node-list
                        (list (if (stringp (first x))
                                  (read-from-string
@@ -261,9 +243,9 @@ with a color name."
   (let ((ret (make-hash-table)))
     (mapcar #'(lambda (x)
                 (setf (gethash (read-from-string (first x)) ret) 
-                      (cond ((eq +deposit+ (read-from-string (second x)))
+                      (cond ((eq 'deposit (read-from-string (second x)))
                              *node-shape-deposit*)
-                            ((eq +interface+ (read-from-string (second x)))
+                            ((eq 'interface (read-from-string (second x)))
                              *node-shape-interface*))))
             table)
     ret))
@@ -305,53 +287,53 @@ with a color name."
           table))
 
 (defun make-reachable-legend (graph nodes units urls)
-  (setf (gethash +reachable+ nodes) *reachable-color*)
-  (setf (gethash +not-reachable+ nodes) *reachable-not-color*)
-  (setf (gethash +origin+ nodes) *origin-color*)
+  (setf (gethash 'reachable nodes) *reachable-color*)
+  (setf (gethash 'not-reachable nodes) *reachable-not-color*)
+  (setf (gethash 'origin nodes) *origin-color*)
   (when *symbolize-unit-type* 
-    (setf (gethash +origin+ units) *legend-node-shape*)
-    (setf (gethash +reachable+ units) *legend-node-shape*)
-    (setf (gethash +not-reachable+ units) *legend-node-shape*))
+    (setf (gethash 'origin units) *legend-node-shape*)
+    (setf (gethash 'reachable units) *legend-node-shape*)
+    (setf (gethash 'not-reachable units) *legend-node-shape*))
   (when *url-include*
-    (setf (gethash +origin+ urls) (if *url-default* *url-default* ""))
-    (setf (gethash +reachable+ urls) (if *url-default* *url-default* ""))
-    (setf (gethash +not-reachable+ urls) (if *url-default* *url-default* "")))
+    (setf (gethash 'origin urls) (if *url-default* *url-default* ""))
+    (setf (gethash 'reachable urls) (if *url-default* *url-default* ""))
+    (setf (gethash 'not-reachable urls) (if *url-default* *url-default* "")))
   (push (graph-dot::make-rank
          :value "sink"
-         :node-list (list (format nil "~s" +reachable+)
-                          (format nil "~s" +not-reachable+)
-                          (format nil "~s" +origin+)))
+         :node-list (list (format nil "~s" 'reachable)
+                          (format nil "~s" 'not-reachable)
+                          (format nil "~s" 'origin)))
         *ranks*)
-  (graph:add-node graph +reachable+)
-  (graph:add-node graph +not-reachable+)
-  (graph:add-node graph +origin+))
+  (graph:add-node graph 'reachable)
+  (graph:add-node graph 'not-reachable)
+  (graph:add-node graph 'origin))
 
 (defun make-distance-legend (graph nodes units urls)
-  (setf (gethash +separated+ nodes) *reachable-color*)
-  (setf (gethash +not-reachable+ nodes) *reachable-not-color*)
-  (setf (gethash +origin+ nodes) *origin-color*)
-  (setf (gethash +abutting+ nodes) *adjacent-color*)
+  (setf (gethash 'separated nodes) *reachable-color*)
+  (setf (gethash 'not-reachable nodes) *reachable-not-color*)
+  (setf (gethash 'origin nodes) *origin-color*)
+  (setf (gethash 'abutting nodes) *adjacent-color*)
   (when *symbolize-unit-type* 
-    (setf (gethash +origin+ units) *legend-node-shape*)
-    (setf (gethash +abutting+ units) *legend-node-shape*)
-    (setf (gethash +separated+ units) *legend-node-shape*)
-    (setf (gethash +not-reachable+ units) *legend-node-shape*))
+    (setf (gethash 'origin units) *legend-node-shape*)
+    (setf (gethash 'abutting units) *legend-node-shape*)
+    (setf (gethash 'separated units) *legend-node-shape*)
+    (setf (gethash 'not-reachable units) *legend-node-shape*))
   (when *url-include*
-    (setf (gethash +origin+ urls) (if *url-default* *url-default* ""))
-    (setf (gethash +abutting+ urls) (if *url-default* *url-default* ""))
-    (setf (gethash +reachable+ urls) (if *url-default* *url-default* ""))
-    (setf (gethash +not-reachable+ urls) (if *url-default* *url-default* "")))
+    (setf (gethash 'origin urls) (if *url-default* *url-default* ""))
+    (setf (gethash 'abutting urls) (if *url-default* *url-default* ""))
+    (setf (gethash 'reachable urls) (if *url-default* *url-default* ""))
+    (setf (gethash 'not-reachable urls) (if *url-default* *url-default* "")))
   (push (graph-dot::make-rank
          :value "sink"
-         :node-list (list (format nil "~s" +separated+)
-                          (format nil "~s" +not-reachable+)
-                          (format nil "~s" +origin+)
-                          (format nil "~s" +abutting+)))
+         :node-list (list (format nil "~s" 'separated)
+                          (format nil "~s" 'not-reachable)
+                          (format nil "~s" 'origin)
+                          (format nil "~s" 'abutting)))
         *ranks*)
-  (graph:add-node graph +separated+)
-  (graph:add-node graph +not-reachable+) 
-  (graph:add-node graph +origin+)
-  (graph:add-node graph +abutting+))
+  (graph:add-node graph 'separated)
+  (graph:add-node graph 'not-reachable) 
+  (graph:add-node graph 'origin)
+  (graph:add-node graph 'abutting))
 
 (defun hm-draw (cnf-file-path)
   "Write a dot file."
@@ -413,31 +395,32 @@ with a color name."
                       (pop rejected))))
           
           ;; possibly assume correlated contexts once-whole
-          (when *assume-correlations-true*
+          (if *assume-correlations-true*
             (dolist (part inference-table)
               (graph:merge-nodes
-               graph (first part) (second part)
-               :new (read-from-string (format nil "~s=~s" (first part)
-                                              (second part))))))
-
-          (set-same-ranks inference-table)
+               graph (read-from-string (second part))
+               (read-from-string (first part))
+               :new (read-from-string (format nil "~a=~a" (first part)
+                                              (second part)))))
+            (set-same-ranks inference-table))
+          
           (set-other-ranks context-table)
           (when *node-fill-by*    ; fill nodes
             (setq node-fills
-                  (cond ((eq *node-fill-by* +levels+)
+                  (cond ((eq *node-fill-by* 'levels)
                          (graph:levels graph))
-                        ((eq *node-fill-by* +periods+)
+                        ((eq *node-fill-by* 'periods)
                          (node-fill-by-table period-table context-table))
-                        ((eq *node-fill-by* +phases+)
+                        ((eq *node-fill-by* 'periods)
                          (node-fill-by-table phase-table context-table))
                         ((and *reachable-from*
-                              (eq *node-fill-by* +reachable+))
+                              (eq *node-fill-by* 'reachable))
                          (node-fill-by-reachable graph))
                         ((and *reachable-from*
-                              (eq *node-fill-by* +connected+))
+                              (eq *node-fill-by* 'connected))
                          (node-fill-by-connected graph))
                         ((and *reachable-from*
-                              (eq *node-fill-by* +distance+))
+                              (eq *node-fill-by* 'distance))
                          (node-fill-by-distance graph))
                         (t (return-from hm-draw
                              (format t "Incorrect *node-fill-by* value: ~a"
@@ -448,16 +431,16 @@ with a color name."
             (setq node-urls (get-node-urls-from context-table))
             (setq arc-urls (get-arc-urls-from observation-table)))
           (when *legend*
-            (cond ((eq *node-fill-by* +periods+)
+            (cond ((eq *node-fill-by* 'periods)
                    (make-legend-for period-table graph node-fills
                                     unit-types node-urls))
-                  ((eq *node-fill-by* +phases+)
+                  ((eq *node-fill-by* 'phases)
                    (make-legend-for phase-table graph node-fills
                                     unit-types node-urls))
-                  ((and *reachable-from* (eq *node-fill-by* +reachable+))
+                  ((and *reachable-from* (eq *node-fill-by* 'reachable))
                    (make-reachable-legend graph node-fills
                                           unit-types node-urls))
-                  ((and *reachable-from* (eq *node-fill-by* +distance+))
+                  ((and *reachable-from* (eq *node-fill-by* 'distance))
                    (make-distance-legend graph node-fills
                                          unit-types node-urls))))
           (graph-dot:to-dot-file  ; write the dot file
