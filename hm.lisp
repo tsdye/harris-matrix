@@ -10,7 +10,7 @@
 (require "graph-matrix")
 (require "cl-csv")
 
-;; global variables will be set by configuration file
+;; declae global variables that will be set by the configuration file
 (defparameter *out-file* nil
   "Output file path.")
 (defparameter *context-table-name* nil
@@ -135,6 +135,7 @@ with a color name."
   (constantly (format nil "~s" (if x x ""))))
 
 (defun node-fill-by-table (table contexts)
+  "Set the fill of nodes in CONTEXTS according to values recorded in TABLE."
   (let ((ht (make-hash-table))
         (ret (make-hash-table)))
     (mapcar #'(lambda (x)
@@ -239,7 +240,7 @@ with a color name."
                       *ranks*)))
           table))
 
-(defun set-node-shapes (table)
+(defun set-node-shapes (table inferences)
   (let ((ret (make-hash-table)))
     (mapcar #'(lambda (x)
                 (setf (gethash (read-from-string (first x)) ret) 
@@ -248,6 +249,11 @@ with a color name."
                             ((eq 'interface (read-from-string (second x)))
                              *node-shape-interface*))))
             table)
+    (when *assume-correlations-true*
+      (dolist (part inferences)
+        (setf (gethash (read-from-string
+                        (format nil "~a=~a" (first part) (second part))) ret)
+              (gethash (read-from-string (first part)) ret))))
     ret))
 
 (defun get-node-urls-from (table)
@@ -257,6 +263,8 @@ with a color name."
             (if (string= (sixth node) "")
                 (if *url-default* *url-default* "")
                 (sixth node))))
+    ; when assume-correlations-true
+    ; iterate through inferences here and add them to ret
     ret))
 
 (defun get-arc-urls-from (table)
@@ -266,6 +274,7 @@ with a color name."
                            (read-from-string (second arc))) ret)
             (if (string= (third arc) "")
                 (if *url-default* *url-default* "") (third arc))))
+    ; iterate through edges here, and if not in ret, add them
     ret))
 
 (defun make-legend-for (table graph nodes units urls)
@@ -426,7 +435,7 @@ with a color name."
                              (format t "Incorrect *node-fill-by* value: ~a"
                                      *node-fill-by*))))))
           (when *symbolize-unit-type* ; node shapes
-            (setq unit-types (set-node-shapes context-table)))
+            (setq unit-types (set-node-shapes context-table inference-table)))
           (when *url-include*     ; add url information
             (setq node-urls (get-node-urls-from context-table))
             (setq arc-urls (get-arc-urls-from observation-table)))
