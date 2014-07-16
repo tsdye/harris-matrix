@@ -42,7 +42,7 @@
   "Switch to distinguish interfaces and deposits, nil for no
   distinction and non-nil to distinguish.")
 (defparameter *node-fill-by* nil
-  "How to fill the nodes; nil for no fill, or one of 'levels',
+  "Fill nodes according to some procedure; nil for no procedure, or one of 'levels',
   'reachable', 'periods', 'phases', 'connected', or 'distance'.")
 (defparameter *label-break* nil
   "Switch from dark to light label color; 'nil' for no switch, or a
@@ -223,9 +223,13 @@ with a color name."
   (or (digit-char-p char) (char= char #\,) (char= char #\.)))
 
 (defun make-attribute (att)
+  "A convenience function to transform a Lisp symbol into a GraphViz
+dot attribute."
   (format nil "~(~s~)" (if att att "")))
 
 (defun constantly-format (x)
+  "A convenience function for situations where Lisp requires a
+function to express a constant."
   (constantly (format nil "~s" (if x x ""))))
 
 (defun node-fill-by-table (table contexts)
@@ -243,6 +247,7 @@ with a color name."
     ret))
 
 (defun node-fill-by-reachable (graph)
+  "Use the reachability matrix of GRAPH to set node fills."
   (let ((ret (make-hash-table))
         (reachable-list
          (cond 
@@ -277,6 +282,12 @@ with a color name."
     ret))
 
 (defun node-fill-by-connected (graph)
+  "Use the connected component of GRAPH that includes the node
+*reachable-from* to set node fills. Note that the component is
+unilaterally connected.  Unilaterally connected component partitions
+may not be well-defined, since it is possible for a given vertex to be
+unilaterally connected to two vertices which are not unilaterally
+connected with one another."
   (let ((ret (make-hash-table))
         (reachable-list (graph:connected-component graph *reachable-from*
                                                    :type :unilateral)))
@@ -289,6 +300,7 @@ with a color name."
     ret))
 
 (defun node-fill-by-distance (graph)
+  "Use the distance matrix of GRAPH to set node fills."
   (let ((ret (make-hash-table))
         (d)
         (distance-matrix (graph-matrix:to-distance-matrix
@@ -311,6 +323,9 @@ with a color name."
     ret))
 
 (defun set-same-ranks (table)
+  "Use the values in TABLE to make a list of graph:rank structures
+where the indicated nodes are to appear on the same rank of the graph
+picture."
   (mapcar #'(lambda (x)
               (push (graph-dot::make-rank :value "same"
                                           :node-list (list (first x) (second x)))
@@ -318,6 +333,9 @@ with a color name."
           table))
 
 (defun set-other-ranks (table)
+  "Use the values in TABLE to make a list of graph:rank structures
+where the indicated nodes either appear at the top or the bottom of
+the graph picture."
   (mapcar #'(lambda (x)
               (when (or (eq (read-from-string (third x)) 'basal)
                         (eq (read-from-string (third x)) 'surface))
@@ -335,6 +353,11 @@ with a color name."
           table))
 
 (defun set-node-shapes (table inferences)
+  "Set node shapes for depositional and interfacial contexts listed in
+TABLE and in INFERENCES.  The nodes created from information in
+INFERENCES are assigned a shape based on the value in TABLE for the
+first part of the inference.  Returns a hash table where the node
+labels are keys and the values are node shapes."
   (let ((ret (make-hash-table)))
     (mapcar #'(lambda (x)
                 (setf (gethash (read-from-string (first x)) ret) 
@@ -351,6 +374,8 @@ with a color name."
     ret))
 
 (defun get-node-urls-from (table)
+  "Reads URL's from TABLE.  Returns a hash table where the keys are
+node labels and the values are URL's."
   (let ((ret (make-hash-table)))
     (dolist (node table)
       (setf (gethash (read-from-string (first node)) ret)
@@ -362,16 +387,18 @@ with a color name."
     ret))
 
 (defun get-arc-urls-from (table)
+  "Reads URL's from TABLE.  Returns a hash table where the keys are
+arcs and the values are URL's."
   (let ((ret (make-hash-table :test #'equal)))
     (dolist (arc table)
       (setf (gethash (list (read-from-string (first arc))
                            (read-from-string (second arc))) ret)
             (if (string= (third arc) "")
                 (if *url-default* *url-default* "") (third arc))))
-    ; iterate through edges here, and if not in ret, add them
     ret))
 
 (defun make-legend-for (table graph nodes units urls)
+  "Make legend components for the node classification in TABLE."
   (mapcar #'(lambda (x)
               (setf (gethash (read-from-string (second x)) nodes)
                     (read-from-string (third x)))
@@ -390,6 +417,7 @@ with a color name."
           table))
 
 (defun make-reachable-legend (graph nodes units urls)
+  "Make legend components when nodes are filled by reachability."
   (setf (gethash 'reachable nodes) *reachable-color*)
   (setf (gethash 'not-reachable nodes) *reachable-not-color*)
   (setf (gethash 'origin nodes) *origin-color*)
@@ -412,6 +440,7 @@ with a color name."
   (graph:add-node graph 'origin))
 
 (defun make-distance-legend (graph nodes units urls)
+  "Make legend components when nodes are filled by distance from an origin node."
   (setf (gethash 'separated nodes) *reachable-color*)
   (setf (gethash 'not-reachable nodes) *reachable-not-color*)
   (setf (gethash 'origin nodes) *origin-color*)
@@ -439,7 +468,9 @@ with a color name."
   (graph:add-node graph 'abutting))
 
 (defun hm-draw (cnf-file-path)
-  "Write a dot file."
+  "Read a configuration file and various data files, create a graph,
+and write a dot file according to the variables contained in the
+configuration file."
   (let ((rejected)
         (node-fills)
         (unit-types)
