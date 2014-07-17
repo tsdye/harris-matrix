@@ -4,7 +4,7 @@
 
 ;; Licensed under the Gnu Public License Version 3 or later
 
-;;   (in-package #:hm)
+;; (in-package #:hm)
 
 (require "graph-dot")
 (require "graph-matrix")
@@ -529,16 +529,22 @@ configuration file."
                       (pop rejected))))
           
           ;; possibly assume correlated contexts once-whole
+          ;; check for cycles
           (if *assume-correlations-true*
-            (dolist (part inference-table)
-              (graph:merge-nodes
-               graph (read-from-string (second part))
-               (read-from-string (first part))
-               :new (read-from-string (format nil "~a=~a" (first part)
-                                              (second part)))))
+              (progn
+                (dolist (part inference-table)
+                  (graph:merge-nodes
+                   graph (read-from-string (second part))
+                   (read-from-string (first part))
+                   :new (read-from-string (format nil "~a=~a" (first part)
+                                                  (second part)))))
+                (when (graph:cycles graph)
+                  (return-from hm-draw
+                    (format t "Correlated contexts introduced a cycle."))))
             (set-same-ranks inference-table))
           
           (set-other-ranks context-table)
+
           (when *node-fill-by*    ; fill nodes
             (setq node-fills
                   (cond ((eq *node-fill-by* 'levels)
