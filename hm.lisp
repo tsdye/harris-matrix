@@ -373,7 +373,7 @@ labels are keys and the values are node shapes."
               (gethash (read-from-string (first part)) ret))))
     ret))
 
-(defun get-node-urls-from (table)
+(defun get-node-urls-from (table inferences)
   "Reads URL's from TABLE.  Returns a hash table where the keys are
 node labels and the values are URL's."
   (let ((ret (make-hash-table)))
@@ -382,8 +382,13 @@ node labels and the values are URL's."
             (if (string= (sixth node) "")
                 (if *url-default* *url-default* "")
                 (sixth node))))
-    ; when assume-correlations-true
-    ; iterate through inferences here and add them to ret
+    (when *assume-correlations-true*
+      (dolist (part inferences)
+        (setf (gethash (read-from-string
+                        (format nil "~a=~a" (first part) (second part))) ret)
+              (if (string= (third part) "")
+                  (if *url-default* *url-default* "")
+                  (third part)))))
     ret))
 
 (defun get-arc-urls-from (table)
@@ -568,7 +573,7 @@ configuration file."
           (when *symbolize-unit-type* ; node shapes
             (setq unit-types (set-node-shapes context-table inference-table)))
           (when *url-include*     ; add url information
-            (setq node-urls (get-node-urls-from context-table))
+            (setq node-urls (get-node-urls-from context-table inference-table))
             (setq arc-urls (get-arc-urls-from observation-table)))
           (when *legend*
             (cond ((eq *node-fill-by* 'periods)
