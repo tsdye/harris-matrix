@@ -619,6 +619,8 @@ configuration file."
         (reachability-matrix)
         (node-index-hash (make-hash-table))
         (counter -1))
+    (when (and *create-chronology-graph* *assume-correlations-true*)
+      (return-from hm-draw "The variable *assume-correlations-true* must be nil to create a chronology graph"))
     ;; read configuration file
     (if (not (hm-read-cnf-file cnf-file-path))
         (format t "Unable to read configuration file from ~a" cnf-file-path)        
