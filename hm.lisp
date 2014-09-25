@@ -12,7 +12,11 @@
 
 ;; declare global variables that will be set by the configuration file
 (defparameter *out-file* nil
-  "Output file path.")
+  "Output file path for the sequence diagram dot file.")
+(defparameter *chronology-out-file* nil
+  "Output file path for the chronology diagram dot file.")
+(defparameter *merged-out-file* nil
+  "Output file path for the merged sequence diagram dot file.")
 (defparameter *context-table-name* nil
   "Input file path for the context table.")
 (defparameter *observation-table-name* nil
@@ -23,6 +27,10 @@
   "Optional input file path for the period table.")
 (defparameter *phase-table-name* nil
   "Optional input file path for the phase table.")
+(defparameter *radiocarbon-table-name* nil
+  "Optional input file path for the radiocarbon table.")
+(defparameter *date-order-table-name* nil
+  "Optional input file path for the date order table.")
 (defparameter *context-table-header* nil
   "Switch for a header line in the context table, nil for no header
   line and non-nil for a header line.")
@@ -38,9 +46,17 @@
 (defparameter *phase-table-header* nil
   "Switch for a header line in the phase table, nil for no header
   line and non-nil for a header line.")
+(defparameter *radiocarbon-table-header* nil
+  "Switch for a header line in the radiocarbon table, nil for no header
+  line and non-nil for a header line.")
+(defparameter *date-order-table-header* nil
+  "Switch for a header line in the date-order table, nil for no header
+  line and non-nil for a header line.")
 (defparameter *symbolize-unit-type* nil
   "Switch to distinguish interfaces and deposits, nil for no
   distinction and non-nil to distinguish.")
+(defparameter *create-chronology-graph* nil
+  "Switch for a chronology graph, nil for no graph and non-nil to create a graph.")
 (defparameter *node-fill-by* nil
   "Fill nodes according to some procedure; nil for no procedure, or one of 'levels',
   'reachable', 'periods', 'phases', 'connected', or 'distance'.")
@@ -180,10 +196,108 @@
   observations and one based on observations and inferences; nil for a
   directed graph based on observations and non-nil for a directed
   graph based on observations and inferences.")
+(defparameter *chronology-color-scheme* nil
+  "Either 'nil' for no color scheme, or the name of a Brewer color
+  scheme used by GraphViz dot.")
+(defparameter *chronology-graph-title* nil
+  "An optional title for the graph.")
+(defparameter *chronology-graph-labelloc* nil
+  "The location of the title, either non-nil for centered or nil for
+  not centered.")
+(defparameter *chronology-graph-style* nil
+  "A valid argument for the GraphViz dot style attribute for a graph.")
+(defparameter *chronology-graph-size* nil
+  "The maximum size of the graph in inches; either one value that
+  serves as both width and height, or two values separated by a
+  comma.  Leave this nil for the GraphViz dot default.")
+(defparameter *chronology-graph-ratio* nil
+  "A valid argument for the GraphViz dot ratio attribute for a graph;
+  typically a numeric value indicating the aspect ratio, but also
+  various strings that trigger complex responses.")
+(defparameter *chronology-graph-page* nil
+  "The maximum size of the page in inches; either one value that
+  serves as both width and height, or two values separated by a
+  comma.  Leave this nil for the GraphViz dot default.")
+(defparameter *chronology-graph-dpi* nil
+  "Specify the expected number of pixels per inch on a display device.
+  Leave this nil for the GraphViz dot default.")
+(defparameter *chronology-graph-margin* nil
+  "The x and y margins of the graph in inches; either one value that
+  serves as both x and y, or two values separated by a comma.  Leave
+  this nil for the GraphViz dot default.")
+(defparameter *chronology-graph-font-name* nil
+  "The font used to render text associated with the graph (rather than
+  the nodes and edges). The possibilities here are device dependent.
+  The values 'times' and 'helvetica' select Roman and sans-serif
+  fonts, respectively, on most platforms.")
+(defparameter *chronology-graph-font-size* nil
+  "Font size in points.")
+(defparameter *chronology-graph-font-color* nil
+  "The color of text associated with the graph (rather than nodes and
+  edges). Either a color name from the active color space or an
+  integer index into a Brewer color scheme.")
+(defparameter *chronology-graph-splines* nil
+  "Controls how, and if, edges are drawn; one of 'none' for no edges,
+  'line' or 'false' for straight line edges, 'polyline' for straight
+  line edges that avoid nodes, 'curved' for curved edges, 'ortho' for
+  orthogonal edges, and 'spline' or 'true' for edges that avoid
+  nodes.")
+(defparameter *chronology-graph-bg-color* nil
+  "One of 'transparent', a color name from the active color space, or
+  an integer index into a Brewer color scheme.")
+(defparameter *chronology-edge-with-arrow* nil
+  "A valid GraphViz dot arrowType attribute.")
+(defparameter *chronology-edge-color* nil
+  "The color of edges. Either a color name from the active color space
+  or an integer index into a Brewer color scheme.")
+(defparameter *chronology-edge-font-name* nil
+  "The font used to render edge labels. The possibilities here are
+  device dependent.  The values 'times' and 'helvetica' select Roman
+  and sans-serif fonts, respectively, on most platforms.")
+(defparameter *chronology-edge-font-size* nil
+  "Font size in points of edge labels.")
+(defparameter *chronology-edge-font-color* nil
+  "The color of text for edge labels. Either a color name from the
+  active color space or an integer index into a Brewer color scheme.")
+(defparameter *chronology-edge-date* nil
+  "A valid GraphViz dot style attribute for an edge that connects to a date.")
+(defparameter *chronology-edge-abutting* nil
+  "A valid GraphViz dot style attribute for an edge that connects abutting phases.")
+(defparameter *chronology-edge-separated* nil
+  "A valid GraphViz dot style attribute for an edge that connects
+separated phases.")
+(defparameter *chronology-node-style* nil
+  "A valid GraphViz dot style attribute for nodes.")
+(defparameter *chronology-node-color* nil
+  "The color of the node outline.  Either a color name from the active
+  color space or an integer index into a Brewer color scheme.")
+(defparameter *chronology-node-font-name* nil
+  "The font used to render node labels. The possibilities here are
+  device dependent.  The values 'times' and 'helvetica' select Roman
+  and sans-serif fonts, respectively, on most platforms.")
+(defparameter *chronology-node-font-size* nil
+  "Font size in points of node labels.")
+(defparameter *chronology-node-font-color* nil
+  "The color used to render node labels.  Either a color name from the
+  active color space or an integer index into a Brewer color scheme.")
+(defparameter *chronology-node-shape-phase* nil
+  "A valid GraphViz dot node shape for interfacial contexts.")
+(defparameter *chronology-node-shape-date* nil
+  "A valid GraphViz dot node shape for depositional contexts.")
+(defparameter *chronology-node-fill* nil
+  "The color used to fill nodes.  Either a color name from the active
+  color space or an integer index into a Brewer color scheme.")
 
-;; global variable not set by the configuration file
+;; global variables not set by the configuration file
 (defparameter *ranks* nil
   "A list of graph:rank structures.")
+
+(defparameter *distance-matrix* nil
+  "Distance matrix of graph.")
+
+;; (defparameter *chronology-graph* nil
+;;   "Debug a problem with the chronology graph.")
+
 
 (defun hm-read-cnf-file (config-file-name)
   "Read csv file specified by CONFIG-FILE-NAME and set global
@@ -302,15 +416,16 @@ connected with one another."
 (defun node-fill-by-distance (graph)
   "Use the distance matrix of GRAPH to set node fills."
   (let ((ret (make-hash-table))
-        (d)
-        (distance-matrix (graph-matrix:to-distance-matrix
-                          graph
-                          (make-instance 'graph-matrix:fast-matrix))))
+        (d))
+    (unless *distance-matrix*
+      (setq *distance-matrix* (graph-matrix:to-distance-matrix
+                               graph
+                               (make-instance 'graph-matrix:fast-matrix))))
     (mapc (lambda (node)
             (setq d (min (graph-matrix:distance-from-to
-                          graph distance-matrix *reachable-from* node)
+                          graph *distance-matrix* *reachable-from* node)
                          (graph-matrix:distance-from-to
-                          graph distance-matrix node *reachable-from*)))
+                          graph *distance-matrix* node *reachable-from*)))
             (setf
              (gethash (read-from-string (format nil "~a" node)) ret)
              (cond
@@ -472,9 +587,18 @@ arcs and the values are URL's."
   (graph:add-node graph 'origin)
   (graph:add-node graph 'abutting))
 
+(defun pair-with (elem list)
+  (mapcar (lambda (a) (list elem a)) list))
+
+(defun unique-pairs (list)
+  (mapcon (lambda (rest) (pair-with (car rest) (cdr rest)))
+          (remove-duplicates list)))
+
+
 (defun hm-draw (cnf-file-path)
-  "Read a configuration file and various data files, create a graph,
-and write a dot file according to the variables contained in the
+  "Read a configuration file and various data files, create a
+stratigraphy graph and optionally a chronology graph, and write one or
+more dot files according to the variables contained in the
 configuration file."
   (let ((rejected)
         (node-fills)
@@ -482,42 +606,96 @@ configuration file."
         (arc-urls)
         (node-urls)
         (graph (graph:populate (make-instance 'graph:digraph)))
+        (chronology-graph)
         (context-table)
         (observation-table)
         (inference-table)
         (period-table)
-        (phase-table))
-    
+        (phase-table)
+        (radiocarbon-table)
+        (date-order-table)
+        (context-list)
+        (adjacency-matrix)
+        (reachability-matrix)
+        (node-index-hash (make-hash-table))
+        (counter -1))
     ;; read configuration file
-    (if (hm-read-cnf-file cnf-file-path)
+    (if (not (hm-read-cnf-file cnf-file-path))
+        (format t "Unable to read configuration file from ~a" cnf-file-path)        
         (progn
+          (format t "Read configuration file from ~a~%" cnf-file-path)
           ;; read required tables
-          (if (probe-file *context-table-name*)
-              (setq context-table
-                    (cl-csv:read-csv (probe-file *context-table-name*)
-                                     :skip-first-p *context-table-header*))
+          (if (and *context-table-name*
+                   (probe-file *context-table-name*)
+                   (setf context-table
+                         (cl-csv:read-csv
+                          (probe-file *context-table-name*)
+                          :skip-first-p *context-table-header*)))
+              (format t "Read context table from ~a~%" *context-table-name*)
               (return-from hm-draw (format nil "Unable to read ~a"
                                            *context-table-name*)))
-          (if (probe-file *observation-table-name*)
-              (setq observation-table
-                    (cl-csv:read-csv (probe-file *observation-table-name*)
-                                     :skip-first-p *observation-table-header*))
+          (if (and *observation-table-name*
+                   (probe-file *observation-table-name*)
+                   (setf observation-table
+                         (cl-csv:read-csv
+                          (probe-file *observation-table-name*)
+                          :skip-first-p *observation-table-header*)))
+              (format t "Read observation table from ~a~%" *observation-table-name*)
               (return-from hm-draw (format nil "Unable to read ~a"
                                            *observation-table-name*)))
           ;; read optional tables, if necessary
-          (when (and *inference-table-name* (probe-file *inference-table-name*))
-              (setq inference-table
-                    (cl-csv:read-csv (probe-file *inference-table-name*)
-                                     :skip-first-p *inference-table-header*)))
-          (when (and *period-table-name* (probe-file *period-table-name*))
-              (setq period-table
-                    (cl-csv:read-csv (probe-file *period-table-name*)
-                                     :skip-first-p *period-table-header*)))
-          (when (and *phase-table-name* (probe-file *phase-table-name*))
-              (setq phase-table
-                    (cl-csv:read-csv (probe-file *phase-table-name*)
-                                     :skip-first-p *phase-table-header*)))
-          ;; create graph
+          (when *inference-table-name*
+            (if (and (probe-file *inference-table-name*)
+                     (setf inference-table
+                           (cl-csv:read-csv
+                            (probe-file *inference-table-name*)
+                            :skip-first-p *inference-table-header*)))
+                (format t "Read optional inference table from ~a~%"
+                        *inference-table-name*)
+                (return-from hm-draw (format nil "Unable to read optional file ~a"
+                                             *inference-table-name*))))
+          (when *period-table-name*
+            (if (and (probe-file *period-table-name*)
+                     (setf period-table
+                           (cl-csv:read-csv
+                            (probe-file *period-table-name*)
+                            :skip-first-p *period-table-header*)))
+                (format t "Read optional period table from ~a~%"
+                        *period-table-name*)
+                (return-from hm-draw (format nil "Unable to read optional file ~a"
+                                             *period-table-name*))))
+          (when *phase-table-name*
+            (if (and (probe-file *phase-table-name*)
+                     (setf phase-table
+                           (cl-csv:read-csv
+                            (probe-file *phase-table-name*)
+                            :skip-first-p *phase-table-header*)))
+                (format t "Read optional phase table from ~a~%" *phase-table-name*)
+                (return-from hm-draw (format nil "Unable to read optional file ~a"
+                                             *phase-table-name*))))
+          (when (and *create-chronology-graph* *radiocarbon-table-name*) 
+            (if (and (probe-file *radiocarbon-table-name*)
+                     (setf radiocarbon-table
+                           (cl-csv:read-csv
+                            (probe-file *radiocarbon-table-name*)
+                            :skip-first-p *radiocarbon-table-header*)))
+                (format t "Read optional radiocarbon table from ~a~%"
+                        *radiocarbon-table-name*)
+                (return-from hm-draw (format nil "Unable to read optional file ~a"
+                                             *radiocarbon-table-name*))))
+          (when (and *create-chronology-graph* *date-order-table-name*)
+            (if (and (probe-file *date-order-table-name*)
+                     (setf date-order-table
+                           (cl-csv:read-csv
+                            (probe-file *date-order-table-name*)
+                            :skip-first-p *date-order-table-header*)))
+                (format t "Read optional date order table from ~a~%"
+                        *date-order-table-name*)
+                (return-from hm-draw (format nil "Unable to read optional file ~a"
+                                             *date-order-table-name*))))
+                                        ;          (format t "Read input files.~%")
+
+          ;; create sequence diagram graph
           (dolist (node context-table)
             (graph:add-node graph (read-from-string (first node))))
           (dolist (arc observation-table rejected)
@@ -527,7 +705,7 @@ configuration file."
             (unless rejected
               (and (graph:cycles graph) (push arc rejected))))
 
-          ; if there is a cycle in the graph, shut down
+          ;; if there is a cycle in the graph, shut down
           (when rejected
             (return-from hm-draw
               (format t "A cycle that includes node ~a is present."
@@ -546,11 +724,11 @@ configuration file."
                 (when (graph:cycles graph)
                   (return-from hm-draw
                     (format t "Correlated contexts introduced a cycle."))))
-            (set-same-ranks inference-table))
+              (set-same-ranks inference-table))
           
           (set-other-ranks context-table)
-
-          (when *node-fill-by*    ; fill nodes
+          ;; fill nodes
+          (when *node-fill-by*
             (setq node-fills
                   (cond ((eq *node-fill-by* 'levels)
                          (graph:levels graph))
@@ -570,9 +748,9 @@ configuration file."
                         (t (return-from hm-draw
                              (format t "Incorrect *node-fill-by* value: ~a"
                                      *node-fill-by*))))))
-          (when *symbolize-unit-type* ; node shapes
+          (when *symbolize-unit-type*   ; node shapes
             (setq unit-types (set-node-shapes context-table inference-table)))
-          (when *url-include*     ; add url information
+          (when *url-include*           ; add url information
             (setq node-urls (get-node-urls-from context-table inference-table))
             (setq arc-urls (get-arc-urls-from observation-table)))
           (when *legend*
@@ -588,7 +766,163 @@ configuration file."
                   ((and *reachable-from* (eq *node-fill-by* 'distance))
                    (make-distance-legend graph node-fills
                                          unit-types node-urls))))
-          (graph-dot:to-dot-file  ; write the dot file
+          ;; optionally, construct the chronology graph
+          (when *create-chronology-graph*
+            (setf chronology-graph (graph:populate
+                                    (make-instance 'graph:digraph)))
+            (setf adjacency-matrix (graph-matrix:to-adjacency-matrix
+                                    graph
+                                    (make-instance 'graph-matrix:fast-matrix)))
+            (setf reachability-matrix (graph-matrix:to-reachability-matrix
+                                       graph
+                                       (make-instance 'graph-matrix:fast-matrix)))
+            (mapc (lambda (node) (setf (gethash node node-index-hash) (incf counter)))
+                  (graph:nodes graph))
+            (dolist (col radiocarbon-table)
+              (graph:add-node chronology-graph
+                              (read-from-string
+                               (format nil "alpha-~a" (second col))))
+              (graph:add-node chronology-graph
+                              (read-from-string
+                               (format nil "beta-~a" (second col))))
+              (graph:add-node chronology-graph
+                              (read-from-string
+                               (format nil "theta-~a" (first col)))))
+            ;; (format t "14C table nodes: alpha-~s, beta-~s, theta-~s~%"
+            ;;         (read-from-string (second col))
+            ;;         (read-from-string (second col))
+            ;;         (read-from-string (first col)))
+            ;;   (setf *chronology-graph* (graph:copy chronology-graph))
+            (when date-order-table
+              (dolist (pair date-order-table)
+                (graph:add-edge chronology-graph
+                                (list (read-from-string
+                                       (format nil "theta-~a" (second pair)))
+                                      (read-from-string
+                                       (format nil "theta-~a" (first pair))))
+                                0))) ; value is 0 for links to 14C dates
+            (dolist (node radiocarbon-table)
+              (when (eq 0 (graph:indegree
+                           chronology-graph
+                           (read-from-string
+                            (format nil "theta-~a" (first node)))))
+                (graph:add-edge chronology-graph
+                                (list (read-from-string
+                                       (format nil "beta-~a" (second node)))
+                                      (read-from-string
+                                       (format nil "theta-~a" (first node))))
+                                0))
+              (when (eq 0 (graph:outdegree
+                           chronology-graph
+                           (read-from-string
+                            (format nil "theta-~a" (first node)))))     
+                (graph:add-edge chronology-graph
+                                (list (read-from-string
+                                       (format nil "theta-~a" (first node)))
+                                      (read-from-string
+                                       (format nil "alpha-~a" (second node))))
+                                0)))
+            (dolist (arc radiocarbon-table)
+              (push (read-from-string (second arc)) context-list))
+            (setf context-list (append (unique-pairs context-list)
+                                       (unique-pairs (reverse context-list))))
+            (dolist (pair context-list)
+              (when (graph-matrix:reachablep
+                     graph reachability-matrix (car pair) (cadr pair))
+                (graph:add-edge
+                 chronology-graph
+                 (list (read-from-string
+                        (format nil "alpha-~a" (car pair)))
+                       (read-from-string
+                        (format nil "beta-~a" (cadr pair))))
+                 (if (eq 1 (graph-matrix:matrix-ref
+                            adjacency-matrix
+                            (gethash (car pair) node-index-hash)
+                            (gethash (cadr pair) node-index-hash))) 1 2))))
+            ;; write the dot file for the chronology graph
+            (graph-dot:to-dot-file
+             chronology-graph *chronology-out-file*
+             :attributes
+             (list
+              (cons :style (make-attribute *chronology-graph-style*))
+              (cons :colorscheme (make-attribute *chronology-color-scheme*))
+              (cons :dpi (make-attribute *chronology-graph-dpi*))
+              (cons :margin (make-attribute *chronology-graph-margin*))
+              (cons :bgcolor
+                    (format nil "~(~s~)"
+                            (if *chronology-graph-bg-color*
+                                (color-filter
+                                 *chronology-graph-bg-color* nil) "")))
+              (cons :fontname (make-attribute *chronology-graph-font-name*))
+              (cons :fontsize (make-attribute *chronology-graph-font-size*))
+              (cons :fontcolor
+                    (format nil "~(~s~)"
+                            (if *chronology-graph-font-color*
+                                (color-filter *chronology-graph-font-color* nil) "")))
+              (cons :splines (make-attribute *chronology-graph-splines*))
+              (cons :page (make-attribute *chronology-graph-page*))
+              (cons :size (make-attribute *chronology-graph-size*))   
+              (cons :ratio (make-attribute *chronology-graph-ratio*))
+              (cons :label (make-attribute *chronology-graph-title*))
+              (cons :labelloc (make-attribute *chronology-graph-labelloc*)))
+             :edge-attrs (list
+                          (cons :style
+                                (lambda (e)
+                                  (case (graph:edge-value chronology-graph e)
+                                    (0 *chronology-edge-date*)
+                                    (1 *chronology-edge-abutting*)
+                                    (2 *chronology-edge-separated*))))
+                          (cons :label
+                                (constantly-format ""))
+                          (cons :arrowhead
+                                (constantly-format *chronology-edge-with-arrow*))
+                          (cons :colorscheme
+                                (constantly-format *chronology-color-scheme*))
+                          (cons :color
+                                (constantly-format
+                                 (if *chronology-edge-color*
+                                     (color-filter *chronology-edge-color* nil)
+                                     "")))
+                          (cons :fontname
+                                (constantly-format *chronology-edge-font-name*))
+                          (cons :fontsize
+                                (constantly-format *chronology-edge-font-size*))
+                          (cons :fontcolor
+                                (constantly-format
+                                 (if *chronology-edge-font-color*
+                                     (color-filter *chronology-edge-font-color* nil)
+                                     ""))))
+             :node-attrs (list
+                          (cons :shape
+                                (lambda (n)
+                                  (if (equal (char (symbol-name n) 0) #\T)
+                                      *chronology-node-shape-date*
+                                      *chronology-node-shape-phase*)))
+                          (cons :style (constantly-format *chronology-node-style*))
+                          (cons :fontname (constantly-format
+                                           *chronology-node-font-name*))
+                          (cons :fontsize (constantly-format
+                                           *chronology-node-font-size*))
+                          (cons :colorscheme
+                                (constantly-format *chronology-color-scheme*))
+                          (cons :color
+                                (constantly-format
+                                 (if *chronology-node-color*
+                                     (color-filter *chronology-node-color* nil)
+                                     "")))
+                          (cons :fillcolor
+                                (constantly
+                                 (if *chronology-node-fill*
+                                     (color-filter *chronology-node-fill* t)
+                                     "")))
+                          (cons :fontcolor
+                                (constantly
+                                 (if *chronology-node-font-color*
+                                     (color-filter
+                                      *chronology-node-font-color* t) "")))))
+            (format t "Wrote ~a~%" (probe-file *chronology-out-file*)))
+          ;; write the dot file for the sequence diagram
+          (graph-dot:to-dot-file       
            graph *out-file*
            :ranks *ranks*
            :attributes
@@ -685,5 +1019,5 @@ configuration file."
                                   (lambda (n) (format nil "~s"
                                                  (gethash n node-urls)))
                                   (constantly-format "")))))
-          (format t "Wrote ~a" *out-file*))
-        (format t "Unable to read from ~a" cnf-file-path))))
+          (format t "Wrote ~a" (probe-file *out-file*))))
+    (return-from hm-draw "Apparent success")))
