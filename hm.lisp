@@ -695,8 +695,6 @@ configuration file."
                         *date-order-table-name*)
                 (return-from hm-draw (format nil "Unable to read optional file ~a"
                                              *date-order-table-name*))))
-                                        ;          (format t "Read input files.~%")
-
           ;; create sequence diagram graph
           (dolist (node context-table)
             (graph:add-node graph (read-from-string (first node))))
@@ -790,11 +788,6 @@ configuration file."
               (graph:add-node chronology-graph
                               (read-from-string
                                (format nil "theta-~a" (first col)))))
-            ;; (format t "14C table nodes: alpha-~s, beta-~s, theta-~s~%"
-            ;;         (read-from-string (second col))
-            ;;         (read-from-string (second col))
-            ;;         (read-from-string (first col)))
-            ;;   (setf *chronology-graph* (graph:copy chronology-graph))
             (when date-order-table
               (dolist (pair date-order-table)
                 (graph:add-edge chronology-graph
@@ -802,7 +795,7 @@ configuration file."
                                        (format nil "theta-~a" (second pair)))
                                       (read-from-string
                                        (format nil "theta-~a" (first pair))))
-                                0))) ; value is 0 for links to 14C dates
+                                0)))
             (dolist (node radiocarbon-table)
               (when (eq 0 (graph:indegree
                            chronology-graph
