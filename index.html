@@ -88,7 +88,7 @@
 <h2>
 <a id="data-tables" class="anchor" href="#data-tables" aria-hidden="true"><span class="octicon octicon-link"></span></a>Data Tables</h2>
 
-<p>There are five data tables used as input to <code>hm</code>.  Examples of each are provided in the <code>hm</code> package.</p>
+<p>There are seven data tables used as input to <code>hm</code>.  Examples of each are provided in the <code>hm</code> package.</p>
 
 <h3>
 <a id="units-of-stratification" class="anchor" href="#units-of-stratification" aria-hidden="true"><span class="octicon octicon-link"></span></a>Units of Stratification</h3>
@@ -256,6 +256,28 @@ discontiguous contexts.</p>
 </tr>
 </tbody>
 </table>
+
+<h3>
+<a id="dates" class="anchor" href="#dates" aria-hidden="true"><span class="octicon octicon-link"></span></a>Dates</h3>
+
+<ul>
+<li>
+<strong>theta:</strong> unique label (primary key)</li>
+<li>
+<strong>context:</strong> context identifier (foreign key)</li>
+<li>
+<strong>lab:</strong> dating laboratory identifier</li>
+</ul>
+
+<h3>
+<a id="date-order" class="anchor" href="#date-order" aria-hidden="true"><span class="octicon octicon-link"></span></a>Date Order</h3>
+
+<ul>
+<li>
+<strong>older:</strong> theta label of older date (foreign key)</li>
+<li>
+<strong>younger:</strong> theta label of younger date (foreign key)</li>
+</ul>
 
 <h2>
 <a id="configuration-file" class="anchor" href="#configuration-file" aria-hidden="true"><span class="octicon octicon-link"></span></a>Configuration File</h2>
