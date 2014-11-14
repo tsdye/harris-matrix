@@ -175,7 +175,7 @@ discontiguous contexts.</p>
 <h2>
 <a id="configuration-file" class="anchor" href="#configuration-file" aria-hidden="true"><span class="octicon octicon-link"></span></a>Configuration File</h2>
 
-<p>The following table describes an example configuration file included in the <code>hm</code> package.  You will likely need to adjust the paths to suit your system.</p>
+<p>The following table describes the variables that can be set in a configuration file.</p>
 
 <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 
@@ -185,345 +185,558 @@ discontiguous contexts.</p>
 
 
 
-
-
 <thead>
 <tr>
-<th scope="col">variable</th>
-<th scope="col">value</th>
-<th scope="col">description</th>
+<th scope="col">Variable</th>
+<th scope="col">Description</th>
 </tr>
 </thead>
+
 <tbody>
 <tr>
-<td>*out-file*</td>
-<td>fig-12-harris-levels.dot</td>
-<td>Output file path</td>
+<td>**out-file**</td>
+<td>Output file path for the sequence diagram dot file</td>
 </tr>
 
-<tr>
-<td>*context-table-name*</td>
-<td>contexts-eg.csv</td>
-<td>Input file path</td>
-</tr>
 
 <tr>
-<td>*context-table-header*</td>
-<td>t</td>
-<td>`t` for header, `nil` for no header</td>
+<td>**chronology-out-file**</td>
+<td>Output file path for the chronology diagram dot file</td>
 </tr>
 
-<tr>
-<td>*inference-table-name*</td>
-<td>inference-eg.csv</td>
-<td>Input file path</td>
-</tr>
 
 <tr>
-<td>*inference-table-header*</td>
-<td>t</td>
-<td>`t` for header, `nil` for no header</td>
+<td>**context-table-name**</td>
+<td>Input file path for the context table</td>
 </tr>
 
-<tr>
-<td>*observation-table-name*</td>
-<td>observations-eg.csv</td>
-<td>Input file path</td>
-</tr>
 
 <tr>
-<td>*observation-table-header*</td>
-<td>t</td>
-<td>`t` for header, `nil` for no header</td>
+<td>**observation-table-name**</td>
+<td>Input file path for the observation table</td>
 </tr>
 
-<tr>
-<td>*period-table-name*</td>
-<td>periods-eg.csv</td>
-<td>Input file path</td>
-</tr>
 
 <tr>
-<td>*period-table-header*</td>
-<td>t</td>
-<td>`t` for header, `nil` for no header</td>
+<td>**inference-table-name**</td>
+<td>Optional input file path for the inference table</td>
 </tr>
 
-<tr>
-<td>*phase-table-name*</td>
-<td>phases-eg.csv</td>
-<td>Input file path</td>
-</tr>
 
 <tr>
-<td>*phase-table-header*</td>
-<td>t</td>
-<td>`t` for header, `nil` for no header</td>
+<td>**period-table-name**</td>
+<td>Optional input file path for the period table</td>
 </tr>
 
-<tr>
-<td>*color-scheme*</td>
-<td>blues7</td>
-<td><a href="http://www.graphviz.org/doc/info/colors.html#brewer">Brewer color scheme</a></td>
-</tr>
 
 <tr>
-<td>*color-space*</td>
-<td>x11</td>
-<td>`x11` or `svg`</td>
+<td>**phase-table-name**</td>
+<td>Optional input file path for the phase table</td>
 </tr>
 
+
 <tr>
-<td>*label-break*</td>
-<td>5</td>
+<td>**radiocarbon-table-name**</td>
+<td>Optional input file path for the radiocarbon table</td>
+</tr>
+
+
+<tr>
+<td>**date-order-table-name**</td>
+<td>Optional input file path for the date order table</td>
+</tr>
+
+
+<tr>
+<td>**context-table-header**</td>
+<td>Switch for a header line in the context table; \`t' for header, \`nil' for no header</td>
+</tr>
+
+
+<tr>
+<td>**observation-table-header**</td>
+<td>Switch for a header line in the observation table; \`t' for header, \`nil' for no header</td>
+</tr>
+
+
+<tr>
+<td>**inference-table-header**</td>
+<td>Switch for a header line in the inference table; \`t' for header, \`nil' for no header</td>
+</tr>
+
+
+<tr>
+<td>**period-table-header**</td>
+<td>Switch for a header line in the period table; \`t' for header, \`nil' for no header</td>
+</tr>
+
+
+<tr>
+<td>**phase-table-header**</td>
+<td>Switch for a header line in the phase table; \`t' for header, \`nil' for no header</td>
+</tr>
+
+
+<tr>
+<td>**radiocarbon-table-header**</td>
+<td>Switch for a header line in the radiocarbon table; \`t' for header, \`nil' for no header</td>
+</tr>
+
+
+<tr>
+<td>**date-order-table-header**</td>
+<td>Switch for a header line in the date order table; \`t' for header, \`nil' for no header</td>
+</tr>
+
+
+<tr>
+<td>**symbolize-unit-type**</td>
+<td>\`t' to distinguish interfaces and deposits, \`nil' otherwise</td>
+</tr>
+
+
+<tr>
+<td>**create-chronology-graph**</td>
+<td>Switch for a chronology graph; \`t'</td>
+</tr>
+
+
+<tr>
+<td>**node-fill-by**</td>
+<td>\`nil' for no fill, \`levels', \`reachable', \`periods', \`phases'</td>
+</tr>
+
+
+<tr>
+<td>**label-break**</td>
 <td>Switch from dark to light label color</td>
 </tr>
 
+
 <tr>
-<td>*label-color-dark*</td>
-<td>black</td>
+<td>**color-scheme**</td>
+<td>[Brewer color scheme](http://www.graphviz.org/doc/info/colors.html#brewer)</td>
+</tr>
+
+
+<tr>
+<td>**color-space**</td>
+<td>\`x11' or \`svg'</td>
+</tr>
+
+
+<tr>
+<td>**label-color-dark**</td>
 <td>A color name from the indicated color-space</td>
 </tr>
 
+
 <tr>
-<td>*label-color-light*</td>
-<td>white</td>
+<td>**label-color-light**</td>
 <td>A color name from the indicated color-space</td>
 </tr>
 
-<tr>
-<td>*symbolize-unit-type*</td>
-<td>t</td>
-<td>`t` to distinguish interfaces and deposits, `nil` otherwise</td>
-</tr>
 
 <tr>
-<td>*reachable-color*</td>
-<td>2</td>
-<td>Color name or number for reachable nodes</td>
-</tr>
-
-<tr>
-<td>*reachable-from*</td>
-<td>1</td>
+<td>**reachable-from**</td>
 <td>Start node for calculating reachability</td>
 </tr>
 
-<tr>
-<td>*reachable-limit*</td>
-<td>1</td>
-<td>&lt; 0 all reachable nodes, 0 start node only, 1 adjacent to start node, etc.</td>
-</tr>
 
 <tr>
-<td>*reachable-not-color*</td>
-<td>0</td>
-<td>Color name or number for unreachable nodes</td>
-</tr>
-
-<tr>
-<td>*origin-color*</td>
-<td>0</td>
-<td>Color name or number for the origin node</td>
-</tr>
-
-<tr>
-<td>*adjacent-color*</td>
-<td>0</td>
-<td>Color name or number for adjacent nodes</td>
-</tr>
-
-<tr>
-<td>*url-default*</td>
-<td> </td>
-<td>Default URL</td>
-</tr>
-
-<tr>
-<td>*url-include*</td>
-<td>nil</td>
-<td>`t` to include, `nil` otherwise</td>
-</tr>
-
-<tr>
-<td>*graph-bg-color*</td>
-<td>transparent</td>
-<td>`transparent`, a color name, or an integer into a <a href="http://www.graphviz.org/doc/info/colors.html#brewer">Brewer color scheme</a>
+<td>**reachable-limit**</td>
+<td>
 </td>
 </tr>
 
-<tr>
-<td>*graph-dpi*</td>
-<td> </td>
-<td><a href="http://www.graphviz.org/doc/info/attrs.html#d:dpi">See `dot` documentation</a></td>
-</tr>
 
 <tr>
-<td>*graph-font-color*</td>
-<td>black</td>
-<td>A color name from the indicated color-space</td>
+<td>**reachable-color**</td>
+<td>Color name or number for reachable nodes</td>
 </tr>
 
-<tr>
-<td>*graph-font-name*</td>
-<td>helvetica</td>
-<td>`helvetica` or `times`</td>
-</tr>
 
 <tr>
-<td>*graph-font-size*</td>
-<td>14</td>
-<td>Size in points</td>
+<td>**reachable-not-color**</td>
+<td>Color name or number for unreachable nodes</td>
 </tr>
 
-<tr>
-<td>*graph-labelloc*</td>
-<td>t</td>
-<td>`t` for centering title, `nil` otherwise</td>
-</tr>
 
 <tr>
-<td>*graph-margin*</td>
-<td> </td>
-<td><a href="http://www.graphviz.org/doc/info/attrs.html#d:margin">See `dot` documentation</a></td>
+<td>**origin-color**</td>
+<td>Color name or number for the origin node in sequence diagram that maps chronology</td>
 </tr>
 
-<tr>
-<td>*graph-page*</td>
-<td> </td>
-<td><a href="http://www.graphviz.org/doc/info/attrs.html#d:page">See `dot` documentation</a></td>
-</tr>
 
 <tr>
-<td>*graph-ratio*</td>
-<td> </td>
-<td><a href="http://www.graphviz.org/doc/info/attrs.html#d:ratio">See `dot` documentation</a></td>
+<td>**adjacent-color**</td>
+<td>Color name or number for nodes adjacent to the origin in a sequence diagram that maps chronology</td>
 </tr>
 
-<tr>
-<td>*graph-size*</td>
-<td> </td>
-<td><a href="http://www.graphviz.org/doc/info/attrs.html#d:size">See `dot` documentation</a></td>
-</tr>
 
 <tr>
-<td>*graph-splines*</td>
-<td>ortho</td>
-<td><a href="http://www.graphviz.org/doc/info/attrs.html#d:splines">See `dot` documentation</a></td>
+<td>**url-include**</td>
+<td>\`t' to include, \`nil' otherwise</td>
 </tr>
 
-<tr>
-<td>*graph-style*</td>
-<td> </td>
-<td><a href="http://www.graphviz.org/doc/info/attrs.html#k:style">See `dot` documentation</a></td>
-</tr>
 
 <tr>
-<td>*graph-title*</td>
-<td> </td>
+<td>**url-default**</td>
+<td>Default URL</td>
+</tr>
+
+
+<tr>
+<td>**graph-title**</td>
 <td>Optional title for the graph</td>
 </tr>
 
-<tr>
-<td>*legend*</td>
-<td>nil</td>
-<td>`t` to include, `nil` otherwise</td>
-</tr>
 
 <tr>
-<td>*legend-node-shape*</td>
-<td>folder</td>
-<td><a href="http://www.graphviz.org/doc/info/shapes.html">See `dot` documentation</a></td>
+<td>**graph-labelloc**</td>
+<td>\`t' for centering title, \`nil' otherwise</td>
 </tr>
 
-<tr>
-<td>*edge-color*</td>
-<td>black</td>
-<td>A color name from the indicated color-space</td>
-</tr>
 
 <tr>
-<td>*edge-font-color*</td>
-<td>black</td>
-<td>A color name from the indicated color-space</td>
+<td>**graph-style**</td>
+<td>[See \`dot' documentation](http://www.graphviz.org/doc/info/attrs.html#k:style)</td>
 </tr>
 
-<tr>
-<td>*edge-font-name*</td>
-<td>helvetica</td>
-<td>`helvetica` or `times`</td>
-</tr>
 
 <tr>
-<td>*edge-font-size*</td>
-<td>14</td>
+<td>**graph-size**</td>
+<td>[See \`dot' documentation](http://www.graphviz.org/doc/info/attrs.html#d:size)</td>
+</tr>
+
+
+<tr>
+<td>**graph-ratio**</td>
+<td>[See \`dot' documentation](http://www.graphviz.org/doc/info/attrs.html#d:ratio)</td>
+</tr>
+
+
+<tr>
+<td>**graph-page**</td>
+<td>[See \`dot' documentation](http://www.graphviz.org/doc/info/attrs.html#d:page)</td>
+</tr>
+
+
+<tr>
+<td>**graph-dpi**</td>
+<td>[See \`dot' documentation](http://www.graphviz.org/doc/info/attrs.html#d:dpi)</td>
+</tr>
+
+
+<tr>
+<td>**graph-margin**</td>
+<td>[See \`dot' documentation](http://www.graphviz.org/doc/info/attrs.html#d:margin)</td>
+</tr>
+
+
+<tr>
+<td>**graph-font-name**</td>
+<td>\`helvetica' or \`times'</td>
+</tr>
+
+
+<tr>
+<td>**graph-font-size**</td>
 <td>Size in points</td>
 </tr>
 
-<tr>
-<td>*edge-style*</td>
-<td>solid</td>
-<td><a href="http://www.graphviz.org/doc/info/attrs.html#k:style">See `dot` documentation</a></td>
-</tr>
 
 <tr>
-<td>*edge-with-arrow*</td>
-<td>none</td>
-<td><a href="http://www.graphviz.org/doc/info/attrs.html#k:arrowType">See `dot` documentation</a></td>
-</tr>
-
-<tr>
-<td>*node-color*</td>
-<td>black</td>
+<td>**graph-font-color**</td>
 <td>A color name from the indicated color-space</td>
 </tr>
 
+
 <tr>
-<td>*node-fill*</td>
-<td>white</td>
+<td>**graph-splines**</td>
+<td>[See \`dot' documentation](http://www.graphviz.org/doc/info/attrs.html#d:splines)</td>
+</tr>
+
+
+<tr>
+<td>**graph-bg-color**</td>
+<td>\`transparent', a color name, or an integer into a [Brewer color scheme](http://www.graphviz.org/doc/info/colors.html#brewer)</td>
+</tr>
+
+
+<tr>
+<td>**legend**</td>
+<td>\`t' to include, \`nil' otherwise</td>
+</tr>
+
+
+<tr>
+<td>**legend-node-shape**</td>
+<td>[See \`dot' documentation](http://www.graphviz.org/doc/info/shapes.html)</td>
+</tr>
+
+
+<tr>
+<td>**edge-style**</td>
+<td>[See \`dot' documentation](http://www.graphviz.org/doc/info/attrs.html#k:style)</td>
+</tr>
+
+
+<tr>
+<td>**edge-with-arrow**</td>
+<td>[See \`dot' documentation](http://www.graphviz.org/doc/info/attrs.html#k:arrowType)</td>
+</tr>
+
+
+<tr>
+<td>**edge-color**</td>
 <td>A color name from the indicated color-space</td>
 </tr>
 
-<tr>
-<td>*node-fill-by*</td>
-<td>levels</td>
-<td>`nil` for no fill, `levels`, `reachable`, `periods`, `phases`, `distance`</td>
-</tr>
 
 <tr>
-<td>*node-font-color*</td>
-<td>black</td>
-<td>A color name from the indicated color-space</td>
+<td>**edge-font-name**</td>
+<td>\`helvetica' or \`times'</td>
 </tr>
 
-<tr>
-<td>*node-font-name*</td>
-<td>helvetica</td>
-<td>`helvetica` or `times`</td>
-</tr>
 
 <tr>
-<td>*node-font-size*</td>
-<td>14</td>
+<td>**edge-font-size**</td>
 <td>Size in points</td>
 </tr>
 
-<tr>
-<td>*node-shape-deposit*</td>
-<td>box</td>
-<td><a href="http://www.graphviz.org/doc/info/shapes.html">See `dot` documentation</a></td>
-</tr>
 
 <tr>
-<td>*node-shape-interface*</td>
-<td>trapezium</td>
-<td><a href="http://www.graphviz.org/doc/info/shapes.html">See `dot` documentation</a></td>
+<td>**edge-font-color**</td>
+<td>A color name from the indicated color-space</td>
 </tr>
 
+
 <tr>
-<td>*node-style*</td>
-<td>filled</td>
-<td><a href="http://www.graphviz.org/doc/info/attrs.html#k:style">See `dot` documentation</a></td>
+<td>**node-style**</td>
+<td>[See \`dot' documentation](http://www.graphviz.org/doc/info/attrs.html#k:style)</td>
+</tr>
+
+
+<tr>
+<td>**node-color**</td>
+<td>A color name from the indicated color-space</td>
+</tr>
+
+
+<tr>
+<td>**node-font-name**</td>
+<td>\`helvetica' or \`times'</td>
+</tr>
+
+
+<tr>
+<td>**node-font-size**</td>
+<td>Size in points</td>
+</tr>
+
+
+<tr>
+<td>**node-font-color**</td>
+<td>A color name from the indicated color-space</td>
+</tr>
+
+
+<tr>
+<td>**node-shape-interface**</td>
+<td>[See \`dot' documentation](http://www.graphviz.org/doc/info/shapes.html)</td>
+</tr>
+
+
+<tr>
+<td>**node-shape-deposit**</td>
+<td>[See \`dot' documentation](http://www.graphviz.org/doc/info/shapes.html)</td>
+</tr>
+
+
+<tr>
+<td>**node-fill**</td>
+<td>A color name from the indicated color-space</td>
+</tr>
+
+
+<tr>
+<td>**assume-correlations-true**</td>
+<td>\`t' to merge contexts in the inferences table, \`nil' otherwise</td>
+</tr>
+
+
+<tr>
+<td>**chronology-graph-title**</td>
+<td>Optional title for the chronology graph</td>
+</tr>
+
+
+<tr>
+<td>**chronology-graph-labelloc**</td>
+<td>\`t' for centering title, \`nil' otherwise</td>
+</tr>
+
+
+<tr>
+<td>**chronology-graph-style**</td>
+<td>[See \`dot' documentation](http://www.graphviz.org/doc/info/attrs.html#k:style)</td>
+</tr>
+
+
+<tr>
+<td>**chronology-graph-size**</td>
+<td>[See \`dot' documentation](http://www.graphviz.org/doc/info/attrs.html#d:size)</td>
+</tr>
+
+
+<tr>
+<td>**chronology-graph-ratio**</td>
+<td>[See \`dot' documentation](http://www.graphviz.org/doc/info/attrs.html#d:ratio)</td>
+</tr>
+
+
+<tr>
+<td>**chronology-graph-page**</td>
+<td>[See \`dot' documentation](http://www.graphviz.org/doc/info/attrs.html#d:page)</td>
+</tr>
+
+
+<tr>
+<td>**chronology-graph-dpi**</td>
+<td>[See \`dot' documentation](http://www.graphviz.org/doc/info/attrs.html#d:dpi)</td>
+</tr>
+
+
+<tr>
+<td>**chronology-graph-margin**</td>
+<td>[See \`dot' documentation](http://www.graphviz.org/doc/info/attrs.html#d:margin)</td>
+</tr>
+
+
+<tr>
+<td>**chronology-graph-font-name**</td>
+<td>\`helvetica' or \`times'</td>
+</tr>
+
+
+<tr>
+<td>**chronology-graph-font-size**</td>
+<td>Size in points</td>
+</tr>
+
+
+<tr>
+<td>**chronology-graph-font-color**</td>
+<td>A color name from the indicated color-space</td>
+</tr>
+
+
+<tr>
+<td>**chronology-graph-splines**</td>
+<td>[See \`dot' documentation](http://www.graphviz.org/doc/info/attrs.html#d:splines)</td>
+</tr>
+
+
+<tr>
+<td>**chronology-graph-bg-color**</td>
+<td>\`transparent', a color name, or an integer into a [Brewer color scheme](http://www.graphviz.org/doc/info/colors.html#brewer)</td>
+</tr>
+
+
+<tr>
+<td>**chronology-edge-with-arrow**</td>
+<td>[See \`dot' documentation](http://www.graphviz.org/doc/info/attrs.html#k:arrowType)</td>
+</tr>
+
+
+<tr>
+<td>**chronology-edge-color**</td>
+<td>A color name from the indicated color-space</td>
+</tr>
+
+
+<tr>
+<td>**chronology-edge-font-name**</td>
+<td>\`helvetica' or \`times'</td>
+</tr>
+
+
+<tr>
+<td>**chronology-edge-font-size**</td>
+<td>Size in points</td>
+</tr>
+
+
+<tr>
+<td>**chronology-edge-font-color**</td>
+<td>A color name from the indicated color-space</td>
+</tr>
+
+
+<tr>
+<td>**chronology-edge-date**</td>
+<td>A style for an edge that connects to a date; [See \`dot' documentation](http://www.graphviz.org/doc/info/attrs.html#k:style)</td>
+</tr>
+
+
+<tr>
+<td>**chronology-edge-abutting**</td>
+<td>A style for an edge that connects abutting phase boundaries; [See \`dot' documentation](http://www.graphviz.org/doc/info/attrs.html#k:style)</td>
+</tr>
+
+
+<tr>
+<td>**chronology-edge-separated**</td>
+<td>A style for an edge that connects separated phase boundaries; [See \`dot' documentation](http://www.graphviz.org/doc/info/attrs.html#k:style)</td>
+</tr>
+
+
+<tr>
+<td>**chronology-node-style**</td>
+<td>[See \`dot' documentation](http://www.graphviz.org/doc/info/attrs.html#k:style)</td>
+</tr>
+
+
+<tr>
+<td>**chronology-node-color**</td>
+<td>A color name from the indicated color-space</td>
+</tr>
+
+
+<tr>
+<td>**chronology-node-font-name**</td>
+<td>\`helvetica' or \`times'</td>
+</tr>
+
+
+<tr>
+<td>**chronology-node-font-size**</td>
+<td>Size in points</td>
+</tr>
+
+
+<tr>
+<td>**chronology-node-font-color**</td>
+<td>A color name from the indicated color-space</td>
+</tr>
+
+
+<tr>
+<td>**chronology-node-shape-interface**</td>
+<td>[See \`dot' documentation](http://www.graphviz.org/doc/info/shapes.html)</td>
+</tr>
+
+
+<tr>
+<td>**chronology-node-shape-deposit**</td>
+<td>[See \`dot' documentation](http://www.graphviz.org/doc/info/shapes.html)</td>
+</tr>
+
+
+<tr>
+<td>**chronology-node-fill**</td>
+<td>A color name from the indicated color-space</td>
 </tr>
 </tbody>
 </table>
