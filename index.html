@@ -102,34 +102,6 @@
 <li>  <strong>url:</strong> node link (svg output only)</li>
 </ul>
 
-<table id="contexts" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<tbody>
-<tr>
-<td>label</td>
-<td>unit-type</td>
-<td>position</td>
-<td>period</td>
-<td>phase</td>
-<td>url</td>
-</tr>
-</tbody>
-</table>
-
 <h3>
 <a id="observed-stratigraphic-relations" class="anchor" href="#observed-stratigraphic-relations" aria-hidden="true"><span class="octicon octicon-link"></span></a>Observed Stratigraphic Relations</h3>
 
@@ -143,25 +115,6 @@ contexts table.</p>
 <li>  <strong>url:</strong> arc link (svg output only)</li>
 </ul>
 
-<table id="observations" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-
-
-
-
-
-
-
-
-
-<tbody>
-<tr>
-<td>younger</td>
-<td>older</td>
-<td>url</td>
-</tr>
-</tbody>
-</table>
-
 <h3>
 <a id="inferred-parity-relations" class="anchor" href="#inferred-parity-relations" aria-hidden="true"><span class="octicon octicon-link"></span></a>Inferred Parity Relations</h3>
 
@@ -172,22 +125,6 @@ discontiguous contexts.</p>
 <li>  <strong>first:</strong> context label (foreign key)</li>
 <li>  <strong>second:</strong> context label (foreign key)</li>
 </ul>
-
-<table id="inferences" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-
-
-
-
-
-
-
-<tbody>
-<tr>
-<td>first</td>
-<td>second</td>
-</tr>
-</tbody>
-</table>
 
 <h3>
 <a id="periods" class="anchor" href="#periods" aria-hidden="true"><span class="octicon octicon-link"></span></a>Periods</h3>
@@ -201,28 +138,6 @@ discontiguous contexts.</p>
 </li>
 </ul>
 
-<table id="periods" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-
-
-
-
-
-
-
-
-
-
-
-<tbody>
-<tr>
-<td>id</td>
-<td>label</td>
-<td>color</td>
-<td>description</td>
-</tr>
-</tbody>
-</table>
-
 <h3>
 <a id="phases" class="anchor" href="#phases" aria-hidden="true"><span class="octicon octicon-link"></span></a>Phases</h3>
 
@@ -234,28 +149,6 @@ discontiguous contexts.</p>
 <li>  <strong>description:</strong> optional field not used by <code>hm</code>
 </li>
 </ul>
-
-<table id="phases" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-
-
-
-
-
-
-
-
-
-
-
-<tbody>
-<tr>
-<td>id</td>
-<td>label</td>
-<td>color</td>
-<td>description</td>
-</tr>
-</tbody>
-</table>
 
 <h3>
 <a id="dates" class="anchor" href="#dates" aria-hidden="true"><span class="octicon octicon-link"></span></a>Dates</h3>
@@ -269,8 +162,6 @@ discontiguous contexts.</p>
 <strong>lab:</strong> dating laboratory identifier</li>
 </ul>
 
-<p>theta | context | lab</p>
-
 <h3>
 <a id="date-order" class="anchor" href="#date-order" aria-hidden="true"><span class="octicon octicon-link"></span></a>Date Order</h3>
 
@@ -280,8 +171,6 @@ discontiguous contexts.</p>
 <li>
 <strong>younger:</strong> theta label of younger date (foreign key)</li>
 </ul>
-
-<p>older | younger </p>
 
 <h2>
 <a id="configuration-file" class="anchor" href="#configuration-file" aria-hidden="true"><span class="octicon octicon-link"></span></a>Configuration File</h2>
