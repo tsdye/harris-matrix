@@ -4,7 +4,7 @@
 
 ;; Licensed under the Gnu Public License Version 3 or later
 
-;; (in-package #:hm)
+(in-package #:hm)
 
 (require "graph-dot")
 (require "graph-matrix")
