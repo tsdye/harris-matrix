@@ -303,22 +303,22 @@ separated phases.")
   "Read csv file specified by CONFIG-FILE-NAME and set global
 variables.  Return t if successful, nil otherwise."
   (when (probe-file config-file-name)
-       (cl-csv:do-csv (row (probe-file config-file-name))
-         (setf (symbol-value (read-from-string (first row)))
-               (cond
-                 ((string= "reachable" (second row)) 'reachable)
-                 ((string= "periods" (second row)) 'periods)
-                 ((string= "phases" (second row)) 'phases)
-                 ((string= "levels" (second row)) 'levels)
-                 ((string= "connected" (second row)) 'connected)
-                 ((string= "distance" (second row)) 'distance)
-                 ((string= "t" (second row)) t)
-                 ((string= "nil" (second row)) nil)
-                 ((string= "" (second row)) nil)
-                 ((every #'float-char-p (second row))
-                  (read-from-string (second row)))
-                 (t (second row)))))
-       t))
+    (cl-csv:do-csv (row (probe-file config-file-name))
+      (setf (symbol-value (read-from-string (first row)))
+            (cond
+              ((string= "reachable" (second row)) 'reachable)
+              ((string= "periods" (second row)) 'periods)
+              ((string= "phases" (second row)) 'phases)
+              ((string= "levels" (second row)) 'levels)
+              ((string= "connected" (second row)) 'connected)
+              ((string= "distance" (second row)) 'distance)
+              ((string= "t" (second row)) t)
+              ((string= "nil" (second row)) nil)
+              ((string= "" (second row)) nil)
+              ((every #'float-char-p (second row))
+               (read-from-string (second row)))
+              (t (second row)))))
+    t))
 
 (defun color-filter (col extra-quotes)
   "Returns a valid Graphviz dot color designator. The result is either
@@ -364,7 +364,7 @@ function to express a constant."
   "Use the reachability matrix of GRAPH to set node fills."
   (let ((ret (make-hash-table))
         (reachable-list
-         (cond 
+         (cond
            ((< *reachable-limit* 0)
             (graph-matrix:reachable-from
              graph
@@ -442,9 +442,10 @@ connected with one another."
 where the indicated nodes are to appear on the same rank of the graph
 picture."
   (mapcar #'(lambda (x)
-              (push (graph-dot::make-rank :value "same"
-                                          :node-list (list (first x) (second x)))
-               *ranks*))
+              (push (graph-dot::make-rank
+                     :value "same"
+                     :node-list (list (first x) (second x)))
+                    *ranks*))
           table))
 
 (defun set-other-ranks (table)
@@ -475,7 +476,7 @@ first part of the inference.  Returns a hash table where the node
 labels are keys and the values are node shapes."
   (let ((ret (make-hash-table)))
     (mapcar #'(lambda (x)
-                (setf (gethash (read-from-string (first x)) ret) 
+                (setf (gethash (read-from-string (first x)) ret)
                       (cond ((eq 'deposit (read-from-string (second x)))
                              *node-shape-deposit*)
                             ((eq 'interface (read-from-string (second x)))
@@ -541,7 +542,7 @@ arcs and the values are URL's."
   (setf (gethash 'reachable nodes) *reachable-color*)
   (setf (gethash 'not-reachable nodes) *reachable-not-color*)
   (setf (gethash 'origin nodes) *origin-color*)
-  (when *symbolize-unit-type* 
+  (when *symbolize-unit-type*
     (setf (gethash 'origin units) *legend-node-shape*)
     (setf (gethash 'reachable units) *legend-node-shape*)
     (setf (gethash 'not-reachable units) *legend-node-shape*))
@@ -565,7 +566,7 @@ arcs and the values are URL's."
   (setf (gethash 'not-reachable nodes) *reachable-not-color*)
   (setf (gethash 'origin nodes) *origin-color*)
   (setf (gethash 'abutting nodes) *adjacent-color*)
-  (when *symbolize-unit-type* 
+  (when *symbolize-unit-type*
     (setf (gethash 'origin units) *legend-node-shape*)
     (setf (gethash 'abutting units) *legend-node-shape*)
     (setf (gethash 'separated units) *legend-node-shape*)
@@ -583,7 +584,7 @@ arcs and the values are URL's."
                           (format nil "~s" 'abutting)))
         *ranks*)
   (graph:add-node graph 'separated)
-  (graph:add-node graph 'not-reachable) 
+  (graph:add-node graph 'not-reachable)
   (graph:add-node graph 'origin)
   (graph:add-node graph 'abutting))
 
@@ -623,7 +624,7 @@ configuration file."
       (return-from hm-draw "The variable *assume-correlations-true* must be nil to create a chronology graph"))
     ;; read configuration file
     (if (not (hm-read-cnf-file cnf-file-path))
-        (format t "Unable to read configuration file from ~a" cnf-file-path)        
+        (format t "Unable to read configuration file from ~a" cnf-file-path)
         (progn
           (format t "Read configuration file from ~a~%" cnf-file-path)
           ;; read required tables
@@ -675,7 +676,7 @@ configuration file."
                 (format t "Read optional phase table from ~a~%" *phase-table-name*)
                 (return-from hm-draw (format nil "Unable to read optional file ~a"
                                              *phase-table-name*))))
-          (when (and *create-chronology-graph* *radiocarbon-table-name*) 
+          (when (and *create-chronology-graph* *radiocarbon-table-name*)
             (if (and (probe-file *radiocarbon-table-name*)
                      (setf radiocarbon-table
                            (cl-csv:read-csv
@@ -710,7 +711,7 @@ configuration file."
             (return-from hm-draw
               (format t "A cycle that includes node ~a is present."
                       (pop rejected))))
-          
+
           ;; possibly assume correlated contexts once-whole
           ;; check for cycles
           (if *assume-correlations-true*
@@ -725,7 +726,7 @@ configuration file."
                   (return-from hm-draw
                     (format t "Correlated contexts introduced a cycle."))))
               (set-same-ranks inference-table))
-          
+
           (set-other-ranks context-table)
           ;; fill nodes
           (when *node-fill-by*
@@ -810,7 +811,7 @@ configuration file."
               (when (eq 0 (graph:outdegree
                            chronology-graph
                            (read-from-string
-                            (format nil "theta-~a" (first node)))))     
+                            (format nil "theta-~a" (first node)))))
                 (graph:add-edge chronology-graph
                                 (list (read-from-string
                                        (format nil "theta-~a" (first node)))
@@ -856,7 +857,7 @@ configuration file."
                                 (color-filter *chronology-graph-font-color* nil) "")))
               (cons :splines (make-attribute *chronology-graph-splines*))
               (cons :page (make-attribute *chronology-graph-page*))
-              (cons :size (make-attribute *chronology-graph-size*))   
+              (cons :size (make-attribute *chronology-graph-size*))
               (cons :ratio (make-attribute *chronology-graph-ratio*))
               (cons :label (make-attribute *chronology-graph-title*))
               (cons :labelloc (make-attribute *chronology-graph-labelloc*)))
@@ -917,7 +918,7 @@ configuration file."
                                       *chronology-node-font-color* t) "")))))
             (format t "Wrote ~a~%" (probe-file *chronology-out-file*)))
           ;; write the dot file for the sequence diagram
-          (graph-dot:to-dot-file       
+          (graph-dot:to-dot-file
            graph *out-file*
            :ranks *ranks*
            :attributes
@@ -940,7 +941,7 @@ configuration file."
                               (color-filter *graph-font-color* nil) "")))
             (cons :splines (make-attribute *graph-splines*))
             (cons :page (make-attribute *graph-page*))
-            (cons :size (make-attribute *graph-size*))   
+            (cons :size (make-attribute *graph-size*))
             (cons :ratio (make-attribute *graph-ratio*))
             (cons :label (make-attribute *graph-title*))
             (cons :labelloc (make-attribute *graph-labelloc*)))
@@ -967,7 +968,7 @@ configuration file."
                                    "")))
                         (cons :URL (if (and *url-include* arc-urls
                                             (> (hash-table-count arc-urls) 0))
-                                       (lambda (e) 
+                                       (lambda (e)
                                          (format nil "~s"
                                                  (gethash e arc-urls)))
                                        (constantly-format ""))))
@@ -975,7 +976,7 @@ configuration file."
                         (cons :shape
                               (if (and *symbolize-unit-type* unit-types
                                        (> (hash-table-count unit-types) 0))
-                                  (lambda (n) 
+                                  (lambda (n)
                                     (format nil "~(~s~)"
                                             (gethash n unit-types)))
                                   (constantly-format *node-shape-deposit*)))
@@ -1008,11 +1009,11 @@ configuration file."
                                   (constantly
                                    (if *node-font-color*
                                        (color-filter *node-font-color* t) ""))))
-                        (cons :URL 
+                        (cons :URL
                               (if (and *url-include* node-urls
                                        (> (hash-table-count node-urls) 0))
                                   (lambda (n) (format nil "~s"
-                                                 (gethash n node-urls)))
+                                                      (gethash n node-urls)))
                                   (constantly-format "")))))
           (format t "Wrote ~a" (probe-file *out-file*))))
     (return-from hm-draw "Apparent success")))
