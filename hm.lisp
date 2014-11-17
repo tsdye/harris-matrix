@@ -592,7 +592,7 @@ arcs and the values are URL's."
   (mapcar (lambda (a) (list elem a)) list))
 
 (defun unique-pairs (list)
-  (mapcon (lambda (rest) (pair-with (car rest) (cdr rest)))
+  (mapcon (lambda (rest) (pair-with (first rest) (rest rest)))
           (remove-duplicates list)))
 
 
@@ -824,17 +824,17 @@ configuration file."
                                        (unique-pairs (reverse context-list))))
             (dolist (pair context-list)
               (when (graph-matrix:reachablep
-                     graph reachability-matrix (car pair) (cadr pair))
+                     graph reachability-matrix (first pair) (first (rest pair)))
                 (graph:add-edge
                  chronology-graph
                  (list (read-from-string
-                        (format nil "alpha-~a" (car pair)))
+                        (format nil "alpha-~a" (first pair)))
                        (read-from-string
-                        (format nil "beta-~a" (cadr pair))))
+                        (format nil "beta-~a" (first (rest pair)))))
                  (if (eq 1 (graph-matrix:matrix-ref
                             adjacency-matrix
-                            (gethash (car pair) node-index-hash)
-                            (gethash (cadr pair) node-index-hash))) 1 2))))
+                            (gethash (first pair) node-index-hash)
+                            (gethash (first (rest pair)) node-index-hash))) 1 2))))
             ;; write the dot file for the chronology graph
             (graph-dot:to-dot-file
              chronology-graph *chronology-out-file*
