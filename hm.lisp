@@ -703,10 +703,10 @@ a FORMAT specification."
   (do-urlencode:urldecode (string url)))
 
 (defun label-color (color)
-  (if (integerp color)
-      (if (and *label-break* (<= *label-break* color))
+  (if (and *label-break* (integerp color))
+      (if (<= *label-break* color)
           (color-filter *label-color-light*) (color-filter *label-color-dark*))
-      (color-filter color)))
+      (color-filter *label-color-dark*)))
 
 (defun graph-element-control
     (default &optional (pre-process #'identity) switch hash-table)
