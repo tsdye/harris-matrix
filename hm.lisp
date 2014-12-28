@@ -528,8 +528,8 @@ picture."
   (mapcar #'(lambda (x)
               (push (graph-dot::make-rank
                      :value "same"
-                     :node-list (list (new-symbol (first x))
-                                      (new-symbol (second x))))
+                     :node-list (list (format nil "~s" (new-symbol (first x)))
+                                      (format nil "~s" (new-symbol (second x)))))
                     *ranks*))
           table))
 
@@ -546,7 +546,7 @@ the graph picture."
                          ((eq (new-symbol (third x)) 'basal) "sink")
                          ((eq (new-symbol (third x)) 'surface) "source"))
                        :node-list
-                       (list (new-symbol (first x))))
+                       (list (format nil "~s" (new-symbol (first x)))))
                       *ranks*)))
           table))
 
@@ -704,7 +704,7 @@ a FORMAT specification."
 
 (defun label-color (color)
   (if (integerp color)
-      (if (<= *label-break* color)
+      (if (and *label-break* (<= *label-break* color))
           (color-filter *label-color-light*) (color-filter *label-color-dark*))
       (color-filter color)))
 
