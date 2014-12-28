@@ -1,4 +1,4 @@
-;;;; hm.lisp
+;;; hm.lisp
 
 ;; Copyright (C) Thomas Dye 2014
 
@@ -9,8 +9,10 @@
 (require "graph-dot")
 (require "graph-matrix")
 (require "cl-csv")
+(require "do-urlencode")
 
 ;; declare global variables that will be set by the configuration file
+
 (defparameter *out-file* nil
   "Output file path for the sequence diagram dot file.")
 (defparameter *chronology-out-file* nil
@@ -287,56 +289,149 @@ separated phases.")
 (defparameter *chronology-node-fill* nil
   "The color used to fill nodes.  Either a color name from the active
   color space or an integer index into a Brewer color scheme.")
+(defparameter *use-fast-matrix* t
+  "Toggle fast matrix routines.")
 
 ;; global variables not set by the configuration file
+
 (defparameter *ranks* nil
   "A list of graph:rank structures.")
 
 (defparameter *distance-matrix* nil
   "Distance matrix of graph.")
 
-;; (defparameter *chronology-graph* nil
-;;   "Debug a problem with the chronology graph.")
+;; function definitions
 
+(defun initialize-special-variables ()
+  (setf *out-file* nil
+        *chronology-out-file* nil
+        *merged-out-file* nil
+        *context-table-name* nil
+        *observation-table-name* nil
+        *inference-table-name* nil
+        *period-table-name* nil
+        *phase-table-name* nil
+        *radiocarbon-table-name* nil
+        *date-order-table-name* nil
+        *context-table-header* nil
+        *observation-table-header* nil
+        *inference-table-header* nil
+        *period-table-header* nil
+        *phase-table-header* nil
+        *radiocarbon-table-header* nil
+        *date-order-table-header* nil
+        *symbolize-unit-type* nil
+        *create-chronology-graph* nil
+        *node-fill-by* nil
+        *label-break* nil
+        *color-scheme* nil
+        *color-space* nil
+        *label-color-dark* nil
+        *label-color-light* nil
+        *reachable-from* nil
+        *reachable-limit* nil
+        *reachable-color* nil
+        *reachable-not-color* nil
+        *origin-color* nil
+        *adjacent-color* nil
+        *url-include* nil
+        *url-default* nil
+        *graph-title* nil
+        *graph-labelloc* nil
+        *graph-style* nil
+        *graph-size* nil
+        *graph-ratio* nil
+        *graph-page* nil
+        *graph-dpi* nil
+        *graph-margin* nil
+        *graph-font-name* nil
+        *graph-font-size* nil
+        *graph-font-color* nil
+        *graph-splines* nil
+        *graph-bg-color* nil
+        *legend* nil
+        *legend-node-shape* nil
+        *edge-style* nil
+        *edge-with-arrow* nil
+        *edge-color* nil
+        *edge-font-name* nil
+        *edge-font-size* nil
+        *edge-font-color* nil
+        *node-style* nil
+        *node-color* nil
+        *node-font-name* nil
+        *node-font-size* nil
+        *node-font-color* nil
+        *node-shape-interface* nil
+        *node-shape-deposit* nil
+        *node-fill* nil
+        *assume-correlations-true* nil
+        *chronology-color-scheme* nil
+        *chronology-graph-title* nil
+        *chronology-graph-labelloc* nil
+        *chronology-graph-style* nil
+        *chronology-graph-size* nil
+        *chronology-graph-ratio* nil
+        *chronology-graph-page* nil
+        *chronology-graph-dpi* nil
+        *chronology-graph-margin* nil
+        *chronology-graph-font-name* nil
+        *chronology-graph-font-size* nil
+        *chronology-graph-font-color* nil
+        *chronology-graph-splines* nil
+        *chronology-graph-bg-color* nil
+        *chronology-edge-with-arrow* nil
+        *chronology-edge-color* nil
+        *chronology-edge-font-name* nil
+        *chronology-edge-font-size* nil
+        *chronology-edge-font-color* nil
+        *chronology-edge-date* nil
+        *chronology-edge-abutting* nil
+        *chronology-edge-separated* nil
+        *chronology-node-style* nil
+        *chronology-node-color* nil
+        *chronology-node-font-name* nil
+        *chronology-node-font-size* nil
+        *chronology-node-font-color* nil
+        *chronology-node-shape-phase* nil
+        *chronology-node-shape-date* nil
+        *chronology-node-fill* nil
+        *use-fast-matrix* t
+        *ranks* nil
+        *distance-matrix* nil))
 
-(defun hm-read-cnf-file (config-file-name)
-  "Read csv file specified by CONFIG-FILE-NAME and set global
-variables.  Return t if successful, nil otherwise."
-  (when (probe-file config-file-name)
-    (cl-csv:do-csv (row (probe-file config-file-name))
-      (setf (symbol-value (read-from-string (first row)))
-            (cond
-              ((string= "reachable" (second row)) 'reachable)
-              ((string= "periods" (second row)) 'periods)
-              ((string= "phases" (second row)) 'phases)
-              ((string= "levels" (second row)) 'levels)
-              ((string= "connected" (second row)) 'connected)
-              ((string= "distance" (second row)) 'distance)
-              ((string= "t" (second row)) t)
-              ((string= "nil" (second row)) nil)
-              ((string= "" (second row)) nil)
-              ((every #'float-char-p (second row))
-               (read-from-string (second row)))
-              (t (second row)))))
+(defun hm-read-cnf-file (name)
+  "Read csv file specified by NAME and set most global variables to
+symbols, except strings that appear in the graph and must preserve
+case.  URL's are encoded so they can be represented as symbols.
+Return t if successful, nil otherwise."
+  (alexandria:when-let (in-file (probe-file name))
+    (format t "Reading configuration file ~a~%" in-file)
+    (cl-csv:do-csv (row in-file)
+      (let ((global-var (first row)))
+        (setf
+         (symbol-value (read-from-string global-var))
+         (cond
+           ((or (string= global-var "*graph-title*")
+                (string= global-var "*chronology-graph-title*"))
+            (second row))
+           ((string= global-var "*url-default*")
+            (new-symbol (do-urlencode:urlencode (second row))))
+           (t (new-symbol (second row)))))))
     t))
 
-(defun color-filter (col extra-quotes)
+(defun color-filter (col)
   "Returns a valid Graphviz dot color designator. The result is either
 an integer or a color name appended to a color space.  COL can either
-be an integer, in which case Brewer colors are assumed, or a string
-with a color name."
-  (if (integerp col) col
-      (if (eq (read-from-string col) 'transparent)
-          col
-          (if extra-quotes
-              (format nil "\"/~a/~a\"" *color-space* col)
-              (format nil "/~a/~a" *color-space* col)))))
+be an integer, in which case Brewer colors are assumed, or a symbol
+whose string value is a color name.  Returns 0 if COL is nil or a string."
+  (cond
+    ((integerp col) col)
+    ((eq col 'transparent) "transparent")
+    ((and (symbolp col) col) (format nil "~(/~a/~a~)" *color-space* col))
+    (t 0)))
 
-(defun float-char-p (char)
-  "Is CHAR plausibly part of a real number?"
-  (or (digit-char-p char) (char= char #\,) (char= char #\.)))
-
-(defun make-attribute (att)
+(defun format-attribute (att)
   "A convenience function to transform a Lisp symbol into a GraphViz
 dot attribute."
   (format nil "~(~s~)" (if att att "")))
@@ -344,19 +439,19 @@ dot attribute."
 (defun constantly-format (x)
   "A convenience function for situations where Lisp requires a
 function to express a constant."
-  (constantly (format nil "~s" (if x x ""))))
+  (constantly (format-attribute x)))
 
 (defun node-fill-by-table (table contexts)
   "Set the fill of nodes in CONTEXTS according to values recorded in TABLE."
   (let ((ht (make-hash-table))
         (ret (make-hash-table)))
     (mapcar #'(lambda (x)
-                (setf (gethash (read-from-string (first x)) ht)
-                      (read-from-string (third x))))
+                (setf (gethash (new-symbol (first x)) ht)
+                      (new-symbol (third x))))
             table)
     (mapcar #'(lambda (x)
-                (setf (gethash (read-from-string (first x)) ret)
-                      (gethash (read-from-string (fourth x)) ht)))
+                (setf (gethash (new-symbol (first x)) ret)
+                      (gethash (new-symbol (fourth x)) ht)))
             contexts)
     ret))
 
@@ -367,32 +462,26 @@ function to express a constant."
          (cond
            ((< *reachable-limit* 0)
             (graph-matrix:reachable-from
-             graph
-             (graph-matrix:to-reachability-matrix
-              graph
-              (make-instance 'graph-matrix:fast-matrix))
+             graph (graph-matrix:to-reachability-matrix
+                    graph (new-matrix *use-fast-matrix*))
              *reachable-from*))
-           ((eql *reachable-limit* 0) (list *reachable-from*))
-           ((eql *reachable-limit* 1)
+           ((eq *reachable-limit* 0) (list *reachable-from*))
+           ((eq *reachable-limit* 1)
             (cons *reachable-from*
                   (graph-matrix:reachable-from
-                   graph
-                   (graph-matrix:to-adjacency-matrix
-                    graph
-                    (make-instance 'graph-matrix:fast-matrix))
+                   graph (graph-matrix:to-adjacency-matrix
+                    graph (new-matrix *use-fast-matrix*))
                    *reachable-from*)))
            (t (graph-matrix:reachable-from
                graph (graph-matrix:to-reachability-matrix
-                      graph (make-instance 'graph-matrix:fast-matrix)
+                      graph (new-matrix *use-fast-matrix*)
                       :limit *reachable-limit*)
                *reachable-from*)))))
     (dolist (node reachable-list)
-      (setf (gethash (read-from-string (format nil "~a" node)) ret)
-            (color-filter *reachable-color* nil)))
+      (setf (gethash node ret) *reachable-color*))
     (dolist (node (set-difference (graph:nodes graph) reachable-list))
-      (setf (gethash (read-from-string (format nil "~a" node)) ret)
-            (color-filter *reachable-not-color* nil)))
-    (setf (gethash *reachable-from* ret) (color-filter *origin-color* nil))
+      (setf (gethash node ret) *reachable-not-color*))
+    (setf (gethash *reachable-from* ret) *origin-color*)
     ret))
 
 (defun node-fill-by-connected (graph)
@@ -406,11 +495,9 @@ connected with one another."
         (reachable-list (graph:connected-component graph *reachable-from*
                                                    :type :unilateral)))
     (dolist (node reachable-list)
-      (setf (gethash (read-from-string (format nil "~a" node)) ret)
-            (color-filter *reachable-color* nil)))
+      (setf (gethash node ret) *reachable-color*))
     (dolist (node (set-difference (graph:nodes graph) reachable-list))
-      (setf (gethash (read-from-string (format nil "~a" node)) ret)
-            (color-filter *reachable-not-color* nil)))
+      (setf (gethash node ret)*reachable-not-color*))
     ret))
 
 (defun node-fill-by-distance (graph)
@@ -418,22 +505,19 @@ connected with one another."
   (let ((ret (make-hash-table))
         (d))
     (unless *distance-matrix*
-      (setq *distance-matrix* (graph-matrix:to-distance-matrix
-                               graph
-                               (make-instance 'graph-matrix:fast-matrix))))
+      (setf *distance-matrix* (graph-matrix:to-distance-matrix
+                               graph (new-matrix *use-fast-matrix*))))
     (mapc (lambda (node)
-            (setq d (min (graph-matrix:distance-from-to
+            (setf d (min (graph-matrix:distance-from-to
                           graph *distance-matrix* *reachable-from* node)
                          (graph-matrix:distance-from-to
-                          graph *distance-matrix* node *reachable-from*)))
-            (setf
-             (gethash (read-from-string (format nil "~a" node)) ret)
-             (cond
-               ((equal d graph-matrix:infinity)
-                (color-filter *reachable-not-color* nil))
-               ((equal d 0) (color-filter *origin-color* nil))
-               ((equal d 1) (color-filter *adjacent-color* nil))
-               (t (color-filter *reachable-color* nil)))))
+                          graph *distance-matrix* node *reachable-from*))
+                  (gethash node ret)
+                  (cond
+                    ((equal d graph-matrix:infinity) *reachable-not-color*)
+                    ((equal d 0) *origin-color*)
+                    ((equal d 1) *adjacent-color*)
+                    (t *reachable-color*))))
           (graph:nodes graph))
     ret))
 
@@ -444,7 +528,8 @@ picture."
   (mapcar #'(lambda (x)
               (push (graph-dot::make-rank
                      :value "same"
-                     :node-list (list (first x) (second x)))
+                     :node-list (list (new-symbol (first x))
+                                      (new-symbol (second x))))
                     *ranks*))
           table))
 
@@ -453,18 +538,15 @@ picture."
 where the indicated nodes either appear at the top or the bottom of
 the graph picture."
   (mapcar #'(lambda (x)
-              (when (or (eq (read-from-string (third x)) 'basal)
-                        (eq (read-from-string (third x)) 'surface))
+              (when (or (eq (new-symbol (third x)) 'basal)
+                        (eq (new-symbol (third x)) 'surface))
                 (push (graph-dot::make-rank
                        :value
                        (cond
-                         ((eq (read-from-string (third x)) 'basal) "sink")
-                         ((eq (read-from-string (third x)) 'surface) "source"))
+                         ((eq (new-symbol (third x)) 'basal) "sink")
+                         ((eq (new-symbol (third x)) 'surface) "source"))
                        :node-list
-                       (list (if (stringp (first x))
-                                 (read-from-string
-                                  (format nil "~:@(~s~)" (first x)))
-                                 (first x))))
+                       (list (new-symbol (first x))))
                       *ranks*)))
           table))
 
@@ -473,28 +555,28 @@ the graph picture."
 TABLE and in INFERENCES.  The nodes created from information in
 INFERENCES are assigned a shape based on the value in TABLE for the
 first part of the inference.  Returns a hash table where the node
-labels are keys and the values are node shapes."
+labels are keys and the values are symbols for node shapes."
   (let ((ret (make-hash-table)))
     (mapcar #'(lambda (x)
-                (setf (gethash (read-from-string (first x)) ret)
-                      (cond ((eq 'deposit (read-from-string (second x)))
+                (setf (gethash (new-symbol (first x)) ret)
+                      (cond ((eq 'deposit (new-symbol (second x)))
                              *node-shape-deposit*)
-                            ((eq 'interface (read-from-string (second x)))
+                            ((eq 'interface (new-symbol (second x)))
                              *node-shape-interface*))))
             table)
     (when *assume-correlations-true*
       (dolist (part inferences)
         (setf (gethash (read-from-string
                         (format nil "~a=~a" (first part) (second part))) ret)
-              (gethash (read-from-string (first part)) ret))))
+              (gethash (new-symbol (first part)) ret))))
     ret))
 
 (defun get-node-urls-from (table inferences)
   "Reads URL's from TABLE.  Returns a hash table where the keys are
-node labels and the values are URL's."
+node labels and the values are symbols for URL's."
   (let ((ret (make-hash-table)))
     (dolist (node table)
-      (setf (gethash (read-from-string (first node)) ret)
+      (setf (gethash (new-symbol (first node)) ret)
             (if (string= (sixth node) "")
                 (if *url-default* *url-default* "")
                 (sixth node))))
@@ -503,7 +585,7 @@ node labels and the values are URL's."
         (setf (gethash (read-from-string
                         (format nil "~a=~a" (first part) (second part))) ret)
               (if (string= (third part) "")
-                  (if *url-default* *url-default* "")
+                  (if *url-default*  *url-default* "")
                   (third part)))))
     ret))
 
@@ -512,44 +594,45 @@ node labels and the values are URL's."
 arcs and the values are URL's."
   (let ((ret (make-hash-table :test #'equal)))
     (dolist (arc table)
-      (setf (gethash (list (read-from-string (first arc))
-                           (read-from-string (second arc))) ret)
+      (setf (gethash (list (new-symbol (first arc))
+                           (new-symbol (second arc))) ret)
             (if (string= (third arc) "")
-                (if *url-default* *url-default* "") (third arc))))
+                (if *url-default* *url-default* "")
+                (third arc))))
     ret))
 
 (defun make-legend-for (table graph nodes units urls)
   "Make legend components for the node classification in TABLE."
   (mapcar #'(lambda (x)
-              (setf (gethash (read-from-string (second x)) nodes)
-                    (read-from-string (third x)))
+              (setf (gethash (new-symbol (second x)) nodes)
+                    (new-symbol (third x)))
               (when *symbolize-unit-type*
-                (setf (gethash (read-from-string (second x)) units)
+                (setf (gethash (new-symbol (second x)) units)
                       *legend-node-shape*))
               (when *url-include*
-                (setf (gethash (read-from-string (second x)) urls)
+                (setf (gethash (new-symbol (second x)) urls)
                       (fourth x)))
               (push
                (graph-dot::make-rank
                 :value "sink"
-                :node-list (list (format nil "~s" (read-from-string (second x)))))
+                :node-list (list (new-symbol (second x))))
                *ranks*)
-              (graph:add-node graph (read-from-string (second x))))
+              (graph:add-node graph (new-symbol (second x))))
           table))
 
 (defun make-reachable-legend (graph nodes units urls)
   "Make legend components when nodes are filled by reachability."
-  (setf (gethash 'reachable nodes) *reachable-color*)
-  (setf (gethash 'not-reachable nodes) *reachable-not-color*)
-  (setf (gethash 'origin nodes) *origin-color*)
+  (setf (gethash 'reachable nodes) *reachable-color*
+        (gethash 'not-reachable nodes) *reachable-not-color*
+        (gethash 'origin nodes) *origin-color*)
   (when *symbolize-unit-type*
-    (setf (gethash 'origin units) *legend-node-shape*)
-    (setf (gethash 'reachable units) *legend-node-shape*)
-    (setf (gethash 'not-reachable units) *legend-node-shape*))
+    (setf (gethash 'origin units) *legend-node-shape*
+          (gethash 'reachable units) *legend-node-shape*
+          (gethash 'not-reachable units) *legend-node-shape*))
   (when *url-include*
-    (setf (gethash 'origin urls) (if *url-default* *url-default* ""))
-    (setf (gethash 'reachable urls) (if *url-default* *url-default* ""))
-    (setf (gethash 'not-reachable urls) (if *url-default* *url-default* "")))
+    (setf (gethash 'origin urls) (if *url-default* *url-default* "")
+          (gethash 'reachable urls) (if *url-default* *url-default* "")
+          (gethash 'not-reachable urls) (if *url-default* *url-default* "")))
   (push (graph-dot::make-rank
          :value "sink"
          :node-list (list (format nil "~s" 'reachable)
@@ -562,20 +645,20 @@ arcs and the values are URL's."
 
 (defun make-distance-legend (graph nodes units urls)
   "Make legend components when nodes are filled by distance from an origin node."
-  (setf (gethash 'separated nodes) *reachable-color*)
-  (setf (gethash 'not-reachable nodes) *reachable-not-color*)
-  (setf (gethash 'origin nodes) *origin-color*)
-  (setf (gethash 'abutting nodes) *adjacent-color*)
+  (setf (gethash 'separated nodes) *reachable-color*
+        (gethash 'not-reachable nodes) *reachable-not-color*
+        (gethash 'origin nodes) *origin-color*
+        (gethash 'abutting nodes) *adjacent-color*)
   (when *symbolize-unit-type*
-    (setf (gethash 'origin units) *legend-node-shape*)
-    (setf (gethash 'abutting units) *legend-node-shape*)
-    (setf (gethash 'separated units) *legend-node-shape*)
-    (setf (gethash 'not-reachable units) *legend-node-shape*))
+    (setf (gethash 'origin units) *legend-node-shape*
+          (gethash 'abutting units) *legend-node-shape*
+          (gethash 'separated units) *legend-node-shape*
+          (gethash 'not-reachable units) *legend-node-shape*))
   (when *url-include*
-    (setf (gethash 'origin urls) (if *url-default* *url-default* ""))
-    (setf (gethash 'abutting urls) (if *url-default* *url-default* ""))
-    (setf (gethash 'reachable urls) (if *url-default* *url-default* ""))
-    (setf (gethash 'not-reachable urls) (if *url-default* *url-default* "")))
+    (setf (gethash 'origin urls) (if *url-default* *url-default* "")
+          (gethash 'abutting urls) (if *url-default* *url-default* "")
+          (gethash 'reachable urls) (if *url-default* *url-default* "")
+          (gethash 'not-reachable urls) (if *url-default* *url-default* "")))
   (push (graph-dot::make-rank
          :value "sink"
          :node-list (list (format nil "~s" 'separated)
@@ -595,8 +678,49 @@ arcs and the values are URL's."
   (mapcon (lambda (rest) (pair-with (first rest) (rest rest)))
           (remove-duplicates list)))
 
+(defun hm-read-table (name header)
+  "Checks that NAME is a file, then attempts to read it as
+comma-separated values.  HEADER indicates whether or not the first
+line of NAME contains column heads, rather than values."
+  (alexandria:when-let (in-file (probe-file (string name)))
+    (format t "Reading table ~a~%" in-file)
+    (cl-csv:read-csv in-file :skip-first-p header)))
 
-(defun hm-draw (cnf-file-path)
+(defun new-matrix (fast)
+  "Makes a matrix instance.  If FAST is t, then uses fast matrix
+routines.  If FAST is nil, then uses CL matrix routines."
+  (if fast (make-instance 'graph-matrix:fast-matrix)
+      (make-instance 'graph-matrix:matrix)))
+
+(defun new-symbol (string &optional format)
+  "Makes a symbol out of STRING, optionally passing the string through
+a FORMAT specification."
+  (when (or (stringp string) (and format (numberp string)))
+    (read-from-string (if format (format nil format string) string)
+                      nil nil :preserve-whitespace t)))
+
+(defun url-decode (url)
+  (do-urlencode:urldecode (string url)))
+
+(defun label-color (color)
+  (if (integerp color)
+      (if (<= *label-break* color)
+          (color-filter *label-color-light*) (color-filter *label-color-dark*))
+      (color-filter color)))
+
+(defun graph-element-control
+    (default &optional (pre-process #'identity) switch hash-table)
+  "A template that connects a hash table with a graph element, either
+a node or an arc.  SWITCH determines whether to use a value from
+HASH-TABLE or DEFAULT.  PRE-PROCESS is an optional function with one
+argument that is used to process either the HASH-TABLE result or the
+DEFAULT value.  The default PRE-PROCESS function, IDENTITY, simply
+passes through the value passed to it."
+  (if (and switch hash-table)
+      (lambda (x) (format-attribute (funcall pre-process (gethash x hash-table))))
+      (constantly-format (funcall pre-process default))))
+
+(defun hm-draw (cnf-file-path &optional verbose)
   "Read a configuration file and various data files, create a
 stratigraphy graph and optionally a chronology graph, and write one or
 more dot files according to the variables contained in the
@@ -620,400 +744,326 @@ configuration file."
         (reachability-matrix)
         (node-index-hash (make-hash-table))
         (counter -1))
+
+    (initialize-special-variables)
+    
     (when (and *create-chronology-graph* *assume-correlations-true*)
-      (return-from hm-draw "The variable *assume-correlations-true* must be nil to create a chronology graph"))
+      (return-from hm-draw
+        "Cannot create chronology graph when *assume-correlations-true*"))
+
     ;; read configuration file
-    (if (not (hm-read-cnf-file cnf-file-path))
-        (format t "Unable to read configuration file from ~a" cnf-file-path)
+
+    (unless (hm-read-cnf-file cnf-file-path)
+      (return-from hm-draw
+        (format nil "Unable to read configuration file ~a" cnf-file-path)))
+
+    ;; read required tables
+
+    (unless
+        (setf context-table
+              (hm-read-table *context-table-name* *context-table-header*))
+      (return-from hm-draw (format nil "Unable to read ~a"
+                                   *context-table-name*)))
+
+    (unless
+        (setf observation-table
+              (hm-read-table *observation-table-name*
+                             *observation-table-header*))
+      (return-from hm-draw (format nil "Unable to read ~a"
+                                   *observation-table-name*)))
+
+    ;; read optional tables, if necessary
+
+    (when *inference-table-name*
+      (unless
+          (setf inference-table
+                (hm-read-table *inference-table-name*
+                               *inference-table-header*))
+        (return-from hm-draw (format nil "Unable to read ~a"
+                                     *inference-table-name*))))
+      
+    (when *period-table-name*
+      (unless
+          (setf period-table
+                (hm-read-table *period-table-name* *period-table-header*))
+        (return-from hm-draw (format nil "Unable to read ~a"
+                                     *period-table-name*))))
+
+    (when *phase-table-name*
+      (unless
+          (setf phase-table
+                (hm-read-table *phase-table-name* *phase-table-header*))
+        (return-from hm-draw (format nil "Unable to read ~a"
+                                     *phase-table-name*))))
+
+    (when (and *radiocarbon-table-name* *create-chronology-graph*)
+      (unless
+          (setf radiocarbon-table
+                (hm-read-table *radiocarbon-table-name*
+                               *radiocarbon-table-header*))
+        (return-from hm-draw (format nil "Unable to read ~a"
+                                     *radiocarbon-table-name*))))
+
+    (when (and *date-order-table-name* *create-chronology-graph*)
+      (unless
+          (setf date-order-table
+                (hm-read-table *date-order-table-name*
+                               *date-order-table-header*))
+        (return-from hm-draw (format nil "Unable to read ~a"
+                                     *date-order-table-name*))))
+      
+    ;; create sequence diagram graph
+    ;;; add nodes
+
+    (dolist (node context-table)
+      (graph:add-node graph (new-symbol (first node))))
+
+    ;;; add arcs
+    
+    (dolist (arc observation-table rejected)
+      (graph:add-edge graph
+                      (list (new-symbol (first arc))
+                            (new-symbol (second arc))))
+      (unless rejected
+        (and (graph:cycles graph) (push arc rejected))))
+
+    ;; if there is a cycle in the graph, shut down
+
+    (when rejected
+      (return-from hm-draw
+        (format t "A cycle that includes node ~a is present."
+                (pop rejected))))
+
+    ;; possibly assume correlated contexts once-whole
+    ;; check for cycles
+
+    (if *assume-correlations-true*
         (progn
-          (format t "Read configuration file from ~a~%" cnf-file-path)
-          ;; read required tables
-          (if (and *context-table-name*
-                   (probe-file *context-table-name*)
-                   (setf context-table
-                         (cl-csv:read-csv
-                          (probe-file *context-table-name*)
-                          :skip-first-p *context-table-header*)))
-              (format t "Read context table from ~a~%" *context-table-name*)
-              (return-from hm-draw (format nil "Unable to read ~a"
-                                           *context-table-name*)))
-          (if (and *observation-table-name*
-                   (probe-file *observation-table-name*)
-                   (setf observation-table
-                         (cl-csv:read-csv
-                          (probe-file *observation-table-name*)
-                          :skip-first-p *observation-table-header*)))
-              (format t "Read observation table from ~a~%" *observation-table-name*)
-              (return-from hm-draw (format nil "Unable to read ~a"
-                                           *observation-table-name*)))
-          ;; read optional tables, if necessary
-          (when *inference-table-name*
-            (if (and (probe-file *inference-table-name*)
-                     (setf inference-table
-                           (cl-csv:read-csv
-                            (probe-file *inference-table-name*)
-                            :skip-first-p *inference-table-header*)))
-                (format t "Read optional inference table from ~a~%"
-                        *inference-table-name*)
-                (return-from hm-draw (format nil "Unable to read optional file ~a"
-                                             *inference-table-name*))))
-          (when *period-table-name*
-            (if (and (probe-file *period-table-name*)
-                     (setf period-table
-                           (cl-csv:read-csv
-                            (probe-file *period-table-name*)
-                            :skip-first-p *period-table-header*)))
-                (format t "Read optional period table from ~a~%"
-                        *period-table-name*)
-                (return-from hm-draw (format nil "Unable to read optional file ~a"
-                                             *period-table-name*))))
-          (when *phase-table-name*
-            (if (and (probe-file *phase-table-name*)
-                     (setf phase-table
-                           (cl-csv:read-csv
-                            (probe-file *phase-table-name*)
-                            :skip-first-p *phase-table-header*)))
-                (format t "Read optional phase table from ~a~%" *phase-table-name*)
-                (return-from hm-draw (format nil "Unable to read optional file ~a"
-                                             *phase-table-name*))))
-          (when (and *create-chronology-graph* *radiocarbon-table-name*)
-            (if (and (probe-file *radiocarbon-table-name*)
-                     (setf radiocarbon-table
-                           (cl-csv:read-csv
-                            (probe-file *radiocarbon-table-name*)
-                            :skip-first-p *radiocarbon-table-header*)))
-                (format t "Read optional radiocarbon table from ~a~%"
-                        *radiocarbon-table-name*)
-                (return-from hm-draw (format nil "Unable to read optional file ~a"
-                                             *radiocarbon-table-name*))))
-          (when (and *create-chronology-graph* *date-order-table-name*)
-            (if (and (probe-file *date-order-table-name*)
-                     (setf date-order-table
-                           (cl-csv:read-csv
-                            (probe-file *date-order-table-name*)
-                            :skip-first-p *date-order-table-header*)))
-                (format t "Read optional date order table from ~a~%"
-                        *date-order-table-name*)
-                (return-from hm-draw (format nil "Unable to read optional file ~a"
-                                             *date-order-table-name*))))
-          ;; create sequence diagram graph
-          (dolist (node context-table)
-            (graph:add-node graph (read-from-string (first node))))
-          (dolist (arc observation-table rejected)
-            (graph:add-edge graph
-                            (list (read-from-string (first arc))
-                                  (read-from-string (second arc))))
-            (unless rejected
-              (and (graph:cycles graph) (push arc rejected))))
-
-          ;; if there is a cycle in the graph, shut down
-          (when rejected
+          (dolist (part inference-table)
+            (graph:merge-nodes
+             graph (new-symbol (second part))
+             (new-symbol (first part))
+             :new (alexandria:symbolicate (new-symbol (first part)) "="
+                                          (new-symbol (second part)))))
+          (when (graph:cycles graph)
             (return-from hm-draw
-              (format t "A cycle that includes node ~a is present."
-                      (pop rejected))))
+              (format t "Correlated contexts introduced a cycle."))))
+        (set-same-ranks inference-table))
 
-          ;; possibly assume correlated contexts once-whole
-          ;; check for cycles
-          (if *assume-correlations-true*
-              (progn
-                (dolist (part inference-table)
-                  (graph:merge-nodes
-                   graph (read-from-string (second part))
-                   (read-from-string (first part))
-                   :new (read-from-string (format nil "~a=~a" (first part)
-                                                  (second part)))))
-                (when (graph:cycles graph)
-                  (return-from hm-draw
-                    (format t "Correlated contexts introduced a cycle."))))
-              (set-same-ranks inference-table))
+    (set-other-ranks context-table)
 
-          (set-other-ranks context-table)
-          ;; fill nodes
-          (when *node-fill-by*
-            (setq node-fills
-                  (cond ((eq *node-fill-by* 'levels)
-                         (graph:levels graph))
-                        ((eq *node-fill-by* 'periods)
-                         (node-fill-by-table period-table context-table))
-                        ((eq *node-fill-by* 'periods)
-                         (node-fill-by-table phase-table context-table))
-                        ((and *reachable-from*
-                              (eq *node-fill-by* 'reachable))
-                         (node-fill-by-reachable graph))
-                        ((and *reachable-from*
-                              (eq *node-fill-by* 'connected))
-                         (node-fill-by-connected graph))
-                        ((and *reachable-from*
-                              (eq *node-fill-by* 'distance))
-                         (node-fill-by-distance graph))
-                        (t (return-from hm-draw
-                             (format t "Incorrect *node-fill-by* value: ~a"
-                                     *node-fill-by*))))))
-          (when *symbolize-unit-type*   ; node shapes
-            (setq unit-types (set-node-shapes context-table inference-table)))
-          (when *url-include*           ; add url information
-            (setq node-urls (get-node-urls-from context-table inference-table))
-            (setq arc-urls (get-arc-urls-from observation-table)))
-          (when *legend*
-            (cond ((eq *node-fill-by* 'periods)
-                   (make-legend-for period-table graph node-fills
-                                    unit-types node-urls))
+    ;; optionally, fill nodes
+
+    (when *node-fill-by*
+      (setf node-fills
+            (cond ((eq *node-fill-by* 'levels)
+                   (graph:levels graph))
+                  ((eq *node-fill-by* 'periods)
+                   (node-fill-by-table period-table context-table))
                   ((eq *node-fill-by* 'phases)
-                   (make-legend-for phase-table graph node-fills
+                   (node-fill-by-table phase-table context-table))
+                  ((and (eq *node-fill-by* 'reachable) *reachable-from*)
+                   (node-fill-by-reachable graph))
+                  ((and (eq *node-fill-by* 'connected) *reachable-from*)
+                   (node-fill-by-connected graph))
+                  ((and (eq *node-fill-by* 'distance) *reachable-from*)
+                   (node-fill-by-distance graph))
+                  (t (return-from hm-draw
+                       (format t "Incorrect *node-fill-by* value: ~a"
+                               *node-fill-by*)))))
+      (when verbose (format t "~d nodes filled~%" (hash-table-count node-fills))))
+    
+
+    ;; optionally, set node shapes
+
+    (when *symbolize-unit-type*        
+      (setf unit-types (set-node-shapes context-table inference-table))
+      (when verbose (format t "~d node shapes~%" (hash-table-count unit-types))))
+
+    ;; optionally, add url information
+
+    (when *url-include*                
+      (setf node-urls (get-node-urls-from context-table inference-table)
+            arc-urls (get-arc-urls-from observation-table))
+      (when verbose (format t "~d node and ~d arc urls added~%"
+                            (hash-table-count node-urls)
+                            (hash-table-count arc-urls))))
+
+    ;; optionally, construct a legend
+
+    (when *legend*
+      (cond ((eq *node-fill-by* 'periods)
+             (make-legend-for period-table graph node-fills
+                              unit-types node-urls))
+            ((eq *node-fill-by* 'phases)
+             (make-legend-for phase-table graph node-fills
+                              unit-types node-urls))
+            ((and *reachable-from* (eq *node-fill-by* 'reachable))
+             (make-reachable-legend graph node-fills
                                     unit-types node-urls))
-                  ((and *reachable-from* (eq *node-fill-by* 'reachable))
-                   (make-reachable-legend graph node-fills
-                                          unit-types node-urls))
-                  ((and *reachable-from* (eq *node-fill-by* 'distance))
-                   (make-distance-legend graph node-fills
-                                         unit-types node-urls))))
-          ;; optionally, construct the chronology graph
-          (when *create-chronology-graph*
-            (setf chronology-graph (graph:populate
-                                    (make-instance 'graph:digraph)))
-            (setf adjacency-matrix (graph-matrix:to-adjacency-matrix
-                                    graph
-                                    (make-instance 'graph-matrix:fast-matrix)))
-            (setf reachability-matrix (graph-matrix:to-reachability-matrix
-                                       graph
-                                       (make-instance 'graph-matrix:fast-matrix)))
-            (mapc (lambda (node) (setf (gethash node node-index-hash) (incf counter)))
-                  (graph:nodes graph))
-            (dolist (col radiocarbon-table)
-              (graph:add-node chronology-graph
-                              (read-from-string
-                               (format nil "alpha-~a" (second col))))
-              (graph:add-node chronology-graph
-                              (read-from-string
-                               (format nil "beta-~a" (second col))))
-              (graph:add-node chronology-graph
-                              (read-from-string
-                               (format nil "theta-~a" (first col)))))
-            (when date-order-table
-              (dolist (pair date-order-table)
-                (graph:add-edge chronology-graph
-                                (list (read-from-string
-                                       (format nil "theta-~a" (second pair)))
-                                      (read-from-string
-                                       (format nil "theta-~a" (first pair))))
-                                0)))
-            (dolist (node radiocarbon-table)
-              (when (eq 0 (graph:indegree
-                           chronology-graph
-                           (read-from-string
-                            (format nil "theta-~a" (first node)))))
-                (graph:add-edge chronology-graph
-                                (list (read-from-string
-                                       (format nil "beta-~a" (second node)))
-                                      (read-from-string
-                                       (format nil "theta-~a" (first node))))
-                                0))
-              (when (eq 0 (graph:outdegree
-                           chronology-graph
-                           (read-from-string
-                            (format nil "theta-~a" (first node)))))
-                (graph:add-edge chronology-graph
-                                (list (read-from-string
-                                       (format nil "theta-~a" (first node)))
-                                      (read-from-string
-                                       (format nil "alpha-~a" (second node))))
-                                0)))
-            (dolist (arc radiocarbon-table)
-              (push (read-from-string (second arc)) context-list))
-            (setf context-list (append (unique-pairs context-list)
-                                       (unique-pairs (reverse context-list))))
-            (dolist (pair context-list)
-              (when (graph-matrix:reachablep
-                     graph reachability-matrix (first pair) (first (rest pair)))
-                (graph:add-edge
-                 chronology-graph
-                 (list (read-from-string
-                        (format nil "alpha-~a" (first pair)))
-                       (read-from-string
-                        (format nil "beta-~a" (first (rest pair)))))
-                 (if (eq 1 (graph-matrix:matrix-ref
-                            adjacency-matrix
-                            (gethash (first pair) node-index-hash)
-                            (gethash (first (rest pair)) node-index-hash))) 1 2))))
-            ;; write the dot file for the chronology graph
-            (graph-dot:to-dot-file
-             chronology-graph *chronology-out-file*
-             :attributes
-             (list
-              (cons :style (make-attribute *chronology-graph-style*))
-              (cons :colorscheme (make-attribute *chronology-color-scheme*))
-              (cons :dpi (make-attribute *chronology-graph-dpi*))
-              (cons :margin (make-attribute *chronology-graph-margin*))
-              (cons :bgcolor
-                    (format nil "~(~s~)"
-                            (if *chronology-graph-bg-color*
-                                (color-filter
-                                 *chronology-graph-bg-color* nil) "")))
-              (cons :fontname (make-attribute *chronology-graph-font-name*))
-              (cons :fontsize (make-attribute *chronology-graph-font-size*))
-              (cons :fontcolor
-                    (format nil "~(~s~)"
-                            (if *chronology-graph-font-color*
-                                (color-filter *chronology-graph-font-color* nil) "")))
-              (cons :splines (make-attribute *chronology-graph-splines*))
-              (cons :page (make-attribute *chronology-graph-page*))
-              (cons :size (make-attribute *chronology-graph-size*))
-              (cons :ratio (make-attribute *chronology-graph-ratio*))
-              (cons :label (make-attribute *chronology-graph-title*))
-              (cons :labelloc (make-attribute *chronology-graph-labelloc*)))
-             :edge-attrs (list
-                          (cons :style
-                                (lambda (e)
-                                  (case (graph:edge-value chronology-graph e)
-                                    (0 *chronology-edge-date*)
-                                    (1 *chronology-edge-abutting*)
-                                    (2 *chronology-edge-separated*))))
-                          (cons :label
-                                (constantly-format ""))
-                          (cons :arrowhead
-                                (constantly-format *chronology-edge-with-arrow*))
-                          (cons :colorscheme
-                                (constantly-format *chronology-color-scheme*))
-                          (cons :color
-                                (constantly-format
-                                 (if *chronology-edge-color*
-                                     (color-filter *chronology-edge-color* nil)
-                                     "")))
-                          (cons :fontname
-                                (constantly-format *chronology-edge-font-name*))
-                          (cons :fontsize
-                                (constantly-format *chronology-edge-font-size*))
-                          (cons :fontcolor
-                                (constantly-format
-                                 (if *chronology-edge-font-color*
-                                     (color-filter *chronology-edge-font-color* nil)
-                                     ""))))
-             :node-attrs (list
-                          (cons :shape
-                                (lambda (n)
-                                  (if (equal (char (symbol-name n) 0) #\T)
-                                      *chronology-node-shape-date*
-                                      *chronology-node-shape-phase*)))
-                          (cons :style (constantly-format *chronology-node-style*))
-                          (cons :fontname (constantly-format
-                                           *chronology-node-font-name*))
-                          (cons :fontsize (constantly-format
-                                           *chronology-node-font-size*))
-                          (cons :colorscheme
-                                (constantly-format *chronology-color-scheme*))
-                          (cons :color
-                                (constantly-format
-                                 (if *chronology-node-color*
-                                     (color-filter *chronology-node-color* nil)
-                                     "")))
-                          (cons :fillcolor
-                                (constantly
-                                 (if *chronology-node-fill*
-                                     (color-filter *chronology-node-fill* t)
-                                     "")))
-                          (cons :fontcolor
-                                (constantly
-                                 (if *chronology-node-font-color*
-                                     (color-filter
-                                      *chronology-node-font-color* t) "")))))
-            (format t "Wrote ~a~%" (probe-file *chronology-out-file*)))
-          ;; write the dot file for the sequence diagram
-          (graph-dot:to-dot-file
-           graph *out-file*
-           :ranks *ranks*
-           :attributes
-           (list
-            (cons :style (make-attribute *graph-style*))
-            (cons :colorscheme (make-attribute *color-scheme*))
-            (cons :dpi (make-attribute *graph-dpi*))
-            (cons :URL (make-attribute *url-default*))
-            (cons :margin (make-attribute *graph-margin*))
-            (cons :bgcolor
-                  (format nil "~(~s~)"
-                          (if *graph-bg-color*
-                              (color-filter
-                               *graph-bg-color* nil) "")))
-            (cons :fontname (make-attribute *graph-font-name*))
-            (cons :fontsize (make-attribute *graph-font-size*))
-            (cons :fontcolor
-                  (format nil "~(~s~)"
-                          (if *graph-font-color*
-                              (color-filter *graph-font-color* nil) "")))
-            (cons :splines (make-attribute *graph-splines*))
-            (cons :page (make-attribute *graph-page*))
-            (cons :size (make-attribute *graph-size*))
-            (cons :ratio (make-attribute *graph-ratio*))
-            (cons :label (make-attribute *graph-title*))
-            (cons :labelloc (make-attribute *graph-labelloc*)))
-           :edge-attrs (list
-                        (cons :style
-                              (constantly-format *edge-style*))
-                        (cons :arrowhead
-                              (constantly-format *edge-with-arrow*))
-                        (cons :colorscheme
-                              (constantly-format *color-scheme*))
-                        (cons :color
-                              (constantly-format
-                               (if *edge-color*
-                                   (color-filter *edge-color* nil)
-                                   "")))
-                        (cons :fontname
-                              (constantly-format *edge-font-name*))
-                        (cons :fontsize
-                              (constantly-format *edge-font-size*))
-                        (cons :fontcolor
-                              (constantly-format
-                               (if *edge-font-color*
-                                   (color-filter *edge-font-color* nil)
-                                   "")))
-                        (cons :URL (if (and *url-include* arc-urls
-                                            (> (hash-table-count arc-urls) 0))
-                                       (lambda (e)
-                                         (format nil "~s"
-                                                 (gethash e arc-urls)))
-                                       (constantly-format ""))))
-           :node-attrs (list
-                        (cons :shape
-                              (if (and *symbolize-unit-type* unit-types
-                                       (> (hash-table-count unit-types) 0))
-                                  (lambda (n)
-                                    (format nil "~(~s~)"
-                                            (gethash n unit-types)))
-                                  (constantly-format *node-shape-deposit*)))
-                        (cons :style (constantly-format *node-style*))
-                        (cons :fontname (constantly-format *node-font-name*))
-                        (cons :fontsize (constantly-format *node-font-size*))
-                        (cons :colorscheme
-                              (constantly-format *color-scheme*))
-                        (cons :color
-                              (constantly-format
-                               (if *node-color*
-                                   (color-filter *node-color* nil)
-                                   "")))
-                        (cons :fillcolor
-                              (if (and node-fills
-                                       (> (hash-table-count node-fills) 0))
-                                  (lambda (n) (+ 1 (gethash n node-fills)))
-                                  (constantly
-                                   (if *node-fill*
-                                       (color-filter *node-fill* t)
-                                       ""))))
-                        (cons :fontcolor
-                              (if (and node-fills
-                                       (> (hash-table-count node-fills) 0))
-                                  (lambda (n)
-                                    (if (<= *label-break*
-                                            (gethash n node-fills))
-                                        (color-filter *label-color-light* t)
-                                        (color-filter *label-color-dark* t)))
-                                  (constantly
-                                   (if *node-font-color*
-                                       (color-filter *node-font-color* t) ""))))
-                        (cons :URL
-                              (if (and *url-include* node-urls
-                                       (> (hash-table-count node-urls) 0))
-                                  (lambda (n) (format nil "~s"
-                                                      (gethash n node-urls)))
-                                  (constantly-format "")))))
-          (format t "Wrote ~a" (probe-file *out-file*))))
-    (return-from hm-draw "Apparent success")))
+            ((and *reachable-from* (eq *node-fill-by* 'distance))
+             (make-distance-legend graph node-fills
+                                   unit-types node-urls)))
+      (when verbose (format t "constructed a legend~%")))
+
+    ;; optionally, construct the chronology graph
+
+    (when *create-chronology-graph*
+      (setf chronology-graph (graph:populate
+                              (make-instance 'graph:digraph))
+            adjacency-matrix (graph-matrix:to-adjacency-matrix
+                              graph (new-matrix *use-fast-matrix*))
+            reachability-matrix (graph-matrix:to-reachability-matrix
+                                 graph (new-matrix *use-fast-matrix*)))
+      (mapc (lambda (node) (setf (gethash node node-index-hash) (incf counter)))
+            (graph:nodes graph))
+      (dolist (col radiocarbon-table)
+        (graph:add-node chronology-graph
+                        (new-symbol (second col) "alpha-~a"))
+        (graph:add-node chronology-graph
+                        (new-symbol (second col) "beta-~a"))
+        (graph:add-node chronology-graph
+                        (new-symbol (first col) "theta-~a")))
+      (when date-order-table
+        (dolist (pair date-order-table)
+          (graph:add-edge chronology-graph
+                          (list (new-symbol (second pair) "theta-~a")
+                                (new-symbol (first pair) "theta-~a"))
+                          0)))
+      (dolist (node radiocarbon-table)
+        (when (eq 0 (graph:indegree
+                     chronology-graph
+                     (new-symbol (first node) "theta-~a")))
+          (graph:add-edge chronology-graph
+                          (list (new-symbol (second node) "beta-~a")
+                                (new-symbol (first node) "theta-~a"))
+                          0))
+        (when (eq 0 (graph:outdegree
+                     chronology-graph
+                     (new-symbol (first node) "theta-~a")))
+          (graph:add-edge chronology-graph
+                          (list (new-symbol (first node) "theta-~a")
+                                (new-symbol (second node) "alpha-~a"))
+                          0)))
+      (dolist (arc radiocarbon-table)
+        (push (new-symbol (second arc)) context-list))
+      
+      (setf context-list (append (unique-pairs context-list)
+                                 (unique-pairs (reverse context-list))))
+      (dolist (pair context-list)
+        (when (graph-matrix:reachablep
+               graph reachability-matrix (first pair) (first (rest pair)))
+          (graph:add-edge
+           chronology-graph
+           (list (new-symbol (first pair) "alpha-~a")
+                 (new-symbol (first (rest pair)) "beta-~a"))
+           (if (eq 1 (graph-matrix:matrix-ref
+                      adjacency-matrix
+                      (gethash (first pair) node-index-hash)
+                      (gethash (first (rest pair)) node-index-hash))) 1 2))))
+
+      ;; write the dot file for the chronology graph
+
+      (graph-dot:to-dot-file
+       chronology-graph (string-downcase (string *chronology-out-file*))
+       :attributes
+       (list
+        (cons :style (format-attribute *chronology-graph-style*))
+        (cons :colorscheme (format-attribute *chronology-color-scheme*))
+        (cons :dpi (format-attribute *chronology-graph-dpi*))
+        (cons :margin (format-attribute *chronology-graph-margin*))
+        (cons :bgcolor (format-attribute
+                        (color-filter *chronology-graph-bg-color*)))
+        (cons :fontname (format-attribute *chronology-graph-font-name*))
+        (cons :fontsize (format-attribute *chronology-graph-font-size*))
+        (cons :fontcolor (format-attribute
+                          (color-filter *chronology-graph-font-color*)))
+        (cons :splines (format-attribute *chronology-graph-splines*))
+        (cons :page (format-attribute *chronology-graph-page*))
+        (cons :size (format-attribute *chronology-graph-size*))
+        (cons :ratio (format-attribute *chronology-graph-ratio*))
+        (cons :label (format-attribute *chronology-graph-title*))
+        (cons :labelloc (format-attribute *chronology-graph-labelloc*)))
+       :edge-attrs
+       (list
+        (cons :style
+              (lambda (e)
+                (case (graph:edge-value chronology-graph e)
+                  (0 (format-attribute *chronology-edge-date*))
+                  (1 (format-attribute *chronology-edge-abutting*))
+                  (2 (format-attribute *chronology-edge-separated*)))))
+        (cons :label (constantly-format ""))
+        (cons :arrowhead (constantly-format *chronology-edge-with-arrow*))
+        (cons :colorscheme (constantly-format *chronology-color-scheme*))
+        (cons :color (constantly-format (color-filter *chronology-edge-color*)))
+        (cons :fontname (constantly-format *chronology-edge-font-name*))
+        (cons :fontsize (constantly-format *chronology-edge-font-size*))
+        (cons :fontcolor (constantly-format
+                          (color-filter *chronology-edge-font-color*))))
+       :node-attrs
+       (list
+        (cons :shape
+              (lambda (n)
+                (if (equal (char (symbol-name n) 0) #\T)
+                    (format-attribute *chronology-node-shape-date*)
+                    (format-attribute *chronology-node-shape-phase*))))
+        (cons :style (constantly-format *chronology-node-style*))
+        (cons :fontname (constantly-format *chronology-node-font-name*))
+        (cons :fontsize (constantly-format *chronology-node-font-size*))
+        (cons :colorscheme (constantly-format *chronology-color-scheme*))
+        (cons :color (constantly-format (color-filter *chronology-node-color*)))
+        (cons :fillcolor (constantly-format (color-filter *chronology-node-fill*)))
+        (cons :fontcolor (constantly-format
+                          (color-filter *chronology-node-font-color*)))))
+      (format t "Wrote ~a~%" (probe-file
+                              (string-downcase (string *chronology-out-file*)))))
+    
+    ;; write the dot file for the sequence diagram
+
+    (graph-dot:to-dot-file
+     graph (string-downcase (string *out-file*))
+     :ranks *ranks*
+     :attributes
+     (list
+      (cons :style (format-attribute *graph-style*))
+      (cons :colorscheme (format-attribute *color-scheme*))
+      (cons :dpi (format-attribute *graph-dpi*))
+      (cons :URL (format-attribute (url-decode *url-default*)))
+      (cons :margin (format-attribute *graph-margin*))
+      (cons :bgcolor (format-attribute (color-filter *graph-bg-color*)))
+      (cons :fontname (format-attribute *graph-font-name*))
+      (cons :fontsize (format-attribute *graph-font-size*))
+      (cons :fontcolor (format-attribute (color-filter *graph-font-color*)))
+      (cons :splines (format-attribute *graph-splines*))
+      (cons :page (format-attribute *graph-page*))
+      (cons :size (format-attribute *graph-size*))
+      (cons :ratio (format-attribute *graph-ratio*))
+      (cons :label (format nil "~s" *graph-title*))
+      (cons :labelloc (format-attribute *graph-labelloc*)))
+     :edge-attrs
+     (list
+      (cons :style (graph-element-control *edge-style*))
+      (cons :arrowhead (constantly-format *edge-with-arrow*))
+      (cons :colorscheme (constantly-format *color-scheme*))
+      (cons :color (constantly-format (color-filter *edge-color*)))
+      (cons :fontname (constantly-format *edge-font-name*))
+      (cons :fontsize (constantly-format *edge-font-size*))
+      (cons :fontcolor (constantly-format (color-filter *edge-font-color*)))
+      (cons :URL (graph-element-control "" #'url-decode *url-include* arc-urls)))
+     :node-attrs
+     (list
+      (cons :shape (graph-element-control *node-shape-deposit* #'identity
+                                          *symbolize-unit-type* unit-types))
+      (cons :style (constantly-format *node-style*))
+      (cons :fontname (constantly-format *node-font-name*))
+      (cons :fontsize (constantly-format *node-font-size*))
+      (cons :colorscheme (constantly-format *color-scheme*))
+      (cons :color (constantly-format (color-filter *node-color*)))
+      (cons :fillcolor (graph-element-control *node-fill* #'color-filter
+                                              *node-fill-by* node-fills))
+      (cons :fontcolor (graph-element-control *node-font-color* #'label-color
+                                              *node-fill-by* node-fills))
+      (cons :URL (graph-element-control "" #'url-decode *url-include* node-urls))))
+    (return-from hm-draw
+      (format nil "Wrote ~a" (probe-file (string-downcase (string *out-file*)))))))
+
