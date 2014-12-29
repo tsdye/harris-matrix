@@ -1,0 +1,23 @@
+This example creates two .dot files, one for a sequence diagram and
+the other for a chronological model.
+
+The stratigraphic sequence is illustrated in Figure 12 of Edward
+Harris' book, Principles of Archaeological Stratigraphy.  Note that
+contexts have been added to take account of interfaces.
+
+Create the chronological model from a shell with a single command:
+
+  $ dot -Tpng
+  "/path/to/examples/fig-12-chronology/example-chronology-graph.dot"
+  -o"/path/to/examples/fig-12-chronology/example-chronology-graph.png"
+
+Create the sequence diagram from a shell with two commands:
+
+  $ tred
+  "/path/to/examples/fig-12-chronology/example-sequence-diagram.dot" >
+  "/path/to/examples/fig-12-chronology/temp.dot"
+
+  $ dot -Tpng "/path/to/examples/fig-12-chronology/temp.dot"
+  -o"/path/to/examples/fig-12-chronology/example-sequence-diagram.png"
+
+Note that shell commands should all be on one line.
