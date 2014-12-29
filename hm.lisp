@@ -300,7 +300,7 @@ separated phases.")
 (defparameter *distance-matrix* nil
   "Distance matrix of graph.")
 
-;; function definitions
+;; general function definitions
 
 (defun initialize-special-variables ()
   (setf *out-file* nil
@@ -400,6 +400,43 @@ separated phases.")
         *ranks* nil
         *distance-matrix* nil))
 
+(defun pair-with (elem list)
+  (mapcar (lambda (a) (list elem a)) list))
+
+(defun unique-pairs (list)
+  (mapcon (lambda (rest) (pair-with (first rest) (rest rest)))
+          (remove-duplicates list)))
+
+(defun new-matrix (fast)
+  "Makes a matrix instance.  If FAST is t, then uses fast matrix
+routines.  If FAST is nil, then uses CL matrix routines."
+  (if fast (make-instance 'graph-matrix:fast-matrix)
+      (make-instance 'graph-matrix:matrix)))
+
+(defun new-symbol (string &optional format)
+  "Makes a symbol out of STRING, optionally passing the string through
+a FORMAT specification."
+  (when (or (stringp string) (and format (numberp string)))
+    (read-from-string (if format (format nil format string) string)
+                      nil nil :preserve-whitespace t)))
+
+(defun url-decode (url)
+  (do-urlencode:urldecode (string url)))
+
+(defun graph-element-control
+    (default &optional (pre-process #'identity) switch hash-table)
+  "A template that connects a hash table with a graph element, either
+a node or an arc.  SWITCH determines whether to use a value from
+HASH-TABLE or DEFAULT.  PRE-PROCESS is an optional function with one
+argument that is used to process either the HASH-TABLE result or the
+DEFAULT value.  The default PRE-PROCESS function, IDENTITY, simply
+passes through the value passed to it."
+  (if (and switch hash-table)
+      (lambda (x) (format-attribute (funcall pre-process (gethash x hash-table))))
+      (constantly-format (funcall pre-process default))))
+
+;; io function definitions
+
 (defun hm-read-cnf-file (name)
   "Read csv file specified by NAME and set most global variables to
 symbols, except strings that appear in the graph and must preserve
@@ -419,6 +456,16 @@ Return t if successful, nil otherwise."
             (new-symbol (do-urlencode:urlencode (second row))))
            (t (new-symbol (second row)))))))
     t))
+
+(defun hm-read-table (name header)
+  "Checks that NAME is a file, then attempts to read it as
+comma-separated values.  HEADER indicates whether or not the first
+line of NAME contains column heads, rather than values."
+  (alexandria:when-let (in-file (probe-file (string name)))
+    (format t "Reading table ~a~%" in-file)
+    (cl-csv:read-csv in-file :skip-first-p header)))
+
+;; filter function definitions
 
 (defun color-filter (col)
   "Returns a valid Graphviz dot color designator. The result is either
@@ -440,6 +487,14 @@ dot attribute."
   "A convenience function for situations where Lisp requires a
 function to express a constant."
   (constantly (format-attribute x)))
+
+(defun label-color (color)
+  (if (and *label-break* (integerp color))
+      (if (<= *label-break* color)
+          (color-filter *label-color-light*) (color-filter *label-color-dark*))
+      (color-filter *label-color-dark*)))
+
+;; hash-table function definitions
 
 (defun node-fill-by-table (table contexts)
   "Set the fill of nodes in CONTEXTS according to values recorded in TABLE."
@@ -521,35 +576,6 @@ connected with one another."
           (graph:nodes graph))
     ret))
 
-(defun set-same-ranks (table)
-  "Use the values in TABLE to make a list of graph:rank structures
-where the indicated nodes are to appear on the same rank of the graph
-picture."
-  (mapcar #'(lambda (x)
-              (push (graph-dot::make-rank
-                     :value "same"
-                     :node-list (list (format nil "~s" (new-symbol (first x)))
-                                      (format nil "~s" (new-symbol (second x)))))
-                    *ranks*))
-          table))
-
-(defun set-other-ranks (table)
-  "Use the values in TABLE to make a list of graph:rank structures
-where the indicated nodes either appear at the top or the bottom of
-the graph picture."
-  (mapcar #'(lambda (x)
-              (when (or (eq (new-symbol (third x)) 'basal)
-                        (eq (new-symbol (third x)) 'surface))
-                (push (graph-dot::make-rank
-                       :value
-                       (cond
-                         ((eq (new-symbol (third x)) 'basal) "sink")
-                         ((eq (new-symbol (third x)) 'surface) "source"))
-                       :node-list
-                       (list (format nil "~s" (new-symbol (first x)))))
-                      *ranks*)))
-          table))
-
 (defun set-node-shapes (table inferences)
   "Set node shapes for depositional and interfacial contexts listed in
 TABLE and in INFERENCES.  The nodes created from information in
@@ -600,6 +626,39 @@ arcs and the values are URL's."
                 (if *url-default* *url-default* "")
                 (third arc))))
     ret))
+
+;; graph structure functions
+
+(defun set-same-ranks (table)
+  "Use the values in TABLE to make a list of graph:rank structures
+where the indicated nodes are to appear on the same rank of the graph
+picture."
+  (mapcar #'(lambda (x)
+              (push (graph-dot::make-rank
+                     :value "same"
+                     :node-list (list (format nil "~s" (new-symbol (first x)))
+                                      (format nil "~s" (new-symbol (second x)))))
+                    *ranks*))
+          table))
+
+(defun set-other-ranks (table)
+  "Use the values in TABLE to make a list of graph:rank structures
+where the indicated nodes either appear at the top or the bottom of
+the graph picture."
+  (mapcar #'(lambda (x)
+              (when (or (eq (new-symbol (third x)) 'basal)
+                        (eq (new-symbol (third x)) 'surface))
+                (push (graph-dot::make-rank
+                       :value
+                       (cond
+                         ((eq (new-symbol (third x)) 'basal) "sink")
+                         ((eq (new-symbol (third x)) 'surface) "source"))
+                       :node-list
+                       (list (format nil "~s" (new-symbol (first x)))))
+                      *ranks*)))
+          table))
+
+;; legend functions
 
 (defun make-legend-for (table graph nodes units urls)
   "Make legend components for the node classification in TABLE."
@@ -670,55 +729,6 @@ arcs and the values are URL's."
   (graph:add-node graph 'not-reachable)
   (graph:add-node graph 'origin)
   (graph:add-node graph 'abutting))
-
-(defun pair-with (elem list)
-  (mapcar (lambda (a) (list elem a)) list))
-
-(defun unique-pairs (list)
-  (mapcon (lambda (rest) (pair-with (first rest) (rest rest)))
-          (remove-duplicates list)))
-
-(defun hm-read-table (name header)
-  "Checks that NAME is a file, then attempts to read it as
-comma-separated values.  HEADER indicates whether or not the first
-line of NAME contains column heads, rather than values."
-  (alexandria:when-let (in-file (probe-file (string name)))
-    (format t "Reading table ~a~%" in-file)
-    (cl-csv:read-csv in-file :skip-first-p header)))
-
-(defun new-matrix (fast)
-  "Makes a matrix instance.  If FAST is t, then uses fast matrix
-routines.  If FAST is nil, then uses CL matrix routines."
-  (if fast (make-instance 'graph-matrix:fast-matrix)
-      (make-instance 'graph-matrix:matrix)))
-
-(defun new-symbol (string &optional format)
-  "Makes a symbol out of STRING, optionally passing the string through
-a FORMAT specification."
-  (when (or (stringp string) (and format (numberp string)))
-    (read-from-string (if format (format nil format string) string)
-                      nil nil :preserve-whitespace t)))
-
-(defun url-decode (url)
-  (do-urlencode:urldecode (string url)))
-
-(defun label-color (color)
-  (if (and *label-break* (integerp color))
-      (if (<= *label-break* color)
-          (color-filter *label-color-light*) (color-filter *label-color-dark*))
-      (color-filter *label-color-dark*)))
-
-(defun graph-element-control
-    (default &optional (pre-process #'identity) switch hash-table)
-  "A template that connects a hash table with a graph element, either
-a node or an arc.  SWITCH determines whether to use a value from
-HASH-TABLE or DEFAULT.  PRE-PROCESS is an optional function with one
-argument that is used to process either the HASH-TABLE result or the
-DEFAULT value.  The default PRE-PROCESS function, IDENTITY, simply
-passes through the value passed to it."
-  (if (and switch hash-table)
-      (lambda (x) (format-attribute (funcall pre-process (gethash x hash-table))))
-      (constantly-format (funcall pre-process default))))
 
 (defun hm-draw (cnf-file-path &optional verbose)
   "Read a configuration file and various data files, create a
