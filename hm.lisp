@@ -752,20 +752,21 @@ configuration file."
         (context-list)
         (adjacency-matrix)
         (reachability-matrix)
+        (distance-matrix)
         (node-index-hash (make-hash-table))
         (counter -1))
 
     (initialize-special-variables)
     
-    (when (and *create-chronology-graph* *assume-correlations-true*)
-      (return-from hm-draw
-        "Cannot create chronology graph when *assume-correlations-true*"))
-
     ;; read configuration file
 
     (unless (hm-read-cnf-file cnf-file-path)
       (return-from hm-draw
         (format nil "Unable to read configuration file ~a" cnf-file-path)))
+
+    (when (and *create-chronology-graph* *assume-correlations-true*)
+      (return-from hm-draw
+        "Cannot create chronology graph when *assume-correlations-true*"))
 
     ;; read required tables
 
