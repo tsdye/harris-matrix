@@ -297,9 +297,6 @@ separated phases.")
 (defparameter *ranks* nil
   "A list of graph:rank structures.")
 
-(defparameter *distance-matrix* nil
-  "Distance matrix of graph.")
-
 ;; general function definitions
 
 (defun initialize-special-variables ()
@@ -397,8 +394,7 @@ separated phases.")
         *chronology-node-shape-date* nil
         *chronology-node-fill* nil
         *use-fast-matrix* t
-        *ranks* nil
-        *distance-matrix* nil))
+        *ranks* nil))
 
 (defun pair-with (elem list)
   (mapcar (lambda (a) (list elem a)) list))
@@ -494,7 +490,22 @@ function to express a constant."
           (color-filter *label-color-light*) (color-filter *label-color-dark*))
       (color-filter *label-color-dark*)))
 
-;; hash-table function definitions
+;; graph matrix creation functions
+
+(defun create-adjacency-matrix (graph matrix)
+  "Given a GRAPH and a possibly empty MATRIX, returns the adjacency matrix of GRAPH as a hash-table."
+  (if matrix matrix
+      (graph-matrix:to-adjacency-matrix graph (new-matrix *use-fast-matrix*))))
+
+(defun create-reachability-matrix (graph matrix)
+  (if matrix matrix
+      (graph-matrix:to-reachability-matrix graph (new-matrix *use-fast-matrix*))))
+
+(defun create-distance-matrix (graph matrix)
+  (if matrix matrix
+      (graph-matrix:to-distance-matrix graph (new-matrix *use-fast-matrix*))))
+
+;; create hash-table function definitions
 
 (defun node-fill-by-table (table contexts)
   "Set the fill of nodes in CONTEXTS according to values recorded in TABLE."
@@ -555,18 +566,15 @@ connected with one another."
       (setf (gethash node ret)*reachable-not-color*))
     ret))
 
-(defun node-fill-by-distance (graph)
+(defun node-fill-by-distance (graph matrix)
   "Use the distance matrix of GRAPH to set node fills."
   (let ((ret (make-hash-table))
         (d))
-    (unless *distance-matrix*
-      (setf *distance-matrix* (graph-matrix:to-distance-matrix
-                               graph (new-matrix *use-fast-matrix*))))
     (mapc (lambda (node)
             (setf d (min (graph-matrix:distance-from-to
-                          graph *distance-matrix* *reachable-from* node)
+                          graph matrix *reachable-from* node)
                          (graph-matrix:distance-from-to
-                          graph *distance-matrix* node *reachable-from*))
+                          graph matrix node *reachable-from*))
                   (gethash node ret)
                   (cond
                     ((equal d graph-matrix:infinity) *reachable-not-color*)
@@ -878,7 +886,9 @@ configuration file."
                   ((and (eq *node-fill-by* 'connected) *reachable-from*)
                    (node-fill-by-connected graph))
                   ((and (eq *node-fill-by* 'distance) *reachable-from*)
-                   (node-fill-by-distance graph))
+                   (setf distance-matrix
+                         (create-distance-matrix graph distance-matrix))
+                   (node-fill-by-distance graph distance-matrix))
                   (t (return-from hm-draw
                        (format t "Incorrect *node-fill-by* value: ~a"
                                *node-fill-by*)))))
