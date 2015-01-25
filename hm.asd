@@ -11,7 +11,8 @@
                #:graph-matrix
                #:graph-dot
                #:cl-csv
-               #:do-urlencode)
+               #:do-urlencode
+               #:fset)
   :components ((:static-file "COPYING")
                (:file "package")
                (:file "hm")))
