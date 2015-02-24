@@ -18,6 +18,7 @@
 *create-chronology-graph*,
 *node-fill-by*,reachable
 *node-shape-by*,
+*node-color-by*,
 *reachable-from*,2
 *reachable-limit*,2
 *url-include*,t
@@ -46,6 +47,7 @@
 *color-fill-node-chronology*,
 *color-fill-node-deposit*,
 *color-fill-node-interface*,
+*color-node-legend*,
 *color-fill-node-legend*,white
 *color-fill-graph-chronology*,
 *shape-reachable*,

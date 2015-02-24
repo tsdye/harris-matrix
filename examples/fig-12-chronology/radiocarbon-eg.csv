@@ -1,5 +1,5 @@
-theta,context,lab
-1,9,LAB-1
-2,7,LAB-2
-3,15,LAB-3
-4,15,LAB-4
+theta,context,lab,association
+1,9,LAB-1,associated
+2,7,LAB-2,associated
+3,15,LAB-3,associated
+4,15,LAB-4,associated

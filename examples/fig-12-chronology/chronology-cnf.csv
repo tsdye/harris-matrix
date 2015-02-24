@@ -18,6 +18,7 @@
 *create-chronology-graph*,t
 *node-fill-by*,distance
 *node-shape-by*,
+*node-color-by*,
 *reachable-from*,4
 *reachable-limit*,-1
 *url-include*,nil
@@ -46,6 +47,7 @@
 *color-fill-node-chronology*,white
 *color-fill-node-deposit*,
 *color-fill-node-interface*,
+*color-node-legend*,
 *color-fill-node-legend*,white
 *color-fill-graph-chronology*,transparent
 *shape-reachable*,nil
