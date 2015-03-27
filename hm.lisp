@@ -589,20 +589,7 @@ routines.  If FAST is nil, then uses CL matrix routines."
         (graph:add-edge graph (list new-node (second edge)))
         (graph:delete-edge graph edge)))))
 
-;; Label function definitions.  Not all these are used by hm.lisp;
-;; they are for future improvements.
-
-(defun make-label (id &optional type)
-  (case type
-    (html (let* ((s (string-downcase (string id)))
-                 (hyphen-pos (position #\- s :test #'equal))
-                 (greek (subseq s 0 hyphen-pos))
-                 (post (subseq s (+ 1 hyphen-pos))))
-            (format nil "<&~a;<sub>~a</sub>>" greek post)))
-    (uppercase (substitute #\SPACE #\- (string-upcase (write-to-string id))))
-    (lowercase (substitute #\SPACE #\- (string-downcase (write-to-string id))))
-    (titlecase (substitute #\SPACE #\- (string-capitalize (write-to-string id))))
-    (otherwise "\N")))
+;; Label function definition.
 
 (defun chronology-graph-html-label (id size)
   "Convert the symbol ID into an html label for Graphviz dot.  This
@@ -650,7 +637,6 @@ line of NAME contains column heads, rather than values."
 
 ;; filter function definitions
 
-
 (defun color-filter (col)
   "Returns a valid Graphviz dot color designator. The result is either
 an integer or a symbol with a color name appended to a color space.
@@ -672,6 +658,8 @@ nil or a string."
                          (alexandria:symbolicate shape)))
     ((symbolp shape) shape)
     (t nil)))
+
+;; formatting functions
 
 (defun format-attribute (att &key quote preserve-case)
   "A convenience function to transform a Lisp symbol into a GraphViz
@@ -916,8 +904,8 @@ directed edge (a b) the corresponding integers satisfy a < b."))
   (let ((lev (graph:levels graph)))
     (alexandria:maphash-keys
      (lambda (key) (setf (classification obj)
-                         (fset:with (classification obj) key
-                                    (gethash key lev))))
+                    (fset:with (classification obj) key
+                               (gethash key lev))))
      lev)))
 
 ;; Tabular class and methods for periods and phases
@@ -1796,7 +1784,7 @@ configuration file."
         (cons :arrowhead (lambda (x) (format-attribute *edge-arrowhead-chronology*)))
         (cons :colorscheme (lambda (x) (format-attribute *color-scheme-chronology*)))
         (cons :color (lambda (x) (format-attribute (color-filter *color-edge-chronology*)
-                                             :quote t)))
+                                              :quote t)))
         (cons :fontname (lambda (x) (format-attribute *font-name-edge-chronology*)))
         (cons :fontsize (lambda (x) (format-attribute *font-size-edge-chronology*)))
         (cons :fontcolor (lambda (x) (format-attribute
@@ -1835,8 +1823,9 @@ configuration file."
       (cons :style (format-attribute *graph-style-sequence*))
       (cons :colorscheme (format-attribute *color-scheme-sequence*))
       (cons :dpi (format-attribute *graph-dpi-sequence*))
-      (cons :URL (format-attribute (url-decode *url-default*) :preserve-case t
-                                   :quote t))
+      (cons :URL (format-attribute
+                  (if *url-include* (url-decode *url-default*) "")
+                  :preserve-case t :quote t))
       (cons :margin (format-attribute *graph-margin-sequence*))
       (cons :bgcolor (format-attribute (color-filter *color-fill-graph-sequence*)
                                        :quote t))
