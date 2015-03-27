@@ -28,6 +28,48 @@
               (list form x)))
       x))
 
+(defconstant +shapes+
+  (-> (fset:empty-map)
+      (fset:with 0  'box)
+      (fset:with 1  'polygon)
+      (fset:with 2  'ellipse)
+      (fset:with 3  'egg)
+      (fset:with 4  'triangle)
+      (fset:with 5  'diamond)
+      (fset:with 6  'oval)
+      (fset:with 7  'circle)
+      (fset:with 8  'point)
+      (fset:with 9  'trapezium)
+      (fset:with 10  'parallelogram)
+      (fset:with 11  'house)
+      (fset:with 12  'pentagon)
+      (fset:with 13  'hexagon)
+      (fset:with 14  'septagon)
+      (fset:with 15  'octagon)
+      (fset:with 16  'doublecircle)
+      (fset:with 17  'doubleoctagon)
+      (fset:with 18  'tripleoctagon)
+      (fset:with 19  'invtriangle)
+      (fset:with 20  'invtrapezium)
+      (fset:with 21  'invhouse)
+      (fset:with 22  'Mdiamond)
+      (fset:with 23  'Msquare)
+      (fset:with 24  'Mcircle)
+      (fset:with 25  'square)
+      (fset:with 26  'star)
+      (fset:with 27  'underline)
+      (fset:with 28  'note)
+      (fset:with 29  'tab)
+      (fset:with 30  'folder)
+      (fset:with 31  'box3d)
+      (fset:with 32  'component)
+      (fset:with 33  'cds)
+      (fset:with 34  'signature)
+      (fset:with 35  'rpromoter)
+      (fset:with 36  'rarrow)
+      (fset:with 37  'larrow)
+      (fset:with 38  'lpromoter)))
+
 ;; declare global variables that will be set by the configuration file
 
 (defparameter *output-file-sequence* nil
@@ -73,19 +115,20 @@
   "Switch to distinguish interfaces and deposits, nil for no
   distinction and non-nil to distinguish.")
 (defparameter *create-chronology-graph* nil
-  "Switch for a chronology graph, nil for no graph and non-nil to create a graph.")
+  "Switch for a chronology graph, nil for no graph and non-nil to
+  create a graph.")
 (defparameter *node-fill-by* nil
   "Fill nodes of a sequence graph according to some procedure; nil for
-  no procedure, or one of 'levels', 'reachable', 'periods', 'phases',
-  'connected', or 'distance'.")
+  no procedure, or one of 'levels', 'units, 'reachable', 'periods',
+  'phases', 'connected', or 'distance'.")
 (defparameter *node-shape-by* nil
   "Shape nodes of a sequence graph according to some procedure; nil
-  for no procedure, or one of 'levels' 'reachable', 'periods',
-  'phases', 'connected', or 'distance'. ")
+  for no procedure, or one of 'levels', 'units, 'reachable',
+  'periods', 'phases', 'connected', or 'distance'. ")
 (defparameter *node-color-by* nil
   "Color node outliness of a sequence graph according to some
-  procedure; nil for no procedure, or one of 'levels' 'reachable',
-  'periods', 'phases', 'connected', or 'distance'. ")
+  procedure; nil for no procedure, or one of 'levels', 'units',
+  'reachable', 'periods', 'phases', 'connected', or 'distance'. ")
 (defparameter *reachable-from* nil
   "The label of the start node for calculating reachability.")
 (defparameter *reachable-limit* nil
@@ -351,6 +394,8 @@
 (defparameter *font-color-node-chronology* nil
   "The color used to render node labels.  Either a color name from the
   active color space or an integer index into a Brewer color scheme.")
+(defparameter *font-size-subscript* nil
+  "The font size of subscripts in html-like labels.")
 
 ;; Graphviz node shape attributes
 (defparameter *shape-node-legend* nil
@@ -487,10 +532,11 @@
         *font-name-node-chronology* nil
         *font-size-node-chronology* nil
         *font-color-node-chronology* nil
+        *font-size-subscript* 12
         *shape-node-legend* nil
         *shape-node-interface* nil
         *shape-node-deposit* nil
-        *node-outline-width 1.0
+        *node-outline-width* 1.0
         *graph-splines-sequence* nil
         *graph-splines-chronology* nil
         *edge-arrowhead-sequence* nil
@@ -513,27 +559,15 @@ routines.  If FAST is nil, then uses CL matrix routines."
   (if fast (make-instance 'graph-matrix:fast-matrix)
       (make-instance 'graph-matrix:matrix)))
 
-(defun new-symbol (string &optional format)
-  "Makes a symbol out of STRING, optionally passing the string through
-a FORMAT specification."
-  (when (or (stringp string) (and format (numberp string)))
-    (read-from-string (if format (format nil format string) string)
-                      nil nil :preserve-whitespace t)))
+(defun new-symbol (string &optional (format "~a"))
+  (unless (alexandria:emptyp string)
+    (if (and format (not (string= string "nil")))
+        (alexandria:format-symbol t format string)
+        (read-from-string string))))
 
 (defun url-decode (url)
   "Decodes symbol URL and returns a valid url as a string."
   (do-urlencode:urldecode (string url)))
-
-(defun graph-element-control (default &optional (func #'identity) switch map)
-  "A template that connects a MAP with a graph element, either
-a node or an arc.  SWITCH determines whether to use a value from
-MAP or DEFAULT.  FUNC is an optional function with one
-argument that is used to process either the MAP result or the
-DEFAULT value.  The default FUNC function, IDENTITY, simply
-passes through the value passed to it."
-  (if (and switch map)
-      (lambda (x) (format-attribute (funcall func (fset:@ map x))))
-      (constantly-format (funcall func default))))
 
 (defun add-missing-interfaces (graph contexts)
   "Check for edges in GRAPH that connect two depositional nodes and, if found,
@@ -570,29 +604,15 @@ passes through the value passed to it."
     (titlecase (substitute #\SPACE #\- (string-capitalize (write-to-string id))))
     (otherwise "\N")))
 
-(defun chronology-graph-html-label (id)
+(defun chronology-graph-html-label (id size)
   "Convert the symbol ID into an html label for Graphviz dot.  This
 function is designed specifically for use with chronology graphs."
   (let* ((s (string-downcase (string id)))
          (hyphen-pos (position #\- s :test #'equal))
          (greek (subseq s 0 hyphen-pos))
          (post (subseq s (+ 1 hyphen-pos))))
-    (format nil "<&~a;<sub>~a</sub>>" greek post)))
-
-(defun uppercase-label (id)
-  "Convert the symbol ID into an uppercase label string for Graphviz
-  dot, changing hyphens in ID to spaces."
-  (substitute #\SPACE #\- (write-to-string id :case :upcase)))
-
-(defun lowercase-label (id)
-  "Convert the symbol ID into an ercase label string for Graphviz
-  dot, changing hyphens in ID to spaces."
-  (substitute #\SPACE #\- (write-to-string id :case :downcase)))
-
-(defun titlecase-label (id)
-  "Convert the symbol ID into an titlecase label string for Graphviz
-  dot, changing hyphens in ID to spaces."
-  (substitute #\SPACE #\- (write-to-string id :case :capitalize)))
+    (format nil "<&~a;<FONT POINT-SIZE=\"~a\"><SUB>~a</SUB></FONT>>"
+            greek size post)))
 
 ;; io function definitions
 
@@ -607,13 +627,17 @@ Return t if successful, nil otherwise."
       (let ((special-var (read-from-string (first row))))
         (setf (symbol-value special-var)
               (case special-var
-                (*graph-title-sequence* (second row))
-                (*graph-title-chronology* (second row))
-                ;; should probably make this a symbol
-                (*url-default* (do-urlencode:urlencode (second row)))
-                (otherwise (new-symbol (second row)))))
-        (setf (get special-var 'dot-label) (string-capitalize (second row)))
-        (setf (get special-var 'html-label) (second row))))
+                (*graph-title-sequence* (new-symbol (second row)))
+                (*graph-title-chronology* (new-symbol (second row)))
+                (*reachable-from* (new-symbol (second row)))
+                (*graph-size-sequence* (new-symbol (second row)))
+                (*graph-page-sequence* (new-symbol (second row)))
+                (*graph-margin-sequence* (new-symbol (second row)))
+                (*graph-size-chronology* (new-symbol (second row)))
+                (*graph-page-chronology* (new-symbol (second row)))
+                (*graph-margin-chronology* (new-symbol (second row)))
+                (*url-default* (new-symbol (do-urlencode:urlencode (second row))))
+                (otherwise (new-symbol (second row) nil))))))
     t))
 
 (defun read-table (name header)
@@ -629,70 +653,37 @@ line of NAME contains column heads, rather than values."
 
 (defun color-filter (col)
   "Returns a valid Graphviz dot color designator. The result is either
-an integer or a string with a color name appended to a color space.
+an integer or a symbol with a color name appended to a color space.
 COL can either be an integer, in which case Brewer colors are assumed,
 or a symbol whose string value is a color name.  Returns 0 if COL is
 nil or a string."
   (cond
+    ((not col) 0)
     ((integerp col) col)
-    ((eq col 'transparent) (string col))
-    ((and (symbolp col) col) (format nil "~(/~a/~a~)" *color-space* col))
+    ((eq col 'transparent) col)
+    ((symbolp col) (alexandria:symbolicate "/" *color-space* "/" col))
     (t 0)))
 
 (defun shape-filter (shape)
-  "Returns a valid Graphviz dot node shape, which is always a string."
-  (let ((shapes (-> (fset:empty-map)
-                    (fset:with 0  "box")
-                    (fset:with 1  "polygon")
-                    (fset:with 2  "ellipse")
-                    (fset:with 3  "egg")
-                    (fset:with 4  "triangle")
-                    (fset:with 5  "diamond")
-                    (fset:with 6  "oval")
-                    (fset:with 7  "circle")
-                    (fset:with 8  "point")
-                    (fset:with 9  "trapezium")
-                    (fset:with 10  "parallelogram")
-                    (fset:with 11  "house")
-                    (fset:with 12  "pentagon")
-                    (fset:with 13  "hexagon")
-                    (fset:with 14  "septagon")
-                    (fset:with 15  "octagon")
-                    (fset:with 16  "doublecircle")
-                    (fset:with 17  "doubleoctagon")
-                    (fset:with 18  "tripleoctagon")
-                    (fset:with 19  "invtriangle")
-                    (fset:with 20  "invtrapezium")
-                    (fset:with 21  "invhouse")
-                    (fset:with 22  "Mdiamond")
-                    (fset:with 23  "Msquare")
-                    (fset:with 24  "Mcircle")
-                    (fset:with 25  "square")
-                    (fset:with 26  "star")
-                    (fset:with 27  "underline")
-                    (fset:with 28  "note")
-                    (fset:with 29  "tab")
-                    (fset:with 30  "folder")
-                    (fset:with 31  "box3d")
-                    (fset:with 32  "component")
-                    (fset:with 33  "cds")
-                    (fset:with 34  "signature")
-                    (fset:with 35  "rpromoter")
-                    (fset:with 36  "rarrow")
-                    (fset:with 37  "larrow")
-                    (fset:with 38  "lpromoter"))))
-    (if (integerp shape) (fset:@ shapes shape)
-        (string shape))))
+  "Returns a valid Graphviz dot node shape as a symbol."
+  (cond
+    ((integerp shape) (fset:@ +shapes+ shape))
+    ((stringp shape) (if (alexandria:emptyp shape) nil
+                         (alexandria:symbolicate shape)))
+    ((symbolp shape) shape)
+    (t nil)))
 
-(defun format-attribute (att)
+(defun format-attribute (att &key quote preserve-case)
   "A convenience function to transform a Lisp symbol into a GraphViz
 dot attribute."
-  (format nil "~(~s~)" (if att att "")))
-
-(defun constantly-format (x)
-  "A convenience function for situations where Lisp requires a
-function to express a constant."
-  (constantly (format-attribute x)))
+  (if (not att) "\"\""
+      (if quote
+          (if preserve-case
+              (format nil "\"~a\"" att)
+              (format nil "\"~(~a~)\"" att))
+          (if preserve-case
+              (format nil "~a" att)
+              (format nil "~(~a~)" att)))))
 
 (defun label-color (color)
   (if (and *font-color-label-break* (integerp color))
@@ -766,8 +757,9 @@ picture."
     (mapcar #'(lambda (x)
                 (push (graph-dot::make-rank
                        :value "same"
-                       :node-list (list (format nil "~s" (new-symbol (first x)))
-                                        (format nil "~s" (new-symbol (second x)))))
+                       :node-list
+                       (list (format nil "~s" (new-symbol (first x) nil))
+                             (format nil "~s" (new-symbol (second x) nil))))
                       ranks))
             table)
     ranks))
@@ -778,16 +770,17 @@ where the indicated nodes either appear at the top or the bottom of
 the graph picture."
   (let ((ranks))
     (mapcar #'(lambda (x)
-                (when (or (eq (new-symbol (third x)) 'basal)
-                          (eq (new-symbol (third x)) 'surface))
-                  (push (graph-dot::make-rank
-                         :value
-                         (cond
-                           ((eq (new-symbol (third x)) 'basal) "sink")
-                           ((eq (new-symbol (third x)) 'surface) "source"))
-                         :node-list
-                         (list (format nil "~s" (new-symbol (first x)))))
-                        ranks)))
+                (let ((rank (new-symbol (third x) nil)))
+                  (when (or (eq rank 'basal)
+                            (eq rank 'surface))
+                    (push (graph-dot::make-rank
+                           :value
+                           (cond
+                             ((eq rank 'basal) "sink")
+                             ((eq rank 'surface) "source"))
+                           :node-list
+                           (list (string (new-symbol (first x)))))
+                          ranks))))
             table)
     ranks))
 
@@ -930,7 +923,8 @@ directed edge (a b) the corresponding integers satisfy a < b."))
 ;; Tabular class and methods for periods and phases
 
 (defclass tabular (classifier)
-  () (:documentation "A classifier based on information contained in a
+  ()
+  (:documentation "A classifier based on information contained in a
   user-specified table, which might hold information on periods or
   phases."))
 
@@ -950,7 +944,7 @@ directed edge (a b) the corresponding integers satisfy a < b."))
                 (setf ret
                       (fset:with ret (new-symbol (second x))
                                  (if default (legend-node-fill obj)
-                                     (new-symbol (third x))))))
+                                     (new-symbol (third x) nil)))))
             (table obj))
     ret))
 
@@ -960,7 +954,7 @@ directed edge (a b) the corresponding integers satisfy a < b."))
                 (setf ret
                       (fset:with ret (new-symbol (second x))
                                  (if default (legend-node-color obj)
-                                     (new-symbol (third x))))))
+                                     (new-symbol (third x) nil)))))
             (table obj))
     ret))
 
@@ -979,8 +973,8 @@ directed edge (a b) the corresponding integers satisfy a < b."))
 
 (defmethod add-legend-edges ((obj tabular) graph)
   (loop for (x y) on (table obj) while y
-     do (graph:add-edge (list (new-symbol (second x))
-                              (new-symbol (second y))))))
+     do (graph:add-edge graph (list (new-symbol (second x))
+                                    (new-symbol (second y))))))
 
 (defclass periods (tabular) ())
 
@@ -988,12 +982,15 @@ directed edge (a b) the corresponding integers satisfy a < b."))
   (let ((ht (fset:empty-map)))
     (mapcar
      #'(lambda (x)
-         (setf ht (fset:with ht (new-symbol (first x)) (new-symbol (third x)))))
+         (setf ht (fset:with ht
+                             (new-symbol (first x))
+                             (new-symbol (third x) nil))))
      (table obj))
     (mapcar
      #'(lambda (x)
          (setf (classification obj)
-               (fset:with (classification obj) (new-symbol (first x))
+               (fset:with (classification obj)
+                          (new-symbol (first x))
                           (fset:@ ht (new-symbol (fourth x))))))
      (contexts obj))))
 
@@ -1003,12 +1000,15 @@ directed edge (a b) the corresponding integers satisfy a < b."))
   (let ((ht (fset:empty-map)))
     (mapcar
      #'(lambda (x)
-         (setf ht (fset:with ht (new-symbol (first x)) (new-symbol (third x)))))
+         (setf ht (fset:with ht
+                             (new-symbol (first x))
+                             (new-symbol (third x) nil))))
      (table obj))
     (mapcar
      #'(lambda (x)
          (setf (classification obj)
-               (fset:with (classification obj) (new-symbol (first x))
+               (fset:with (classification obj)
+                          (new-symbol (first x))
                           (fset:@ ht (new-symbol (fifth x))))))
      (contexts obj))))
 
@@ -1057,50 +1057,51 @@ typically set by the special variable *reachable-from*."
 (defmethod legend-shape ((obj reachable) &key default)
   (if default
       (-> (fset:empty-map)
-          (fset:with 'reachable *shape-node-legend*)
-          (fset:with 'not-reachable *shape-node-legend*)
-          (fset:with 'origin *shape-node-legend*))
+          (fset:with (new-symbol "Reachable") *shape-node-legend*)
+          (fset:with (new-symbol "Not reachable") *shape-node-legend*)
+          (fset:with (new-symbol "Origin") *shape-node-legend*))
       (-> (fset:empty-map)
-          (fset:with 'reachable *shape-reachable*)
-          (fset:with 'not-reachable *shape-not-reachable*)
-          (fset:with 'origin *shape-origin*))))
+          (fset:with (new-symbol "Reachable") *shape-reachable*)
+          (fset:with (new-symbol "Not reachable") *shape-not-reachable*)
+          (fset:with (new-symbol "Origin") *shape-origin*))))
 
 (defmethod legend-fill ((obj reachable) &key default)
   (if default
       (-> (fset:empty-map)
-          (fset:with 'reachable *color-fill-node-legend*)
-          (fset:with 'not-reachable *color-fill-node-legend*)
-          (fset:with 'origin *color-fill-node-legend*))
+          (fset:with (new-symbol "Reachable") *color-fill-node-legend*)
+          (fset:with (new-symbol "Not reachable") *color-fill-node-legend*)
+          (fset:with (new-symbol "Origin") *color-fill-node-legend*))
       (-> (fset:empty-map)
-          (fset:with 'reachable *color-reachable*)
-          (fset:with 'not-reachable *color-not-reachable*)
-          (fset:with 'origin *color-origin*))))
+          (fset:with (new-symbol "Reachable") *color-reachable*)
+          (fset:with (new-symbol "Not reachable") *color-not-reachable*)
+          (fset:with (new-symbol "Origin") *color-origin*))))
 
 (defmethod legend-color ((obj reachable) &key default)
   (if default
       (-> (fset:empty-map)
-          (fset:with 'reachable *color-node-legend*)
-          (fset:with 'not-reachable *color-node-legend*)
-          (fset:with 'origin *color-node-legend*))
+          (fset:with (new-symbol "Reachable") *color-node-legend*)
+          (fset:with (new-symbol "Not reachable") *color-node-legend*)
+          (fset:with (new-symbol "Origin") *color-node-legend*))
       (-> (fset:empty-map)
-          (fset:with 'reachable *color-reachable*)
-          (fset:with 'not-reachable *color-not-reachable*)
-          (fset:with 'origin *color-origin*))))
+          (fset:with (new-symbol "Reachable") *color-reachable*)
+          (fset:with (new-symbol "Not reachable") *color-not-reachable*)
+          (fset:with (new-symbol "Origin") *color-origin*))))
 
 (defmethod legend-urls ((obj reachable))
   (-> (fset:empty-map)
-      (fset:with 'reachable *url-default*)
-      (fset:with 'not-reachable *url-default*)
-      (fset:with 'origin *url-default*)))
+      (fset:with (new-symbol "Reachable") *url-default*)
+      (fset:with (new-symbol "Not reachable") *url-default*)
+      (fset:with (new-symbol "Origin") *url-default*)))
 
 (defmethod add-legend-nodes ((obj reachable) graph)
-  (graph:add-node graph 'reachable)
-  (graph:add-node graph 'not-reachable)
-  (graph:add-node graph 'origin))
+  (graph:add-node graph (new-symbol "Reachable"))
+  (graph:add-node graph (new-symbol "Not reachable"))
+  (graph:add-node graph (new-symbol "Origin")))
 
 (defmethod add-legend-edges ((obj reachable) graph)
-  (graph:add-edge graph (list 'reachable 'not-reachable))
-  (graph:add-edge graph (list 'origin 'reachable)))
+  (graph:add-edge graph (list
+                         (new-symbol "Reachable") (new-symbol "Not reachable")))
+  (graph:add-edge graph (list (new-symbol "Origin") (new-symbol "Reachable"))))
 
 ;; connected is the same as reachable.  Can this be right?
 ;; (defclass connected (graph-matrix)
@@ -1200,11 +1201,12 @@ adjacent nodes to 'adjacent, and reachable nodes to 'reachable"
                               (origin-node obj))))
               (setf (classification obj)
                     (fset:with (classification obj) node
-                               (case val
-                                 (4611686018427387903 'unreachable)
-                                 (0 'origin)
-                                 (1 'abutting)
-                                 (otherwise 'separated)))))
+                               (cond
+                                 ((graph-matrix:infinitep val (matrix obj))
+                                  'unreachable)
+                                 ((eql (round val) 0) 'origin)
+                                 ((eql (round val) 1) 'abutting)
+                                 (t 'separated)))))
           (graph:nodes graph))))
 
 (defmethod classify-by ((obj distance) graph)
@@ -1223,59 +1225,60 @@ adjacent nodes to 'adjacent, and reachable nodes to 'reachable"
 (defmethod legend-shape ((obj distance) &key default)
   (if default
       (-> (fset:empty-map)
-          (fset:with 'separated *shape-node-legend*)
-          (fset:with 'not-reachable *shape-node-legend*)
-          (fset:with 'origin *shape-node-legend*)
-          (fset:with 'abutting *shape-node-legend*))
+          (fset:with (new-symbol "Separated") *shape-node-legend*)
+          (fset:with (new-symbol "Not reachable") *shape-node-legend*)
+          (fset:with (new-symbol "Origin") *shape-node-legend*)
+          (fset:with (new-symbol "Abutting") *shape-node-legend*))
       (-> (fset:empty-map)
-          (fset:with 'separated *shape-reachable*)
-          (fset:with 'not-reachable *shape-not-reachable*)
-          (fset:with 'origin *shape-origin*)
-          (fset:with 'abutting *shape-adjacent*))))
+          (fset:with (new-symbol "Separated") *shape-reachable*)
+          (fset:with (new-symbol "Not reachable") *shape-not-reachable*)
+          (fset:with (new-symbol "Origin") *shape-origin*)
+          (fset:with (new-symbol "Abutting") *shape-adjacent*))))
 
 (defmethod legend-fill ((obj distance) &key default)
   (if default
       (-> (fset:empty-map)
-          (fset:with 'separated *color-fill-node-legend*)
-          (fset:with 'not-reachable *color-fill-node-legend*)
-          (fset:with 'origin *color-fill-node-legend*)
-          (fset:with 'abutting *color-fill-node-legend*))
+          (fset:with (new-symbol "Separated") *color-fill-node-legend*)
+          (fset:with (new-symbol "Not reachable") *color-fill-node-legend*)
+          (fset:with (new-symbol "Origin") *color-fill-node-legend*)
+          (fset:with (new-symbol "Abutting") *color-fill-node-legend*))
       (-> (fset:empty-map)
-          (fset:with 'separated *color-reachable*)
-          (fset:with 'not-reachable *color-not-reachable*)
-          (fset:with 'origin *color-origin*)
-          (fset:with 'abutting *color-adjacent*))))
+          (fset:with (new-symbol "Separated") *color-reachable*)
+          (fset:with (new-symbol "Not reachable") *color-not-reachable*)
+          (fset:with (new-symbol "Origin") *color-origin*)
+          (fset:with (new-symbol "Abutting") *color-adjacent*))))
 
 (defmethod legend-color ((obj distance) &key default)
   (if default
       (-> (fset:empty-map)
-          (fset:with 'separated *color-node-legend*)
-          (fset:with 'not-reachable *color-node-legend*)
-          (fset:with 'origin *color-node-legend*)
-          (fset:with 'abutting *color-node-legend*))
+          (fset:with (new-symbol "Separated") *color-node-legend*)
+          (fset:with (new-symbol "Not reachable") *color-node-legend*)
+          (fset:with (new-symbol "Origin") *color-node-legend*)
+          (fset:with (new-symbol "Abutting") *color-node-legend*))
       (-> (fset:empty-map)
-          (fset:with 'separated *color-reachable*)
-          (fset:with 'not-reachable *color-not-reachable*)
-          (fset:with 'origin *color-origin*)
-          (fset:with 'abutting *color-adjacent*))))
+          (fset:with (new-symbol "Separated") *color-reachable*)
+          (fset:with (new-symbol "Not reachable") *color-not-reachable*)
+          (fset:with (new-symbol "Origin") *color-origin*)
+          (fset:with (new-symbol "Abutting") *color-adjacent*))))
 
 (defmethod legend-urls ((obj distance))
   (-> (fset:empty-map)
-      (fset:with 'separated *url-default*)
-      (fset:with 'not-reachable *url-default*)
-      (fset:with 'origin *url-default*)
-      (fset:with 'abutting *url-default*)))
+      (fset:with (new-symbol "Separated") *url-default*)
+      (fset:with (new-symbol "Not reachable") *url-default*)
+      (fset:with (new-symbol "Origin") *url-default*)
+      (fset:with (new-symbol "Abutting") *url-default*)))
 
 (defmethod add-legend-nodes ((obj distance) graph)
-  (graph:add-node graph 'separated)
-  (graph:add-node graph 'not-reachable)
-  (graph:add-node graph 'origin)
-  (graph:add-node graph 'abutting))
+  (graph:add-node graph (new-symbol "Separated"))
+  (graph:add-node graph (new-symbol "Not reachable"))
+  (graph:add-node graph (new-symbol "Origin"))
+  (graph:add-node graph (new-symbol "Abutting")))
 
 (defmethod add-legend-edges ((obj distance) graph)
-  (graph:add-edge graph (list 'separated 'not-reachable))
-  (graph:add-edge graph (list 'abutting 'separated))
-  (graph:add-edge graph (list 'origin 'abutting)))
+  (graph:add-edge graph
+                  (list (new-symbol "Separated") (new-symbol "Not reachable")))
+  (graph:add-edge graph (list (new-symbol "Abutting") (new-symbol "Separated")))
+  (graph:add-edge graph (list (new-symbol "Origin") (new-symbol "Abutting"))))
 
 ;; pass context-table and inference-table
 (defclass units (tabular)
@@ -1285,7 +1288,7 @@ adjacent nodes to 'adjacent, and reachable nodes to 'reachable"
   (mapcar #'(lambda (x)
               (setf (classification obj)
                     (fset:with (classification obj) (new-symbol (first x))
-                               (new-symbol (second x)))))
+                               (new-symbol (second x) nil))))
           (contexts obj))
   (when *assume-correlations-true*
     (dolist (part (table obj))
@@ -1309,41 +1312,41 @@ adjacent nodes to 'adjacent, and reachable nodes to 'reachable"
 (defmethod legend-shape ((obj units) &key default)
   (if default
       (-> (fset:empty-map)
-          (fset:with 'deposit *shape-node-legend*)
-          (fset:with 'interface *shape-node-legend*))
+          (fset:with (new-symbol "Deposit") *shape-node-legend*)
+          (fset:with (new-symbol "Interface") *shape-node-legend*))
       (-> (fset:empty-map)
-          (fset:with 'deposit *shape-node-deposit*)
-          (fset:with 'interface *shape-node-interface*))))
+          (fset:with (new-symbol "Deposit") *shape-node-deposit*)
+          (fset:with (new-symbol "Interface") *shape-node-interface*))))
 
 (defmethod legend-fill ((obj units) &key default)
   (if default
       (-> (fset:empty-map)
-          (fset:with 'deposit *color-fill-node-legend*)
-          (fset:with 'interface *color-fill-node-legend*))
+          (fset:with (new-symbol "Deposit") *color-fill-node-legend*)
+          (fset:with (new-symbol "Interface") *color-fill-node-legend*))
       (-> (fset:empty-map)
-          (fset:with 'deposit *color-fill-node-deposit*)
-          (fset:with 'interface *color-fill-node-interface*))))
+          (fset:with (new-symbol "Deposit") *color-fill-node-deposit*)
+          (fset:with (new-symbol "Interface") *color-fill-node-interface*))))
 
 (defmethod legend-color ((obj units) &key default)
   (if default
       (-> (fset:empty-map)
-          (fset:with 'deposit *color-node-legend*)
-          (fset:with 'interface *color-node-legend*))
+          (fset:with (new-symbol "Deposit") *color-node-legend*)
+          (fset:with (new-symbol "Interface") *color-node-legend*))
       (-> (fset:empty-map)
-          (fset:with 'deposit *color-node-deposit*)
-          (fset:with 'interface *color-node-interface*))))
+          (fset:with (new-symbol "Deposit") *color-node-deposit*)
+          (fset:with (new-symbol "Interface") *color-node-interface*))))
 
 (defmethod legend-urls ((obj units))
   (-> (fset:empty-map)
-      (fset:with 'deposit *url-default*)
-      (fset:with 'interface *url-default*)))
+      (fset:with (new-symbol "Deposit") *url-default*)
+      (fset:with (new-symbol "Interface") *url-default*)))
 
 (defmethod add-legend-nodes ((obj units) graph)
-  (graph:add-node graph 'deposit)
-  (graph:add-node graph 'interface))
+  (graph:add-node graph (new-symbol "Deposit"))
+  (graph:add-node graph (new-symbol "Interface")))
 
 (defmethod add-legend-edges ((obj units) graph)
-  (graph:add-edge graph (list 'deposit 'interface)))
+  (graph:add-edge graph (list (new-symbol "Deposit") (new-symbol "Interface"))))
 
 (defun hm-draw (cnf-file-path &optional style-file-path)
   "Read a configuration file and various data files, create a
@@ -1372,6 +1375,7 @@ configuration file."
         (radiocarbon-table)
         (date-order-table)
         (graph (graph:populate (make-instance 'graph:digraph)))
+        (cycle-graph (graph:populate (make-instance 'graph:digraph)))
         (adjacency-matrix)
         (reachability-matrix)
         (distance-matrix)
@@ -1414,7 +1418,7 @@ configuration file."
           specified."))
 
     (when *symbolize-unit-type*
-      (setf *node-shape-by* 'units))
+      (setf *node-shape-by* (new-symbol "units" nil)))
 
     ;; read required tables
 
@@ -1470,26 +1474,37 @@ configuration file."
                                      *date-order-table-name*))))
 
     ;; create sequence diagram graph
-;;; add nodes
 
+;;; add nodes
+    (format t "Adding nodes to graph.~&")
     (dolist (node context-table)
       (graph:add-node graph (new-symbol (first node))))
 
-;;; add arcs
+    ;; Check here
 
-    (dolist (arc observation-table rejected)
+;;; add arcs
+    (format t "Adding arcs to graph.~&")
+    (dolist (arc observation-table)
       (graph:add-edge graph
                       (list (new-symbol (first arc))
-                            (new-symbol (second arc))))
-      (unless rejected
-        (and (graph:cycles graph) (push arc rejected))))
+                            (new-symbol (second arc)))))
 
-    ;; if there is a cycle in the graph, shut down
+    (when (graph:cycles graph)
+      (format t
+              "A cycle has been found.  Isolating the problem might take a while.")
+      (dolist (arc observation-table rejected)
+        (graph:add-edge cycle-graph
+                        (list (new-symbol (first arc))
+                              (new-symbol (second arc))))
+        (unless rejected
+          (and (graph:cycles cycle-graph) (push arc rejected))))
 
-    (when rejected
-      (return-from hm-draw
-        (format t "A cycle that includes node ~a is present."
-                (pop rejected))))
+      ;; Report the cycle and shut down
+
+      (when rejected
+        (return-from hm-draw
+          (format t "A cycle that includes node ~a is present."
+                  (pop rejected)))))
 
     ;; set ranks of nodes
     ;; possibly assume correlated contexts once-whole
@@ -1508,11 +1523,15 @@ configuration file."
               (format t "Correlated contexts introduced a cycle."))))
         (alexandria:appendf ranks (set-same-ranks inference-table)))
 
+    (format t "Setting ranks.~&")
     (alexandria:appendf ranks (set-other-ranks context-table))
 
     (when (fset:contains? attributes 'distance)
+      (format t "Creating distance matrix.~&")
       (setf distance-matrix (create-distance-matrix graph distance-matrix)))
+
     (when (fset:contains? attributes 'reachable)
+      (format t "Creating reachability matrix.")
       (setf reachability-matrix
             (create-reachability-matrix graph reachability-matrix
                                         *reachable-limit*)))
@@ -1520,12 +1539,13 @@ configuration file."
     ;; optionally, fill nodes
 
     (when *node-fill-by*
+      (format t "Creating node filler.~&")
       (setf node-filler
             (make-instance
              *node-fill-by*
-             :table (if (eql *node-fill-by* 'periods) period-table phase-table)
+             :table (if (eq *node-fill-by* 'periods) period-table phase-table)
              :contexts context-table
-             :matrix (if (eql *node-fill-by* 'reachable)
+             :matrix (if (eq *node-fill-by* 'reachable)
                          reachability-matrix distance-matrix)
              :legend-node-shape *shape-node-legend*
              :legend-node-fill *color-fill-node-legend*
@@ -1543,6 +1563,7 @@ configuration file."
     ;; optionally, set node shapes
 
     (when *node-shape-by*
+      (format t "Creating node shaper.~&")
       (setf node-shaper
             (make-instance
              *node-shape-by*
@@ -1567,6 +1588,7 @@ configuration file."
     ;; optionally, color nodes
 
     (when *node-color-by*
+      (format t "Creating node colorer.~&")
       (setf node-colorer
             (make-instance
              *node-color-by*
@@ -1591,6 +1613,7 @@ configuration file."
     ;; optionally, add legend information
 
     (when *legend*
+      (format t "Creating legend.~&")
       (when *node-fill-by*
         (add-legend-nodes node-filler graph)
         (add-legend-edges node-filler graph)
@@ -1667,67 +1690,74 @@ configuration file."
                       (fset:$ (get-node-urls-from context-table inference-table)))
             arc-urls
             (fset:map (fset:$ arc-urls)
-                      (fset:$ (get-arc-urls-from observation-table))))
-      (setf *x* arc-urls))
+                      (fset:$ (get-arc-urls-from observation-table)))))
 
     ;; optionally, construct the chronology graph
     ;; need to check assocation of date with context, set edges
     ;; conditional on association
 
     (when *create-chronology-graph*
+      (format t "Creating chronology graph.~&")
       (let ((counter -1))
         (setf chronology-graph (graph:populate (make-instance 'graph:digraph))
-              adjacency-matrix (create-adjacency-matrix graph adjacency-matrix)
-              reachability-matrix
-              (if reachability-matrix reachability-matrix
-                  (create-reachability-matrix graph reachability-matrix)))
+              distance-matrix (create-distance-matrix graph distance-matrix))
+        (format t "Set distance matrix.~&")
         (mapc (lambda (node) (setf (gethash node node-index-hash) (incf counter)))
               (graph:nodes graph))
+        (format t "Reading radiocarbon table.~&")
         (dolist (col radiocarbon-table)
           (graph:add-node chronology-graph
-                          (new-symbol (second col) "alpha-~a"))
+                          (alexandria:symbolicate "alpha-" (second col)))
           (graph:add-node chronology-graph
-                          (new-symbol (second col) "beta-~a"))
+                          (alexandria:symbolicate "beta-" (second col)))
           (graph:add-node chronology-graph
-                          (new-symbol (first col) "theta-~a")))
+                          (alexandria:symbolicate "theta-" (first col)))
+          (graph:add-edge chronology-graph
+                          (list (alexandria:symbolicate "beta-" (second col))
+                                (alexandria:symbolicate "alpha-" (second col)))
+                          2)
+          (push (new-symbol (second col)) context-list))
+        (format t "Reading date order table.~&")
         (when date-order-table
           (dolist (pair date-order-table)
             (graph:add-edge chronology-graph
-                            (list (new-symbol (second pair) "theta-~a")
-                                  (new-symbol (first pair) "theta-~a"))
+                            (list (alexandria:symbolicate "theta-" (second pair))
+                                  (alexandria:symbolicate "theta-" (first pair)))
                             0)))
+        (format t "Modeling radiocarbon dates.~&")
         (dolist (node radiocarbon-table)
-          (and (eq 0 (graph:indegree chronology-graph
-                                     (new-symbol (first node) "theta-~a")))
-               (not (eq (new-symbol (fourth node)) 'disparity))
+          (and (eq 0 (graph:indegree
+                      chronology-graph
+                      (alexandria:symbolicate "theta-" (first node))))
+               (not (eq (new-symbol (fourth node)) (new-symbol "disparity")))
                (graph:add-edge chronology-graph
-                               (list (new-symbol (second node) "beta-~a")
-                                     (new-symbol (first node) "theta-~a"))
+                               (list (alexandria:symbolicate "beta-" (second node))
+                                     (alexandria:symbolicate "theta-" (first node)))
                                0))
           (and (eq 0 (graph:outdegree
                       chronology-graph
-                      (new-symbol (first node) "theta-~a")))
-               (not (eq (new-symbol (fourth node)) 'disjunction))
+                      (alexandria:symbolicate "theta-" (first node))))
+               (not (eq (new-symbol (fourth node)) (new-symbol "disjunction")))
                (graph:add-edge chronology-graph
-                               (list (new-symbol (first node) "theta-~a")
-                                     (new-symbol (second node) "alpha-~a"))
+                               (list
+                                (alexandria:symbolicate "theta-" (first node))
+                                (alexandria:symbolicate  "alpha-" (second node)))
                                0)))
-        (dolist (arc radiocarbon-table)
-          (push (new-symbol (second arc)) context-list))
 
         (setf context-list (append (unique-pairs context-list)
                                    (unique-pairs (reverse context-list))))
+        (format t "Adding edge values to the chronology graph.~&")
         (dolist (pair context-list)
-          (when (graph-matrix:reachablep
-                 graph reachability-matrix (first pair) (first (rest pair)))
-            (graph:add-edge
-             chronology-graph
-             (list (new-symbol (first pair) "alpha-~a")
-                   (new-symbol (first (rest pair)) "beta-~a"))
-             (if (eq 1 (graph-matrix:matrix-ref
-                        adjacency-matrix
-                        (gethash (first pair) node-index-hash)
-                        (gethash (first (rest pair)) node-index-hash))) 1 2)))))
+          (let ((distance (graph-matrix::matrix-ref
+                           distance-matrix
+                           (gethash (first pair) node-index-hash)
+                           (gethash (second pair) node-index-hash))))
+            (unless (graph-matrix:infinitep distance distance-matrix)
+              (graph:add-edge
+               chronology-graph
+               (list (alexandria:symbolicate "alpha-" (first pair))
+                     (alexandria:symbolicate "beta-" (second pair)))
+               (if (eql 1 (round distance)) 1 2))))))
 
       ;; write the dot file for the chronology graph
 
@@ -1740,16 +1770,19 @@ configuration file."
         (cons :dpi (format-attribute *graph-dpi-chronology*))
         (cons :margin (format-attribute *graph-margin-chronology*))
         (cons :bgcolor (format-attribute
-                        (color-filter *color-fill-graph-chronology*)))
+                        (color-filter *color-fill-graph-chronology*)
+                        :quote t))
         (cons :fontname (format-attribute *font-name-graph-chronology*))
         (cons :fontsize (format-attribute *font-size-graph-chronology*))
         (cons :fontcolor (format-attribute
-                          (color-filter *font-color-graph-chronology*)))
+                          (color-filter *font-color-graph-chronology*)
+                          :quote t))
         (cons :splines (format-attribute *graph-splines-chronology*))
         (cons :page (format-attribute *graph-page-chronology*))
         (cons :size (format-attribute *graph-size-chronology*))
         (cons :ratio (format-attribute *graph-ratio-chronology*))
-        (cons :label (format-attribute *graph-title-chronology*))
+        (cons :label (format-attribute *graph-title-chronology*
+                                       :quote t :preserve-case t))
         (cons :labelloc (format-attribute *graph-labelloc-chronology*)))
        :edge-attrs
        (list
@@ -1759,30 +1792,36 @@ configuration file."
                   (0 (format-attribute *edge-date-chronology*))
                   (1 (format-attribute *edge-abutting-chronology*))
                   (2 (format-attribute *edge-separated-chronology*)))))
-        (cons :label (constantly-format ""))
-        (cons :arrowhead (constantly-format *edge-arrowhead-chronology*))
-        (cons :colorscheme (constantly-format *color-scheme-chronology*))
-        (cons :color (constantly-format (color-filter *color-edge-chronology*)))
-        (cons :fontname (constantly-format *font-name-edge-chronology*))
-        (cons :fontsize (constantly-format *font-size-edge-chronology*))
-        (cons :fontcolor (constantly-format
-                          (color-filter *font-color-edge-chronology*))))
+        (cons :label (lambda (x) (format-attribute nil)))
+        (cons :arrowhead (lambda (x) (format-attribute *edge-arrowhead-chronology*)))
+        (cons :colorscheme (lambda (x) (format-attribute *color-scheme-chronology*)))
+        (cons :color (lambda (x) (format-attribute (color-filter *color-edge-chronology*)
+                                             :quote t)))
+        (cons :fontname (lambda (x) (format-attribute *font-name-edge-chronology*)))
+        (cons :fontsize (lambda (x) (format-attribute *font-size-edge-chronology*)))
+        (cons :fontcolor (lambda (x) (format-attribute
+                                 (color-filter *font-color-edge-chronology*)
+                                 :quote t))))
        :node-attrs
        (list
+        (cons :label (lambda (x) (chronology-graph-html-label x *font-size-subscript*)))
         (cons :shape
               (lambda (n)
-                (if (equal (char (symbol-name n) 0) #\T)
+                (if (equal (char (symbol-name n) 0) #\t)
                     (format-attribute *shape-date*)
                     (format-attribute *shape-phase*))))
-        (cons :style (constantly-format *style-node-chronology*))
-        (cons :fontname (constantly-format *font-name-node-chronology*))
-        (cons :fontsize (constantly-format *font-size-node-chronology*))
-        (cons :colorscheme (constantly-format *color-scheme-chronology*))
-        (cons :color (constantly-format (color-filter *color-node-chronology*)))
-        (cons :fillcolor (constantly-format (color-filter
-                                             *color-fill-node-chronology*)))
-        (cons :fontcolor (constantly-format
-                          (color-filter *font-color-node-chronology*)))))
+        (cons :style (lambda (x) (format-attribute *style-node-chronology*)))
+        (cons :fontname (lambda (x) (format-attribute *font-name-node-chronology*)))
+        (cons :fontsize (lambda (x) (format-attribute *font-size-node-chronology*)))
+        (cons :colorscheme (lambda (x) (format-attribute *color-scheme-chronology*)))
+        (cons :color (lambda (x) (format-attribute
+                             (color-filter *color-node-chronology*) :quote t)))
+        (cons :fillcolor (lambda (x) (format-attribute
+                                 (color-filter *color-fill-node-chronology*)
+                                 :quote t)))
+        (cons :fontcolor (lambda (x) (format-attribute
+                                 (color-filter *font-color-node-chronology*)
+                                 :quote t)))))
       (format t "Wrote ~a~%"
               (probe-file (string-downcase (string *output-file-chronology*)))))
 
@@ -1796,52 +1835,61 @@ configuration file."
       (cons :style (format-attribute *graph-style-sequence*))
       (cons :colorscheme (format-attribute *color-scheme-sequence*))
       (cons :dpi (format-attribute *graph-dpi-sequence*))
-      (cons :URL (format-attribute (url-decode *url-default*)))
+      (cons :URL (format-attribute (url-decode *url-default*) :preserve-case t
+                                   :quote t))
       (cons :margin (format-attribute *graph-margin-sequence*))
-      (cons :bgcolor (format-attribute (color-filter
-                                        *color-fill-graph-sequence*)))
+      (cons :bgcolor (format-attribute (color-filter *color-fill-graph-sequence*)
+                                       :quote t))
       (cons :fontname (format-attribute *font-name-graph-sequence*))
       (cons :fontsize (format-attribute *font-size-graph-sequence*))
-      (cons :fontcolor (format-attribute (color-filter
-                                          *font-color-graph-sequence*)))
+      (cons :fontcolor (format-attribute
+                        (color-filter *font-color-graph-sequence*) :quote t))
       (cons :splines (format-attribute *graph-splines-sequence*))
       (cons :page (format-attribute *graph-page-sequence*))
       (cons :size (format-attribute *graph-size-sequence*))
       (cons :ratio (format-attribute *graph-ratio-sequence*))
-      (cons :label (format nil "~s" *graph-title-sequence*))
+      (cons :label (format-attribute *graph-title-sequence* :preserve-case t
+                                     :quote t))
       (cons :labelloc (format-attribute *graph-labelloc-sequence*)))
      :edge-attrs
      (list
-      (cons :style (graph-element-control *style-edge-sequence*))
-      (cons :arrowhead (constantly-format *edge-arrowhead-sequence*))
-      (cons :colorscheme (constantly-format *color-scheme-sequence*))
-      (cons :color (constantly-format (color-filter *color-edge-sequence*)))
-      (cons :fontname (constantly-format *font-name-edge-sequence*))
-      (cons :fontsize (constantly-format *font-size-edge-sequence*))
-      (cons :fontcolor (constantly-format (color-filter
-                                           *font-color-edge-sequence*)))
-      (cons :URL (graph-element-control "" #'url-decode *url-include* arc-urls)))
+      (cons :style (lambda (x) (format-attribute *style-edge-sequence*)))
+      (cons :arrowhead (lambda (x) (format-attribute *edge-arrowhead-sequence*)))
+      (cons :colorscheme (lambda (x) (format-attribute *color-scheme-sequence*)))
+      (cons :color (lambda (x) (format-attribute (color-filter *color-edge-sequence*)
+                                            :quote t)))
+      (cons :fontname (lambda (x) (format-attribute *font-name-edge-sequence*)))
+      (cons :fontsize (lambda (x) (format-attribute *font-size-edge-sequence*)))
+      (cons :fontcolor (lambda (x) (format-attribute
+                               (color-filter *font-color-edge-sequence*) :quote t)))
+      (cons :URL (lambda (x) (format-attribute
+                         (if *url-include* (url-decode (fset:@ arc-urls x)) "")
+                         :preserve-case t :quote t))))
      :node-attrs
      (list
-      (cons :shape (graph-element-control *shape-node-deposit* #'shape-filter
-                                          *node-shape-by* node-shapes))
-      (cons :label #'(lambda (x) (format nil "\"~a\"" (titlecase-label x))))
-      (cons :style (constantly-format *style-node-sequence*))
-      (cons :fontname (constantly-format *font-name-node-sequence*))
-      (cons :fontsize (constantly-format *font-size-node-sequence*))
-      (cons :colorscheme (constantly-format *color-scheme-sequence*))
-      (cons :color (graph-element-control *color-node-sequence*
-                                          #'color-filter
-                                          *node-color-by* node-colors))
-      (cons :fillcolor (graph-element-control *color-fill-node-sequence*
-                                              #'color-filter
-                                              *node-fill-by* node-fills))
-      (cons :fontcolor (graph-element-control *font-color-node-sequence*
-                                              #'label-color
-                                              *node-fill-by* node-fills))
-      (cons :penwidth (constantly-format *node-outline-width*))
-      (cons :URL (graph-element-control "" #'url-decode *url-include*
-                                        node-urls))))
-    (return-from hm-draw
-      (format nil "Wrote ~a"
-              (probe-file (string-downcase (string *output-file-sequence*)))))))
+      (cons :shape (lambda (x) (format-attribute
+                           (if *node-shape-by* (shape-filter (fset:@ node-shapes x))
+                               *shape-node-deposit*))))
+      (cons :style (lambda (x) (format-attribute *style-node-sequence*)))
+      (cons :fontname (lambda (x) (format-attribute *font-name-node-sequence*)))
+      (cons :fontsize (lambda (x) (format-attribute *font-size-node-sequence*)))
+      (cons :colorscheme (lambda (x) (format-attribute *color-scheme-sequence*)))
+      (cons :color (lambda (x) (format-attribute
+                           (if *node-color-by*
+                               (color-filter (fset:@ node-colors x))
+                               *color-node-sequence*) :quote t)))
+      (cons :fillcolor (lambda (x) (format-attribute
+                               (if *node-fill-by*
+                                   (color-filter (fset:@ node-fills x))
+                                   *color-fill-node-sequence*) :quote t)))
+      (cons :fontcolor (lambda (x) (format-attribute
+                               (if *node-fill-by*
+                                   (label-color (fset:@ node-fills x))
+                                   *font-color-node-sequence*) :quote t)))
+      (cons :penwidth (lambda (x) (format-attribute *node-outline-width*)))
+      (cons :URL (lambda (x) (format-attribute
+                         (if *url-include*
+                             (url-decode (fset:@ node-urls x))
+                             "") :preserve-case t :quote t)))))
+    (format t "Wrote ~a"
+            (probe-file (string-downcase (string *output-file-sequence*))))))
