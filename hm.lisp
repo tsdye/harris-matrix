@@ -86,9 +86,9 @@
   "Optional input file path for the period table.")
 (defparameter *phase-table-name* nil
   "Optional input file path for the phase table.")
-(defparameter *radiocarbon-table-name* nil
+(defparameter *event-table-name* nil
   "Optional input file path for the radiocarbon table.")
-(defparameter *date-order-table-name* nil
+(defparameter *event-order-table-name* nil
   "Optional input file path for the date order table.")
 (defparameter *context-table-header* nil
   "Switch for a header line in the context table, nil for no header
@@ -105,11 +105,11 @@
 (defparameter *phase-table-header* nil
   "Switch for a header line in the phase table, nil for no header
   line and non-nil for a header line.")
-(defparameter *radiocarbon-table-header* nil
+(defparameter *event-table-header* nil
   "Switch for a header line in the radiocarbon table, nil for no header
   line and non-nil for a header line.")
-(defparameter *date-order-table-header* nil
-  "Switch for a header line in the date-order table, nil for no header
+(defparameter *event-order-table-header* nil
+  "Switch for a header line in the event-order table, nil for no header
   line and non-nil for a header line.")
 (defparameter *symbolize-unit-type* nil
   "Switch to distinguish interfaces and deposits, nil for no
@@ -447,15 +447,15 @@
         *inference-table-name* nil
         *period-table-name* nil
         *phase-table-name* nil
-        *radiocarbon-table-name* nil
-        *date-order-table-name* nil
+        *event-table-name* nil
+        *event-order-table-name* nil
         *context-table-header* nil
         *observation-table-header* nil
         *inference-table-header* nil
         *period-table-header* nil
         *phase-table-header* nil
-        *radiocarbon-table-header* nil
-        *date-order-table-header* nil
+        *event-table-header* nil
+        *event-order-table-header* nil
         *symbolize-unit-type* nil
         *create-chronology-graph* nil
         *node-fill-by* nil
@@ -1360,8 +1360,8 @@ configuration file."
         (inference-table)
         (period-table)
         (phase-table)
-        (radiocarbon-table)
-        (date-order-table)
+        (event-table)
+        (event-order-table)
         (graph (graph:populate (make-instance 'graph:digraph)))
         (cycle-graph (graph:populate (make-instance 'graph:digraph)))
         (adjacency-matrix)
@@ -1447,19 +1447,19 @@ configuration file."
         (return-from hm-draw (format nil "Unable to read ~a"
                                      *phase-table-name*))))
 
-    (when (and *radiocarbon-table-name* *create-chronology-graph*)
+    (when (and *event-table-name* *create-chronology-graph*)
       (unless
-          (setf radiocarbon-table
-                (read-table *radiocarbon-table-name* *radiocarbon-table-header*))
+          (setf event-table
+                (read-table *event-table-name* *event-table-header*))
         (return-from hm-draw (format nil "Unable to read ~a"
-                                     *radiocarbon-table-name*))))
+                                     *event-table-name*))))
 
-    (when (and *date-order-table-name* *create-chronology-graph*)
+    (when (and *event-order-table-name* *create-chronology-graph*)
       (unless
-          (setf date-order-table
-                (read-table *date-order-table-name* *date-order-table-header*))
+          (setf event-order-table
+                (read-table *event-order-table-name* *event-order-table-header*))
         (return-from hm-draw (format nil "Unable to read ~a"
-                                     *date-order-table-name*))))
+                                     *event-order-table-name*))))
 
     ;; create sequence diagram graph
 
@@ -1691,7 +1691,7 @@ configuration file."
         (mapc (lambda (node) (setf (gethash node node-index-hash) (incf counter)))
               (graph:nodes graph))
         (format t "Reading radiocarbon table.~&")
-        (dolist (col radiocarbon-table)
+        (dolist (col event-table)
           (graph:add-node chronology-graph
                           (alexandria:symbolicate "alpha-" (second col)))
           (graph:add-node chronology-graph
@@ -1704,14 +1704,14 @@ configuration file."
                           2)
           (push (new-symbol (second col)) context-list))
         (format t "Reading date order table.~&")
-        (when date-order-table
-          (dolist (pair date-order-table)
+        (when event-order-table
+          (dolist (pair event-order-table)
             (graph:add-edge chronology-graph
                             (list (alexandria:symbolicate "theta-" (second pair))
                                   (alexandria:symbolicate "theta-" (first pair)))
                             0)))
         (format t "Modeling radiocarbon dates.~&")
-        (dolist (node radiocarbon-table)
+        (dolist (node event-table)
           (and (eq 0 (graph:indegree
                       chronology-graph
                       (alexandria:symbolicate "theta-" (first node))))
