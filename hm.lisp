@@ -1681,8 +1681,6 @@ configuration file."
                       (fset:$ (get-arc-urls-from observation-table)))))
 
     ;; optionally, construct the chronology graph
-    ;; need to check assocation of date with context, set edges
-    ;; conditional on association
 
     (when *create-chronology-graph*
       (format t "Creating chronology graph.~&")
@@ -1717,7 +1715,7 @@ configuration file."
           (and (eq 0 (graph:indegree
                       chronology-graph
                       (alexandria:symbolicate "theta-" (first node))))
-               (not (eq (new-symbol (fourth node)) (new-symbol "disparity")))
+               (not (eq (new-symbol (fourth node)) (new-symbol "disparate")))
                (graph:add-edge chronology-graph
                                (list (alexandria:symbolicate "beta-" (second node))
                                      (alexandria:symbolicate "theta-" (first node)))
@@ -1725,7 +1723,7 @@ configuration file."
           (and (eq 0 (graph:outdegree
                       chronology-graph
                       (alexandria:symbolicate "theta-" (first node))))
-               (not (eq (new-symbol (fourth node)) (new-symbol "disjunction")))
+               (not (eq (new-symbol (fourth node)) (new-symbol "disjunct")))
                (graph:add-edge chronology-graph
                                (list
                                 (alexandria:symbolicate "theta-" (first node))
