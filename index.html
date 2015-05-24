@@ -6,7 +6,7 @@
     <title>hm by tsdye</title>
 
     <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -68,7 +68,7 @@
 <h2>
 <a id="overview" class="anchor" href="#overview" aria-hidden="true"><span class="octicon octicon-link"></span></a>Overview</h2>
 
-<p>The <code>hm</code> package produces Graphviz <code>dot</code> source code for archaeological sequence diagrams from tables of stratigraphic observations, inferences, and interpretations.  With the addition of a table of radiocarbon dates, the <code>hm</code> package will produce a Bayesian chronological model.</p>
+<p>The <code>hm</code> package produces Graphviz <code>dot</code> source code for archaeological sequence diagrams from tables of stratigraphic observations, inferences, and interpretations.  With the addition of a table of events, the <code>hm</code> package will produce a Bayesian chronological model.</p>
 
 <p>The <code>hm</code> package provides a single function, <code>hm-draw</code>, which expects a valid path to a configuration file as its sole argument.</p>
 
@@ -185,9 +185,9 @@ discontiguous contexts.</p>
 </ul>
 
 <h3>
-<a id="dates" class="anchor" href="#dates" aria-hidden="true"><span class="octicon octicon-link"></span></a>Dates</h3>
+<a id="events" class="anchor" href="#events" aria-hidden="true"><span class="octicon octicon-link"></span></a>Events</h3>
 
-<p>This table associates radiocarbon dates with events and contexts and specifies the nature of the association using terms introduced to archaeology by Jeffrey Dean in 1978.</p>
+<p>This table associates events and contexts and specifies the nature of the association using terms introduced to archaeology by Jeffrey Dean in 1978.</p>
 
 <ul>
 <li>
@@ -197,14 +197,14 @@ discontiguous contexts.</p>
 <li>
 <strong>lab:</strong> dating laboratory identifier</li>
 <li>
-<strong>association</strong> one of <code>disjunction</code>, <code>associated</code>, <code>disparity</code>
+<strong>association</strong> one of <code>disjunct</code>, <code>direct</code>, <code>disparate</code>
 </li>
 </ul>
 
 <h3>
-<a id="date-order" class="anchor" href="#date-order" aria-hidden="true"><span class="octicon octicon-link"></span></a>Date Order</h3>
+<a id="event-order" class="anchor" href="#event-order" aria-hidden="true"><span class="octicon octicon-link"></span></a>Event Order</h3>
 
-<p>This optional table contains information on the temporal order of dated events from the same context.</p>
+<p>This optional table contains information on the temporal order of events from the same context.</p>
 
 <ul>
 <li>
@@ -247,7 +247,7 @@ discontiguous contexts.</p>
 <h1>
 <a id="workflow" class="anchor" href="#workflow" aria-hidden="true"><span class="octicon octicon-link"></span></a>Workflow</h1>
 
-<p>Legends are displayed as elements; no attempt at good layout is made.  The <code>svg</code> output from <code>dot</code> can be edited with an application such as <a href="http://www.inkscape.org/en/">Inkscape</a>.</p>
+<p>Legends are displayed as elements; no attempt at good legend layout is made.  The <code>svg</code> output from <code>dot</code> can be edited with an application such as <a href="http://www.inkscape.org/en/">Inkscape</a>.</p>
       </section>
       <footer>
         <p>This project is maintained by <a href="https://github.com/tsdye">tsdye</a></p>
