@@ -637,17 +637,17 @@ line of NAME contains column heads, rather than values."
 
 ;; filter function definitions
 
-(defun color-filter (col)
+(defun color-filter (color)
   "Returns a valid Graphviz dot color designator. The result is either
 an integer or a symbol with a color name appended to a color space.
-COL can either be an integer, in which case Brewer colors are assumed,
-or a symbol whose string value is a color name.  Returns 0 if COL is
+COLOR can either be an integer, in which case Brewer colors are assumed,
+or a symbol whose string value is a color name.  Returns 0 if COLOR is
 nil or a string."
   (cond
-    ((not col) 0)
-    ((integerp col) col)
-    ((eq col 'transparent) col)
-    ((symbolp col) (alexandria:symbolicate "/" *color-space* "/" col))
+    ((not color) 0)
+    ((integerp color) color)
+    ((eq color 'transparent) color)
+    ((symbolp color) (alexandria:symbolicate "/" *color-space* "/" color))
     (t 0)))
 
 (defun shape-filter (shape)
