@@ -1491,9 +1491,11 @@ configuration file."
 
       (when rejected
         (let ((bad-arc (pop rejected)))
-             (return-from hm-draw
-               (format t "A cycle that includes ~a and ~a is present."
-                       (first bad-arc) (second bad-arc))))))
+          (return-from hm-draw
+            (values
+             (format t "A cycle that includes ~a and ~a is present."
+                     (first bad-arc) (second bad-arc))
+             graph)))))
 
     ;; set ranks of nodes
     ;; possibly assume correlated contexts once-whole
