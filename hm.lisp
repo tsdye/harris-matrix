@@ -1479,7 +1479,7 @@ configuration file."
 
     (when (graph:cycles graph)
       (format t
-              "A cycle has been found.  Isolating the problem might take a while.")
+              "A cycle has been found.~&")
       (dolist (arc observation-table rejected)
         (graph:add-edge cycle-graph
                         (list (new-symbol (first arc))
@@ -1490,9 +1490,10 @@ configuration file."
       ;; Report the cycle and shut down
 
       (when rejected
-        (return-from hm-draw
-          (format t "A cycle that includes node ~a is present."
-                  (pop rejected)))))
+        (let ((bad-arc (pop rejected)))
+             (return-from hm-draw
+               (format t "A cycle that includes ~a and ~a is present."
+                       (first bad-arc) (second bad-arc))))))
 
     ;; set ranks of nodes
     ;; possibly assume correlated contexts once-whole
