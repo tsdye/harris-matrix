@@ -1880,4 +1880,5 @@ configuration file."
                              (url-decode (fset:@ node-urls x))
                              "") :preserve-case t :quote t)))))
     (format t "Wrote ~a"
-            (probe-file (string-downcase (string *output-file-sequence*))))))
+            (probe-file (string-downcase (string *output-file-sequence*))))
+    graph))
