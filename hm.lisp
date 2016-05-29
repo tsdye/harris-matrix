@@ -1884,3 +1884,11 @@ configuration file."
     (format t "Wrote ~a"
             (probe-file (string-downcase (string *output-file-sequence*))))
     graph))
+
+(defun write-levels (graph out-file)
+  (let ((levels (graph:levels graph)))
+    (with-open-file (stream out-file :direction :output :if-exists :overwrite
+                            :if-does-not-exist :create)
+      (maphash (lambda (key value)
+                 (cl-csv:write-csv-row (list key value) :stream stream))
+               levels))))
