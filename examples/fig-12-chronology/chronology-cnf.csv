@@ -6,7 +6,7 @@
 *period-table-name*,~/quicklisp/local-projects/hm/examples/fig-12-chronology/periods-eg.csv
 *phase-table-name*,~/quicklisp/local-projects/hm/examples/fig-12-chronology/phases-eg.csv
 *radiocarbon-table-name*,~/quicklisp/local-projects/hm/examples/fig-12-chronology/radiocarbon-eg.csv
-*date-order-table-name*,~/quicklisp/local-projects/hm/examples/fig-12-chronology/date-order.csv
+*date-order-table-name*,
 *context-table-header*,t
 *observation-table-header*,t
 *inference-table-header*,t
@@ -25,11 +25,11 @@
 *url-default*,nil
 *legend*,t
 *assume-correlations-true*,nil
-*use-fast-matrix*,
+*use-fast-matrix*,t
 *style-edge-sequence*,solid
 *style-node-sequence*,filled
 *style-node-chronology*,filled
-*color-scheme-sequence*,set34
+*color-scheme-sequence*,accent4
 *color-scheme-chronology*,nil
 *color-space*,x11
 *color-label-dark*,black
@@ -39,7 +39,7 @@
 *color-origin*,1
 *color-adjacent*,2
 *color-edge-sequence*,black
-*color-fill-graph-sequence*,transparent
+*color-fill-graph-sequence*,white
 *color-node-sequence*,black
 *color-fill-node-sequence*,white
 *color-edge-chronology*,black
@@ -49,7 +49,7 @@
 *color-fill-node-interface*,
 *color-node-legend*,
 *color-fill-node-legend*,white
-*color-fill-graph-chronology*,transparent
+*color-fill-graph-chronology*,white
 *shape-reachable*,nil
 *shape-not-reachable*,nil
 *shape-origin*,nil
@@ -72,9 +72,9 @@
 *graph-page-chronology*,nil
 *graph-dpi-chronology*,nil
 *graph-margin-chronology*,nil
-*font-color-label-break*,
+*font-color-label-break*,nil
 *font-name-graph-sequence*,helvetica
-*font-size-graph-sequence*,14
+*font-size-graph-sequence*,18
 *font-color-graph-sequence*,black
 *font-name-edge-sequence*,helvetica
 *font-size-edge-sequence*,14
