@@ -36,8 +36,6 @@
     (set-option cfg "Chronology graph" "draw" "off")
 
     (add-section cfg "General configuration")
-    (set-option cfg "General configuration" "reachable-from" "")
-    (set-option cfg "General configuration" "reachable-limit" "")
     (set-option cfg "General configuration" "url-include" "off")
     (set-option cfg "General configuration" "url-default"
                 "http://tsdye.github.io/harris-matrix/")
@@ -47,13 +45,13 @@
     (set-option cfg "General configuration" "add-missing-interfaces" "off")
 
     (add-section cfg "Graphviz sequence classification")
-;; Node classifiers
+    ;; Node classifiers
     (set-option cfg "Graphviz sequence classification" "node-fill-by" "")
     (set-option cfg "Graphviz sequence classification" "node-shape-by" "units")
     (set-option cfg "Graphviz sequence classification" "node-color-by" "")
     (set-option cfg "Graphviz sequence classification" "node-penwidth-by" "")
     (set-option cfg "Graphviz sequence classification" "node-style-by" "")
-;; Polygon classifiers
+    ;; Polygon classifiers
     (set-option cfg "Graphviz sequence classification"
                 "node-polygon-distortion-by" "")
     (set-option cfg "Graphviz sequence classification"
@@ -64,7 +62,7 @@
                 "node-polygon-sides-by" "")
     (set-option cfg "Graphviz sequence classification"
                 "node-polygon-skew-by" "")
-;; Edge classifiers
+    ;; Edge classifiers
     (set-option cfg "Graphviz sequence classification" "edge-color-by" "")
     (set-option cfg "Graphviz sequence classification" "edge-fontcolor-by" "")
     (set-option cfg "Graphviz sequence classification" "edge-penwidth-by" "")
@@ -115,129 +113,238 @@
     (set-option cfg "Graphviz sequence node attributes" "penwidth-min" "")
     (set-option cfg "Graphviz sequence node attributes" "penwidth-max" "")
 
-    ;; Break up this section, it is too long now
-    (add-section cfg "Graphviz sequence reachability attributes")
-;; Reachability node colors
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "reachable-node-color" "grey25")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "not-reachable-node-color" "black")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "origin-node-color" "white")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "adjacent-node-color" "gray75")
-;; Reachability node fills
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "reachable-node-fill" "gray25")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "not-reachable-node-fill" "black")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "origin-node-fill" "white")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "adjacent-node-fill" "gray75")
-;; Reachability node shapes
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "reachable-node-shape" "")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "not-reachable-node-shape" "")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "origin-node-shape" "")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "adjacent-node-shape" "")
-;; Reachability node styles
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "reachable-node-style" "")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "not-reachable-node-style" "")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "origin-node-style" "")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "adjacent-node-style" "")
-;; Reachability node penwidths
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "reachable-node-penwidth" "")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "not-reachable-node-penwidth" "")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "origin-node-penwidth" "")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "adjacent-node-penwidth" "")
-;; Reachability edge penwidths
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "reachable-edge-penwidth" "")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "not-reachable-edge-penwidth" "")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "origin-edge-penwidth" "")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "adjacent-edge-penwidth" "")
-;; Reachability edge colors
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "reachable-edge-color" "grey25")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "not-reachable-edge-color" "black")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "origin-edge-color" "white")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "adjacent-edge-color" "gray75")
-;; Reachability edge styles
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "reachable-edge-style" "")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "not-reachable-edge-style" "")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "origin-edge-style" "")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "adjacent-edge-style" "")
-    ;; Reachability edge fontcolors
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "reachable-edge-fontcolor" "")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "not-reachable-edge-fontcolor" "")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "origin-edge-fontcolor" "")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "adjacent-edge-fontcolor" "")
+    ;;; Colorschemes
+    (add-section cfg "Graphviz colorscheme")
+    (set-option cfg "Graphviz colorscheme" "reachability" "")
+    (set-option cfg "Graphviz colorscheme" "adjacency" "")
+    (set-option cfg "Graphviz colorscheme" "units" "")
+    (set-option cfg "Graphviz colorscheme" "distance" "")
+    (set-option cfg "Graphviz colorscheme" "levels" "")
+    (set-option cfg "Graphviz colorscheme" "periods" "")
+    (set-option cfg "Graphviz colorscheme" "phases" "")
 
-    (add-section cfg "Graphviz sequence unit attributes")
+ ;;; Reachability configuration
+    (add-section cfg "Reachability configuration")
+    (set-option cfg "Reachability configuration" "reachable-from" "")
+    (set-option cfg "Reachability configuration" "reachable-limit" "")
+
+    ;; Reachability node colors
+    (add-section cfg "Graphviz sequence reachability node colors")
+    (set-option cfg "Graphviz sequence reachability node colors"
+                "reachable" "grey25")
+    (set-option cfg "Graphviz sequence reachability node colors"
+                "not-reachable" "black")
+    (set-option cfg "Graphviz sequence reachability node colors"
+                "origin" "white")
+
+    ;; Reachability node fills
+    (add-section cfg "Graphviz sequence reachability node fillcolors")
+    (set-option cfg "Graphviz sequence reachability node fillcolors"
+                "reachable" "gray25")
+    (set-option cfg "Graphviz sequence reachability node fillcolors"
+                "not-reachable" "black")
+    (set-option cfg "Graphviz sequence reachability node fillcolors"
+                "origin" "white")
+
+    ;; Reachability node shapes
+    (add-section cfg "Graphviz sequence reachability node shapes")
+    (set-option cfg "Graphviz sequence reachability node shapes"
+                "reachable" "")
+    (set-option cfg "Graphviz sequence reachability node shapes"
+                "not-reachable" "")
+    (set-option cfg "Graphviz sequence reachability node shapes"
+                "origin" "")
+
+    ;; Reachability node styles
+    (add-section cfg "Graphviz sequence reachability node styles")
+    (set-option cfg "Graphviz sequence reachability node styles"
+                "reachable" "")
+    (set-option cfg "Graphviz sequence reachability node styles"
+                "not-reachable" "")
+    (set-option cfg "Graphviz sequence reachability node styles"
+                "origin" "")
+
+    ;; Reachability node penwidths
+    (add-section cfg "Graphviz sequence reachability node penwidths")
+    (set-option cfg "Graphviz sequence reachability node penwidths"
+                "reachable" "")
+    (set-option cfg "Graphviz sequence reachability node penwidths"
+                "not-reachable" "")
+    (set-option cfg "Graphviz sequence reachability node penwidths"
+                "origin" "")
+
+    ;; Reachability edge penwidths
+    (add-section cfg "Graphviz sequence reachability edge penwidths")
+    (set-option cfg "Graphviz sequence reachability edge penwidths"
+                "reachable" "")
+    (set-option cfg "Graphviz sequence reachability edge penwidths"
+                "not-reachable" "")
+    (set-option cfg "Graphviz sequence reachability edge penwidths"
+                "origin" "")
+
+    ;; Reachability edge colors
+    (add-section cfg "Graphviz sequence reachability edge colors")
+    (set-option cfg "Graphviz sequence reachability edge colors"
+                "reachable" "grey25")
+    (set-option cfg "Graphviz sequence reachability edge colors"
+                "not-reachable" "black")
+    (set-option cfg "Graphviz sequence reachability edge colors"
+                "origin" "white")
+
+    ;; Reachability edge styles
+    (add-section cfg "Graphviz sequence reachability edge styles")
+    (set-option cfg "Graphviz sequence reachability edge styles"
+                "reachable" "")
+    (set-option cfg "Graphviz sequence reachability edge styles"
+                "not-reachable" "")
+    (set-option cfg "Graphviz sequence reachability edge styles"
+                "origin" "")
+
+    ;; Reachability edge fontcolors
+    (add-section cfg "Graphviz sequence reachability edge fontcolors")
+    (set-option cfg "Graphviz sequence reachability edge fontcolors"
+                "reachable" "")
+    (set-option cfg "Graphviz sequence reachability edge fontcolors"
+                "not-reachable" "")
+    (set-option cfg "Graphviz sequence reachability edge fontcolors"
+                "origin" "")
+
+    (add-section cfg "Adjacency configuration")
+    (set-option cfg "Adjacency configuration" "origin" "")
+
+
+    ;; Adjacent node colors
+    (add-section cfg "Graphviz sequence adjacent node colors")
+    (set-option cfg "Graphviz sequence adjacent node colors"
+                "adjacent" "grey25")
+    (set-option cfg "Graphviz sequence adjacent node colors"
+                "not-adjacent" "black")
+    (set-option cfg "Graphviz sequence adjacent node colors"
+                "origin" "white")
+
+
+    ;; Adjacent node fills
+    (add-section cfg "Graphviz sequence adjacent node fillcolors")
+    (set-option cfg "Graphviz sequence adjacent node fillcolors"
+                "adjacent" "gray25")
+    (set-option cfg "Graphviz sequence adjacent node fillcolors"
+                "not-adjacent" "black")
+    (set-option cfg "Graphviz sequence adjacent node fillcolors"
+                "origin" "white")
+
+
+    ;; Adjacent node shapes
+    (add-section cfg "Graphviz sequence adjacent node shapes")
+    (set-option cfg "Graphviz sequence adjacent node shapes"
+                "adjacent" "")
+    (set-option cfg "Graphviz sequence adjacent node shapes"
+                "not-adjacent" "")
+    (set-option cfg "Graphviz sequence adjacent node shapes"
+                "origin" "")
+
+
+    ;; Adjacent node styles
+    (add-section cfg "Graphviz sequence adjacent node styles")
+    (set-option cfg "Graphviz sequence adjacent node styles"
+                "adjacent" "")
+    (set-option cfg "Graphviz sequence adjacent node styles"
+                "not-adjacent" "")
+    (set-option cfg "Graphviz sequence adjacent node styles"
+                "origin" "")
+
+
+    ;; Adjacent node penwidths
+    (add-section cfg "Graphviz sequence adjacent node penwidths")
+    (set-option cfg "Graphviz sequence adjacent node penwidths"
+                "adjacent" "")
+    (set-option cfg "Graphviz sequence adjacent node penwidths"
+                "not-adjacent" "")
+    (set-option cfg "Graphviz sequence adjacent node penwidths"
+                "origin" "")
+
+
+    ;; Adjacent edge penwidths
+    (add-section cfg "Graphviz sequence adjacent edge penwidths")
+    (set-option cfg "Graphviz sequence adjacent edge penwidths"
+                "adjacent" "")
+    (set-option cfg "Graphviz sequence adjacent edge penwidths"
+                "not-adjacent" "")
+    (set-option cfg "Graphviz sequence adjacent edge penwidths"
+                "origin" "")
+
+
+    ;; Adjacent edge colors
+    (add-section cfg "Graphviz sequence adjacent edge colors")
+    (set-option cfg "Graphviz sequence adjacent edge colors"
+                "adjacent" "grey25")
+    (set-option cfg "Graphviz sequence adjacent edge colors"
+                "not-adjacent" "black")
+    (set-option cfg "Graphviz sequence adjacent edge colors"
+                "origin" "white")
+
+
+;; Adjacent edge styles
+    (add-section cfg "Graphviz sequence adjacent edge styles")
+    (set-option cfg "Graphviz sequence adjacent edge styles"
+                "adjacent" "")
+    (set-option cfg "Graphviz sequence adjacent edge styles"
+                "not-adjacent" "")
+    (set-option cfg "Graphviz sequence adjacent edge styles"
+                "origin" "")
+
+
+    ;; Adjacent edge fontcolors
+    (add-section cfg "Graphviz sequence adjacent edge fontcolors")
+    (set-option cfg "Graphviz sequence adjacent edge fontcolors"
+                "adjacent" "")
+    (set-option cfg "Graphviz sequence adjacent edge fontcolors"
+                "not-adjacent" "")
+    (set-option cfg "Graphviz sequence adjacent edge fontcolors"
+                "origin" "")
+
+
+    (add-section cfg "Graphviz sequence unit node attributes")
 ;; Unit nodes
-    (set-option cfg "Graphviz sequence unit attributes"
-                "deposit-node-shape" "box")
-    (set-option cfg "Graphviz sequence unit attributes"
-                "deposit-node-color" "black")
-    (set-option cfg "Graphviz sequence unit attributes"
-                "deposit-node-fill" "white")
-    (set-option cfg "Graphviz sequence unit attributes"
-                "deposit-node-penwidth" "")
-    (set-option cfg "Graphviz sequence unit attributes"
-                "deposit-node-style" "filled")
-    (set-option cfg "Graphviz sequence unit attributes"
-                "interface-node-shape" "trapezium")
-    (set-option cfg "Graphviz sequence unit attributes"
-                "interface-node-fill" "white")
-    (set-option cfg "Graphviz sequence unit attributes"
-                "interface-node-color" "black")
-    (set-option cfg "Graphviz sequence unit attributes"
-                "interface-node-penwidth" "")
-    (set-option cfg "Graphviz sequence unit attributes"
-                "interface-node-style" "")
-;; Unit edges
-    (set-option cfg "Graphviz sequence unit attributes"
-                "interface-edge-color" "")
-    (set-option cfg "Graphviz sequence unit attributes"
-                "interface-edge-fontcolor" "")
-    (set-option cfg "Graphviz sequence unit attributes"
-                "interface-edge-penwidth" "")
-    (set-option cfg "Graphviz sequence unit attributes"
-                "interface-edge-style" "")
-    (set-option cfg "Graphviz sequence unit attributes"
-                "deposit-edge-color" "")
-    (set-option cfg "Graphviz sequence unit attributes"
-                "deposit-edge-fontcolor" "")
-    (set-option cfg "Graphviz sequence unit attributes"
-                "deposit-edge-penwidth" "")
-    (set-option cfg "Graphviz sequence unit attributes"
-                "deposit-edge-style" "")
+    (set-option cfg "Graphviz sequence unit node attributes"
+                "deposit-shape" "box")
+    (set-option cfg "Graphviz sequence unit node attributes"
+                "deposit-color" "black")
+    (set-option cfg "Graphviz sequence unit node attributes"
+                "deposit-fill" "white")
+    (set-option cfg "Graphviz sequence unit node attributes"
+                "deposit-penwidth" "")
+    (set-option cfg "Graphviz sequence unit node attributes"
+                "deposit-style" "filled")
+    (set-option cfg "Graphviz sequence unit node attributes"
+                "interface-shape" "trapezium")
+    (set-option cfg "Graphviz sequence unit node attributes"
+                "interface-fill" "white")
+    (set-option cfg "Graphviz sequence unit node attributes"
+                "interface-color" "black")
+    (set-option cfg "Graphviz sequence unit node attributes"
+                "interface-penwidth" "")
+    (set-option cfg "Graphviz sequence unit node attributes"
+                "interface-style" "")
+
+
+    ;; Unit edges
+    (add-section cfg "Graphviz sequence unit edge attributes")
+    (set-option cfg "Graphviz sequence unit edge attributes"
+                "interface-color" "")
+    (set-option cfg "Graphviz sequence unit edge attributes"
+                "interface-fontcolor" "")
+    (set-option cfg "Graphviz sequence unit edge attributes"
+                "interface-penwidth" "")
+    (set-option cfg "Graphviz sequence unit edge attributes"
+                "interface-style" "")
+    (set-option cfg "Graphviz sequence unit edge attributes"
+                "deposit-color" "")
+    (set-option cfg "Graphviz sequence unit edge attributes"
+                "deposit-fontcolor" "")
+    (set-option cfg "Graphviz sequence unit edge attributes"
+                "deposit-penwidth" "")
+    (set-option cfg "Graphviz sequence unit edge attributes"
+                "deposit-style" "")
 
     (add-section cfg "Graphviz chronology graph attributes")
     (set-option cfg "Graphviz chronology graph attributes" "colorscheme" "x11")
@@ -494,34 +601,34 @@ to the new ini style."
     (set-option cfg "Graphviz sequence node attributes" "penwidth" "1.0")
 
 ;    (add-section cfg "Graphviz sequence reachability colors")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "reachable-node-color"
+    (set-option cfg "Graphviz sequence reachability node colors"
+                "reachable"
                 (gethash "*color-reachable*" ht))
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "not-reachable-node-color"
+    (set-option cfg "Graphviz sequence reachability node colors"
+                "not-reachable"
                 (gethash "*color-not-reachable*" ht))
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "origin-node-color"
+    (set-option cfg "Graphviz sequence reachability node colors"
+                "origin"
                 (gethash "*color-origin*" ht))
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "adjacent-node-color"
+    (set-option cfg "Graphviz sequence reachability node colors"
+                "adjacent"
                 (gethash "*color-adjacent*" ht))
 
 ;    (add-section cfg "Graphviz sequence reachability shapes")
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "reachable-node-shape"
+    (set-option cfg "Graphviz sequence reachability node shapes"
+                "reachable"
                 (if (equal (gethash "*shape-reachable*" ht) "nil") ""
                     (gethash "*shape-reachable*" ht)))
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "not-reachable-node-shape"
+    (set-option cfg "Graphviz sequence reachability node shapes"
+                "not-reachable"
                 (if (equal (gethash "*shape-not-reachable*" ht) "nil") ""
                     (gethash "*shape-not-reachable*" ht)))
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "origin-node-shape"
+    (set-option cfg "Graphviz sequence reachability node shapes"
+                "origin"
                 (if (equal (gethash "*shape-origin*" ht) "nil") ""
                     (gethash "*shape-origin*" ht)))
-    (set-option cfg "Graphviz sequence reachability attributes"
-                "adjacent-node-shape"
+    (set-option cfg "Graphviz sequence reachability node shapes"
+                "adjacent"
                 (if (equal (gethash "*shape-adjacent*" ht) "nil") ""
                     (gethash "*shape-adjacent*" ht)))
 
@@ -776,17 +883,16 @@ If NAME exists, then asks about overwriting it."
       (return-from set-dot-file))
     (set-option cfg "Output files" option name)))
 
-(defun read-configuration-from-files (cfg &rest file-names)
-  "Modify the configuration CFG with information read from initialization files
-FILE-NAMES. Errors out if one or more initialization files were not read,
-otherwise returns a status message."
+(defun read-configuration-from-files (&rest file-names)
+  "Reads the initialization files FILE-NAMES and returns a configuration. Errors
+out if one or more initialization files were not read. Prints a status message."
   (apply
    (lambda (i) (when (null (probe-file i))
                  (error "Error: unable to read file: ~s.~&" i)))
    file-names)
-  (read-files cfg file-names)
   (format t "Read ~r initialization file~:p: ~{~a~^, ~}.~&"
-          (length file-names) file-names))
+          (length file-names) file-names)
+  (read-files (make-default-configuration) file-names))
 
 (defun show-configuration-options (cfg section-name)
   "Print the options in section SECTION-NAME of configuration CFG.
