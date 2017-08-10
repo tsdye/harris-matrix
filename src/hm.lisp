@@ -1317,9 +1317,7 @@ empty graph. If VERBOSE, then advertise progress."
     (setf ret (transitive-reduction ret cfg verbose))
     ret))
 
-(defun transitive-reduction (graph cfg
-                                   &optional
-                                   (verbose t))
+(defun transitive-reduction (graph cfg &optional (verbose t))
   "Perform transitive reduction on the directed acyclic GRAPH,
 according to information in the configuration, CFG.  Returns the
 possibly modified directed acyclic GRAPH."
@@ -1329,7 +1327,6 @@ possibly modified directed acyclic GRAPH."
                                                                         :type :boolean))))
         (zero (if (get-option cfg "General configuration" "fast-matrix"
                               :type :boolean)
-                  0.
                 0s0
                 0)))
     (when verbose
