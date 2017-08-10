@@ -6,6 +6,8 @@
   :description "Write dot files for archaeological sequence diagrams
   and chronological models"
   :author "Thomas S. Dye <tsd@tsdye.com>"
+  :maintainer "Thomas S. Dye <tsd@tsdye.com>"
+  :homepage "http://tsdye.github.io/harris-matrix/"
   :version "0.2"
   :license "GPL V3"
   :depends-on (#:graph
@@ -18,8 +20,7 @@
                #:let-over-lambda
                #:named-readtables)
   :components ((:static-file "COPYING")
-               (:file "package")
-               (:file "hm-cfg")
-               (:file "hm-chronology")
-               (:file "hm")))
-
+               (:file "src/package")
+               (:file "src/config/hm-cfg")
+               (:file "src/chronology/hm-chronology")
+               (:file "src/hm")))
