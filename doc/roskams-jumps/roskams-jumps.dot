@@ -1,0 +1,41 @@
+digraph to_dot {
+  style="";
+  colorscheme=oranges3;
+  dpi="";
+  URL="http://www.tsdye.com";
+  margin="";
+  bgcolor="transparent";
+  fontname=helvetica;
+  fontsize=14;
+  fontcolor="/x11/black";
+  splines=ortho;
+  page="";
+  size="";
+  ratio="";
+  label="";
+  labelloc=t;
+  "1" [shape=box] [label="1"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=oranges3] [color="/x11/black"] [fillcolor=1] [fontcolor="/x11/black"] [URL="http://www.tsdye.com"];
+  "2" [shape=box] [label="2"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=oranges3] [color="/x11/black"] [fillcolor=1] [fontcolor="/x11/black"] [URL="http://www.tsdye.com"];
+  "3" [shape=box] [label="3"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=oranges3] [color="/x11/black"] [fillcolor=2] [fontcolor="/x11/black"] [URL="http://www.tsdye.com"];
+  "4" [shape=box] [label="4"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=oranges3] [color="/x11/black"] [fillcolor=1] [fontcolor="/x11/black"] [URL="http://www.tsdye.com"];
+  "5" [shape=box] [label="5"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=oranges3] [color="/x11/black"] [fillcolor=3] [fontcolor="/x11/black"] [URL="http://www.tsdye.com"];
+  "6" [shape=box] [label="6"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=oranges3] [color="/x11/black"] [fillcolor=1] [fontcolor="/x11/black"] [URL="http://www.tsdye.com"];
+  "7" [shape=box] [label="7"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=oranges3] [color="/x11/black"] [fillcolor=3] [fontcolor="/x11/black"] [URL="http://www.tsdye.com"];
+  "REACHABLE" [shape=box] [label="Reachable"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=oranges3] [color="/x11/black"] [fillcolor=3] [fontcolor="/x11/black"] [URL="http://www.tsdye.com"];
+  "NOT-REACHABLE" [shape=box] [label="Not Reachable"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=oranges3] [color="/x11/black"] [fillcolor=1] [fontcolor="/x11/black"] [URL="http://www.tsdye.com"];
+  "ORIGIN" [shape=box] [label="Origin"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=oranges3] [color="/x11/black"] [fillcolor=2] [fontcolor="/x11/black"] [URL="http://www.tsdye.com"];
+  "DEPOSIT" [shape=box] [label="Deposit"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=oranges3] [color="/x11/black"] [fillcolor="/x11/white"] [fontcolor="/x11/black"] [URL="http://www.tsdye.com"];
+  "INTERFACE" [shape=trapezium] [label="Interface"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=oranges3] [color="/x11/black"] [fillcolor="/x11/white"] [fontcolor="/x11/black"] [URL="http://www.tsdye.com"];
+ "1" -> "5"  [style=solid] [arrowhead=none] [colorscheme=oranges3] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="nil"];
+ "1" -> "6"  [style=solid] [arrowhead=none] [colorscheme=oranges3] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="nil"];
+ "1" -> "7"  [style=solid] [arrowhead=none] [colorscheme=oranges3] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="nil"];
+ "2" -> "3"  [style=solid] [arrowhead=none] [colorscheme=oranges3] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="nil"];
+ "2" -> "4"  [style=solid] [arrowhead=none] [colorscheme=oranges3] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="nil"];
+ "3" -> "5"  [style=solid] [arrowhead=none] [colorscheme=oranges3] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="nil"];
+ "4" -> "6"  [style=solid] [arrowhead=none] [colorscheme=oranges3] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="nil"];
+ "6" -> "7"  [style=solid] [arrowhead=none] [colorscheme=oranges3] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="nil"];
+ "5" -> "7"  [style=solid] [arrowhead=none] [colorscheme=oranges3] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="nil"];
+{rank=sink; "7"; }
+{rank=source; "2"; }
+{rank=source; "1"; }
+}

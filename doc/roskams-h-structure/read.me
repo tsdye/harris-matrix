@@ -1,0 +1,16 @@
+Another example of a potentially ambiguous "h-structure", this one
+from Figure 14 of Steve Roskams' 2001 book, Excavation.
+
+Note that Graphviz dot lets arcs start at the side of a node, which
+does away with the potentially ambiguous "h-structure".
+
+Create the sequence diagram from a shell with two commands:
+
+  $ tred
+  "/path/to/examples/roskams-h-structure/roskams-h.dot" >
+  "/path/to/examples/roskams-h-structure/temp.dot"
+
+  $ dot -Tpng "/path/to/examples/roskams-h-structure/temp.dot"
+  -o"/path/to/examples/roskams-h-structure/roskams-h.png"
+
+Note that shell commands should all be on one line.

@@ -1,0 +1,77 @@
+digraph to_dot {
+  style="";
+  colorscheme=greys4;
+  dpi="";
+  URL="http://www.tsdye2.com";
+  margin="";
+  bgcolor="/x11/grey95";
+  fontname=helvetica;
+  fontsize=18;
+  fontcolor="/x11/black";
+  splines=ortho;
+  page="";
+  size="";
+  ratio="";
+  label="Harris Figure 12, Nodes Filled by Chronological Distance";
+  labelloc=t;
+  "1" [shape="box"] [label="1"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=greys4] [color="/x11/black"] [fillcolor=3] [fontcolor="/x11/black"] [penwidth=1.0] [URL="http://harris-matrix.tsdye.com/img/fig12-1.png"];
+  "2" [shape="trapezium"] [label="2"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=greys4] [color="/x11/black"] [fillcolor=4] [fontcolor="/x11/white"] [penwidth=1.0] [URL="http://harris-matrix.tsdye.com/img/fig12-2.png"];
+  "3" [shape="box"] [label="3"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=greys4] [color="/x11/black"] [fillcolor=4] [fontcolor="/x11/white"] [penwidth=1.0] [URL="http://harris-matrix.tsdye.com/img/fig12-3.png"];
+  "4" [shape="box"] [label="4"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=greys4] [color="/x11/black"] [fillcolor=1] [fontcolor="/x11/black"] [penwidth=1.0] [URL="http://harris-matrix.tsdye.com/img/fig12-4.png"];
+  "5" [shape="box"] [label="5"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=greys4] [color="/x11/black"] [fillcolor=3] [fontcolor="/x11/black"] [penwidth=1.0] [URL="http://harris-matrix.tsdye.com/img/fig12-5.png"];
+  "6" [shape="trapezium"] [label="6"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=greys4] [color="/x11/black"] [fillcolor=2] [fontcolor="/x11/black"] [penwidth=1.0] [URL="http://harris-matrix.tsdye.com/img/fig12-6.png"];
+  "7" [shape="box"] [label="7"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=greys4] [color="/x11/black"] [fillcolor=3] [fontcolor="/x11/black"] [penwidth=1.0] [URL="http://harris-matrix.tsdye.com/img/fig12-7.png"];
+  "8" [shape="box"] [label="8"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=greys4] [color="/x11/black"] [fillcolor=3] [fontcolor="/x11/black"] [penwidth=1.0] [URL="http://harris-matrix.tsdye.com/img/fig12-8.png"];
+  "9" [shape="box"] [label="9"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=greys4] [color="/x11/black"] [fillcolor=3] [fontcolor="/x11/black"] [penwidth=1.0] [URL="http://harris-matrix.tsdye.com/img/fig12-9.png"];
+  "NATURAL-GROUND" [shape="box"] [label="Natural Ground"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=greys4] [color="/x11/black"] [fillcolor=3] [fontcolor="/x11/black"] [penwidth=1.0] [URL="http://harris-matrix.tsdye.com/img/fig12-natural-ground.png"];
+  "10" [shape="trapezium"] [label="10"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=greys4] [color="/x11/black"] [fillcolor=3] [fontcolor="/x11/black"] [penwidth=1.0] [URL="http://www.tsdye2.com"];
+  "11" [shape="trapezium"] [label="11"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=greys4] [color="/x11/black"] [fillcolor=4] [fontcolor="/x11/white"] [penwidth=1.0] [URL="http://www.tsdye2.com"];
+  "12" [shape="trapezium"] [label="12"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=greys4] [color="/x11/black"] [fillcolor=4] [fontcolor="/x11/white"] [penwidth=1.0] [URL="http://www.tsdye2.com"];
+  "13" [shape="trapezium"] [label="13"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=greys4] [color="/x11/black"] [fillcolor=2] [fontcolor="/x11/black"] [penwidth=1.0] [URL="http://www.tsdye2.com"];
+  "14" [shape="trapezium"] [label="14"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=greys4] [color="/x11/black"] [fillcolor=4] [fontcolor="/x11/white"] [penwidth=1.0] [URL="http://www.tsdye2.com"];
+  "15" [shape="trapezium"] [label="15"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=greys4] [color="/x11/black"] [fillcolor=3] [fontcolor="/x11/black"] [penwidth=1.0] [URL="http://www.tsdye2.com"];
+  "16" [shape="trapezium"] [label="16"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=greys4] [color="/x11/black"] [fillcolor=3] [fontcolor="/x11/black"] [penwidth=1.0] [URL="http://www.tsdye2.com"];
+  "17" [shape="trapezium"] [label="17"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=greys4] [color="/x11/black"] [fillcolor=2] [fontcolor="/x11/black"] [penwidth=1.0] [URL="http://www.tsdye2.com"];
+  "18" [shape="trapezium"] [label="18"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=greys4] [color="/x11/black"] [fillcolor=3] [fontcolor="/x11/black"] [penwidth=1.0] [URL="http://www.tsdye2.com"];
+  "SEPARATED" [shape="box"] [label="Separated"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=greys4] [color="/x11/black"] [fillcolor=3] [fontcolor="/x11/black"] [penwidth=1.0] [URL="http://www.tsdye2.com"];
+  "NOT-REACHABLE" [shape="box"] [label="Not Reachable"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=greys4] [color="/x11/black"] [fillcolor=4] [fontcolor="/x11/white"] [penwidth=1.0] [URL="http://www.tsdye2.com"];
+  "ORIGIN" [shape="box"] [label="Origin"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=greys4] [color="/x11/black"] [fillcolor=1] [fontcolor="/x11/black"] [penwidth=1.0] [URL="http://www.tsdye2.com"];
+  "ABUTTING" [shape="box"] [label="Abutting"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=greys4] [color="/x11/black"] [fillcolor=2] [fontcolor="/x11/black"] [penwidth=1.0] [URL="http://www.tsdye2.com"];
+  "DEPOSIT" [shape="box"] [label="Deposit"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=greys4] [color="/x11/black"] [fillcolor="/x11/white"] [fontcolor="/x11/black"] [penwidth=1.0] [URL="http://www.tsdye2.com"];
+  "INTERFACE" [shape="trapezium"] [label="Interface"] [style=filled] [fontname=helvetica] [fontsize=14] [colorscheme=greys4] [color="/x11/black"] [fillcolor="/x11/white"] [fontcolor="/x11/black"] [penwidth=1.0] [URL="http://www.tsdye2.com"];
+ "1" -> "2"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="http://www.foo.com"];
+ "1" -> "11"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="http://www.tsdye2.com"];
+ "1" -> "12"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="http://www.tsdye2.com"];
+ "1" -> "13"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="http://www.tsdye2.com"];
+ "1" -> "14"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="http://www.tsdye2.com"];
+ "2" -> "5"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="http://www.tsdye2.com"];
+ "3" -> "6"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="http://www.tsdye2.com"];
+ "3" -> "17"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="http://www.tsdye2.com"];
+ "4" -> "6"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="http://www.tsdye2.com"];
+ "4" -> "17"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="http://www.tsdye2.com"];
+ "5" -> "6"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="http://www.tsdye2.com"];
+ "6" -> "7"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="http://www.tsdye2.com"];
+ "6" -> "8"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="http://www.tsdye2.com"];
+ "6" -> "9"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="http://www.tsdye2.com"];
+ "7" -> "15"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="http://www.tsdye2.com"];
+ "8" -> "16"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="http://www.tsdye2.com"];
+ "9" -> "18"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="http://www.tsdye2.com"];
+ "10" -> "1"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="http://www.tsdye2.com"];
+ "11" -> "7"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="http://www.tsdye2.com"];
+ "12" -> "3"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="http://www.tsdye2.com"];
+ "13" -> "4"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="http://www.tsdye2.com"];
+ "14" -> "8"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="http://www.tsdye2.com"];
+ "15" -> "9"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="http://www.tsdye2.com"];
+ "16" -> "9"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="http://www.tsdye2.com"];
+ "17" -> "5"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="http://www.tsdye2.com"];
+ "18" -> "NATURAL-GROUND"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="http://www.tsdye2.com"];
+ "SEPARATED" -> "NOT-REACHABLE"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="nil"];
+ "ABUTTING" -> "SEPARATED"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="nil"];
+ "ORIGIN" -> "ABUTTING"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="nil"];
+ "DEPOSIT" -> "INTERFACE"  [style=solid] [arrowhead=none] [colorscheme=greys4] [color="/x11/black"] [fontname=helvetica] [fontsize=14] [fontcolor="/x11/black"] [URL="nil"];
+{rank=same; "11"; "14"; }
+{rank=same; "15"; "16"; }
+{rank=same; "7"; "8"; }
+{rank=source; "10"; }
+{rank=sink; "NATURAL-GROUND"; }
+}
