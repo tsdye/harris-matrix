@@ -276,6 +276,7 @@ Graphviz dot value."
                                 (1+ (- (fset:greatest range)
                                        (fset:least range))))))))))))
 
+;; Needs work, no docstring
 (defun <-dot-graph (user default)
   (if (emptyp user)
       (quotes-around default)
@@ -315,10 +316,16 @@ Graphviz dot value."
             val
           (setf (gethash args cache) (apply fn args)))))))
 
+;; passes test
 (defun quotes-around (string)
-  "Put quotes around STRING for output to dot."
-  (concatenate 'string "\"" string "\""))
+  "Put quotes around STRING for output to dot unless string is already quoted."
+  (let ((quote-char #\"))
+    (if (and (eq (char string 0) quote-char)
+             (eq (char string (1- (length string))) quote-char))
+        string
+        (concatenate 'string "\"" string "\""))))
 
+;; passes test
 (defun graphviz-edge-style (index)
   "Given an integer, INDEX, return a string with a dot edge style."
   (let ((map (-> (fset:empty-map 0)
@@ -326,9 +333,7 @@ Graphviz dot value."
                  (fset:with 1 "dashed")
                  (fset:with 2 "dotted")
                  (fset:with 3 "bold"))))
-    (fset:lookup map
-                 (mod index
-                      (fset:size map)))))
+    (fset:lookup map (mod index (fset:size map)))))
 
 (defun make-edge-lookup-map (cfg)
   (-> (fset:empty-map 0)
@@ -809,6 +814,7 @@ shape."
         (alpha (/ index steps)))
     (graphviz-hsv-string (rgb-combination c1 c2 alpha))))
 
+;; Needs work
 (defun user-color (seq section option)
   "Given an archaeological sequence, SEQ, and a string, ATTR,
   indicating the attribute that requires a color, return a valid
@@ -904,6 +910,7 @@ might be problematic."
       (check-cycles ret verbose))
     ret))
 
+;; passes test
 (defun correlated-node (node-1 node-2
                                &optional
                                (as-string nil))
@@ -933,6 +940,7 @@ correlated node symbol as a string."
       (format t "Ranks set.~&"))
     ranks))
 
+;; passes test
 (defun make-node-index (graph)
   "Returns an fset map where the key is a node of graph GRAPH and the
 value is an index into the matrix representation of GRAPH."
@@ -940,10 +948,11 @@ value is an index into the matrix representation of GRAPH."
         (node-index (fset:empty-map)))
     (mapc (lambda (node)
             (setf node-index (fset:with node-index
-                                        node
-                                        (incf counter))))
+                                        (incf counter)
+                                        node)))
           (graph:nodes graph))
     node-index))
+
 
 (defun tables-to-map (contexts other-table table-type)
   "Given a CONTEXTS table, an OTHER-TABLE, and a TABLE-TYPE in
@@ -1018,8 +1027,7 @@ visualize the archaeological sequence with d3 and GraphViz."
 
 (setf (symbol-function 'create-distance-matrix) (memoize #'(lambda (cfg graph)
                                                              (graph-matrix:to-distance-matrix graph
-                                                                                              (new-matrix (get-option cfg "General configuration" "fast-matrix"
-                                                                                                                      :type :boolean))))))
+                                                                                              (new-matrix (fast-matrix-p cfg))))))
 
 (setf (symbol-function 'create-reachability-matrix) (memoize #'(lambda (cfg graph)
                                                                  (let ((limit (get-option cfg "General configuration" "reachable-limit"
@@ -1027,22 +1035,18 @@ visualize the archaeological sequence with d3 and GraphViz."
                                                                    (if (or (not limit)
                                                                            (< limit 2))
                                                                        (graph-matrix:to-reachability-matrix graph
-                                                                                                            (new-matrix (get-option cfg "General configuration" "fast-matrix"
-                                                                                                                                    :type :boolean)))
+                                                                                                            (new-matrix (fast-matrix-p cfg)))
                                                                      (graph-matrix:to-reachability-matrix graph
-                                                                                                          (new-matrix (get-option cfg "General configuration" "fast-matrix"
-                                                                                                                                  :type :boolean))
+                                                                                                          (new-matrix (fast-matrix-p cfg))
                                                                                                           :limit limit))))))
 
 (setf (symbol-function 'create-adjacency-matrix) (memoize #'(lambda (cfg graph)
                                                               (graph-matrix:to-adjacency-matrix graph
-                                                                                                (new-matrix (get-option cfg "General configuration" "fast-matrix"
-                                                                                                                        :type :boolean))))))
+                                                                                                (new-matrix (fast-matrix-p cfg))))))
 
 (setf (symbol-function 'create-strong-component-matrix) (memoize #'(lambda (cfg graph)
                                                                      (graph-matrix:to-strong-component-matrix graph
-                                                                                                              (new-matrix (get-option cfg "General configuration" "fast-matrix"
-                                                                                                                                      :type :boolean))))))
+                                                                                                              (new-matrix (fast-matrix-p cfg))))))
 
 (defun configure-archaeological-sequence (seq cfg
                                               &optional
@@ -1317,18 +1321,15 @@ empty graph. If VERBOSE, then advertise progress."
     (setf ret (transitive-reduction ret cfg verbose))
     ret))
 
+;; Needs work, fails test
 (defun transitive-reduction (graph cfg &optional (verbose t))
   "Perform transitive reduction on the directed acyclic GRAPH,
 according to information in the configuration, CFG.  Returns the
 possibly modified directed acyclic GRAPH."
   (let ((ret (graph:copy graph))
         (r (graph-matrix:to-reachability-matrix graph
-                                                (new-matrix (get-option cfg "General configuration" "fast-matrix"
-                                                                        :type :boolean))))
-        (zero (if (get-option cfg "General configuration" "fast-matrix"
-                              :type :boolean)
-                0s0
-                0)))
+                                                (new-matrix (fast-matrix-p cfg))))
+        (zero (if (fast-matrix-p cfg) 0s0 0)))
     (when verbose
       (format t "Performing transitive reduction.~&"))
     (let ((n (graph-matrix:matrix-n-cols r))
@@ -1348,6 +1349,26 @@ possibly modified directed acyclic GRAPH."
                                            (graph:delete-edge ret
                                                               (list (fset:@ i x)
                                                                     (fset:@ i z)))))))))
+    ret))
+
+;; Needs work, fails test
+(defun transitive-reduction-new (graph cfg)
+  (let* ((ret (graph:copy graph))
+         (fast (fast-matrix-p cfg))
+         (A (graph-matrix:to-adjacency-matrix graph (new-matrix fast)))
+         (B (graph-matrix:to-reachability-matrix graph (new-matrix fast)))
+         (AB (graph-matrix::matrix-product a b))
+         (n (graph-matrix:matrix-n-cols A))
+         (i (make-node-index graph))
+         (zero (if fast 0s0 0)))
+    (loop :for x :below n
+          :do (loop :for y :below n
+                    :do (and (and (not (= zero (graph-matrix:matrix-ref A x y)))
+                                     (= zero (graph-matrix:matrix-ref AB x y)))
+                          (graph:has-edge-p ret (list (fset:lookup i x)
+                                                             (fset:lookup i y)))
+                          (graph:delete-edge ret (list (fset:lookup i x)
+                                                       (fset:lookup i y))))))
     ret))
 
 (defun solarized-map (name &key member)
