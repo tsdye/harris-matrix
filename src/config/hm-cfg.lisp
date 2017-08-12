@@ -7,6 +7,13 @@
 (in-package #:hm)
 
 ;; API
+(defun fast-matrix-p (cfg)
+  "Returns non-nil if the fast-matrix option in the configuration CFG is set to
+  one of py-configparser's true boolean values, nil otherwise."
+  (if (get-option cfg "General configuration" "fast-matrix" :type :boolean)
+      t nil))
+
+;; API
 (defun make-default-configuration ()
   "Returns the default configuration."
   (let ((cfg (make-config)))
@@ -855,44 +862,46 @@ settings."
   (when (Graphviz-node-polygon-shape-problem? cfg)
     (error "Error: Graphviz node polygons are classified.  Check that \"node-shape-by\" is not set and that node \"shape\" is \"polygon\".")))
 
-(defun set-input-file (cfg option name &optional (header t))
-  "If the input file NAME exists and OPTION is recognized, then NAME
+(defun set-input-file (cfg option file-name header)
+  "If the input file FILE-NAME exists and OPTION is recognized, then FILE-NAME
 and HEADER are registered with the configuration, CFG."
-  (let ((option-list (options cfg "Input files"))
-        (header-name (concatenate 'string option "-header")))
+  (let ((option-list (options cfg "Input files")))
     (assert (member option option-list :test #'equal)
             (option) "Error: \"~a\" is not one of ~a"
             option option-list)
-    (if (probe-file name)
+    (if (probe-file file-name)
         (progn
-          (set-option cfg "Input files" option name)
-          (set-option cfg "Input file headers" header-name
+          (set-option cfg "Input files" option file-name)
+          (set-option cfg "Input file headers" option
                       (if header "yes" "no")))
-        (error "Unable to find ~a." name))))
+        (error "Unable to find ~a." file-name))))
 
-(defun set-dot-file (cfg option name)
+(defun set-dot-file (cfg option name &optional (verbose t))
   "Registers the chronology output file, NAME, with the OPTION in the
 configuration CFG.  Checks if OPTION is known and errors out if not.
-If NAME exists, then asks about overwriting it."
+If NAME exists and VERBOSE is non-nil, then asks about overwriting it."
   (let ((option-list (options cfg "Output files")))
     (assert (member option option-list :test #'equal)
             (option) "Error: \"~a\" is not one of ~a"
             option option-list)
-    (when (probe-file name)
+    (when (and (probe-file name) verbose)
       (unless (yes-or-no-p "Overwrite ~a?" name))
       (return-from set-dot-file))
     (set-option cfg "Output files" option name)))
 
-(defun read-configuration-from-files (&rest file-names)
+(defun read-configuration-from-files (verbose &rest file-names)
   "Reads the initialization files FILE-NAMES and returns a configuration. Errors
 out if one or more initialization files were not read. Prints a status message."
-  (apply
-   (lambda (i) (when (null (probe-file i))
-                 (error "Error: unable to read file: ~s.~&" i)))
-   file-names)
-  (format t "Read ~r initialization file~:p: ~{~a~^, ~}.~&"
-          (length file-names) file-names)
-  (read-files (make-default-configuration) file-names))
+  (let ((config (make-default-configuration)))
+    (dolist (file file-names)
+      (when (null (probe-file file))
+        (error "Error: unable to read file: ~s.~&" i)))
+    (when verbose
+      (format t "Read ~r initialization file~:p: ~{~a~^, ~}.~&"
+              (length file-names) file-names))
+    (dolist (file file-names)
+      (read-files config (list file)))
+    config))
 
 (defun show-configuration-options (cfg section-name)
   "Print the options in section SECTION-NAME of configuration CFG.
@@ -905,12 +914,26 @@ in CFG, then let the user try another SECTION-NAME."
     (dolist (pair key-val-list)
       (format t "~a = ~a~&" (car pair) (cdr pair)))))
 
+(defun get-configuration-sections (cfg &optional (sort nil))
+  "Return a list of sections in the configuration CFG, sorted alphabetically if
+SORT is non-nil, or unsorted otherwise.  Assumes that CFG is a configuration."
+  (let ((section-list (sections cfg)))
+    (when sort (setf section-list (sort section-list #'string<)))
+    section-list))
+
 (defun show-configuration-sections (cfg &optional (sort t))
   "Print out the sections in configuration CFG, by default in sorted
 order.  If SORT is nil, then print out the unsorted section list.
 Errors out if CFG is not a configuration."
   (unless (typep cfg 'config) (error "Error: ~a is not a configuration." cfg))
-  (let ((section-list (sections cfg)))
-    (when sort (setf section-list (sort section-list #'string<)))
+  (let ((section-list (get-configuration-sections cfg sort)))
     (dolist (section section-list)
       (format t "~a~&" section))))
+
+(defun get-all-configuration-options (cfg)
+  "Return a list of the options in all sections of the configuration, CFG.  Assumest that CFG is a configuration."
+  (let ((sections (get-configuration-sections cfg))
+        (options nil))
+    (dolist (section sections)
+      (setf options (append options (items cfg section))))
+    options))
