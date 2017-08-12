@@ -6,7 +6,6 @@
         :py-configparser
         :alexandria)
   (:export :configure-archaeological-sequence
-           :graphviz-hsv-string
            :make-default-configuration
            :write-default-configuration
            :write-configuration
@@ -20,4 +19,6 @@
            :read-configuration-from-files
            :show-configuration-options
            :show-configuration-sections
+           :get-configuration-sections
+           :get-all-configuration-options
            :create-chronology-graph))
