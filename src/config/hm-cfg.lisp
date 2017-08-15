@@ -8,10 +8,51 @@
 
 ;; API
 (defun fast-matrix-p (cfg)
-  "Returns non-nil if the fast-matrix option in the configuration CFG is set to
-  one of py-configparser's true boolean values, nil otherwise."
-  (if (get-option cfg "General configuration" "fast-matrix" :type :boolean)
-      t nil))
+  "Returns the boolean value for fast-matrix in the user's configuration, CFG."
+  (get-option cfg "General configuration" "fast-matrix" :type :boolean))
+
+(defun assume-correlations-p (cfg)
+  "Returns the boolean value for assume-correlations in the user's
+  configuration, CFG."
+  (get-option cfg "General configuration" "assume-correlations" :type :boolean))
+
+(defun input-file-name (cfg content)
+  "Return the file name for CONTENT from the user's configuration, CFG. CONTENT
+  is a string, one of `contexts', `observations', `inferences', `periods',
+  `phases', `events', or `event-order'."
+  (get-option cfg "Input files" content))
+
+(defun file-header-p (cfg content)
+  "Return the boolean value for CONTENT from the `Input file headers' section of
+  the user's configuration, CFG."
+  (get-option cfg "Input file headers" content :type :boolean))
+
+(defun graphviz-node-classification (cfg attribute)
+  "Return the value from the user's configuration, CFG, for the node ATTRIBUTE
+classification. ATTRIBUTE is a string, one of `fill', `shape', `color',
+`penwidth', `style', `polygon-distortion', `plygon-image',
+`polygon-orientation', `plygon-sides', or `polygon-skew'."
+  (let ((section "Graphviz sequence classification")
+        (option (concatenate 'string "node-" attribute "-by")))
+    (get-option cfg section option)))
+
+(defun graphviz-edge-classification (cfg attribute)
+  "Return the value from the user's configuration, CFG, for the edge ATTRIBUTE
+  classification. ATTRIBUTE is a string, one of `color', `fontcolor',
+  `penwidth', `style', or `classify'."
+  (let ((section "Graphviz sequence classification")
+        (option (concatenate 'string "edge-" attribute "-by")))
+    (get-option cfg section option)))
+
+(defun reachable-limit (cfg)
+  "Return the numeric value of `reachable-limit' from the user's configuration,
+CFG."
+  (get-option cfg "Reachability configuration" "reachable-limit" :type :number))
+
+(defun chronology-graph-p (cfg)
+  "Return a boolean value read from the user's configuration indicating whether
+  or not to draw the chronology graph."
+  (get-option cfg "Chronology graph" "draw" :type :boolean))
 
 ;; API
 (defun make-default-configuration ()
@@ -104,8 +145,8 @@
     (set-option cfg "Graphviz sequence edge attributes" "fontcolor" "black")
     (set-option cfg "Graphviz sequence edge attributes" "arrowhead" "normal")
     (set-option cfg "Graphviz sequence edge attributes" "penwidth" "1.0")
-    (set-option cfg "Graphviz sequence edge attributes" "penwidth-min" "")
-    (set-option cfg "Graphviz sequence edge attributes" "penwidth-max" "")
+    (set-option cfg "Graphviz sequence edge attributes" "penwidth-min" "1.0")
+    (set-option cfg "Graphviz sequence edge attributes" "penwidth-max" "1.0")
 
     (add-section cfg "Graphviz sequence node attributes")
     (set-option cfg "Graphviz sequence node attributes" "shape" "box")
@@ -117,8 +158,8 @@
     (set-option cfg "Graphviz sequence node attributes" "fillcolor" "white")
     (set-option cfg "Graphviz sequence node attributes" "fontname" "Helvetica")
     (set-option cfg "Graphviz sequence node attributes" "penwidth" "1.0")
-    (set-option cfg "Graphviz sequence node attributes" "penwidth-min" "")
-    (set-option cfg "Graphviz sequence node attributes" "penwidth-max" "")
+    (set-option cfg "Graphviz sequence node attributes" "penwidth-min" "1.0")
+    (set-option cfg "Graphviz sequence node attributes" "penwidth-max" "1.0")
 
     ;;; Colorschemes
     (add-section cfg "Graphviz colorscheme")
@@ -404,6 +445,343 @@
     (set-option cfg "Graphviz legend node attributes" "fillcolor" "white")
     (set-option cfg "Graphviz legend node attributes" "shape" "box")
     cfg))
+
+(defun lookup-edge-option (cfg variable &optional domain option)
+  "Given a user configuration, CFG, a string describing a user-set VARIABLE, and
+optionally strings describing the DOMAIN and OPTION of the VARIABLE, return the
+value of the edge option."
+  (cond
+    ((string= domain "units")
+     (cond
+       ((string= option "edge-color-by")
+        (cond
+          ((string= variable "deposit")
+           (get-option cfg "Graphviz sequence unit edge attributes"
+                       "deposit-color"))
+          ((string= variable "interface")
+           (get-option cfg "Graphviz sequence unit edge attributes"
+                       "interface-color"))))
+       ((string= option "edge-fontcolor-by")
+        (cond
+          ((string= variable "deposit")
+           (get-option cfg "Graphviz sequence unit edge attributes"
+                       "deposit-fontcolor"))
+          ((string= variable "interface")
+           (get-option cfg "Graphviz sequence unit edge attributes"
+                       "interface-fontcolor"))))
+       ((string= option "edge-penwidth-by")
+        (cond
+          ((string= variable "deposit")
+           (get-option cfg "Graphviz sequence unit edge attributes"
+                       "deposit-penwidth" :type :number))
+          ((string= variable "interface")
+           (get-option cfg "Graphviz sequence unit edge attributes"
+                       "interface-penwidth"))))
+       ((string= option "edge-style-by")
+        (cond
+          ((string= variable "deposit")
+           (get-option cfg "Graphviz sequence unit edge attributes"
+                       "deposit-style"))
+          ((string= variable "interface")
+           (get-option cfg "Graphviz sequence unit edge attributes"
+                       "interface-style"))))))
+     ((string= domain "adjacent")
+      (cond
+        ((string= option "edge-penwidth-by")
+         (cond
+           ((string= variable "adjacent")
+            (get-option cfg "Graphviz sequence reachability edge penwidths"
+                        "reachable"))
+           ((string= variable "origin")
+            (get-option cfg "Graphviz sequence reachability edge penwidths"
+                                   "origin"))
+           ((string= variable "reachable")
+            (get-option cfg "Graphviz sequence reachability edge penwidths"
+                        "reachable"))
+           ((string= variable "not-adjacent")
+            (get-option cfg "Graphviz sequence reachability edge penwidths"
+                        "not-reachable"))
+           ))
+        ((string= option "edge-color-by")
+         (cond
+           ((string= variable "adjacent")
+            (get-option cfg "Graphviz sequence reachability edge colors"
+                        "adjacent"))
+           ((string= variable "origin")
+            (get-option cfg "Graphviz sequence reachability edge colors"
+                        "origin"))
+           ((string= variable "reachable")
+            (get-option cfg "Graphviz sequence reachability edge colors"
+                        "reachable"))
+           ((string= variable "not-adjacent")
+            (get-option cfg "Graphviz sequence reachability edge colors"
+                        "not-reachable"))))
+        ((string= option "edge-style-by")
+         (cond
+           ((string= variable "adjacent")
+            (get-option cfg "Graphviz sequence reachability edge styles"
+                        "adjacent"))
+           ((string= variable "origin")
+            (get-option cfg "Graphviz sequence reachability edge styles"
+                        "origin"))
+           ((string= variable "reachable")
+            (get-option cfg "Graphviz sequence reachability edge styles"
+                        "reachable"))
+           ((string= variable "not-adjacent")
+            (get-option cfg "Graphviz sequence reachability edge styles"
+                        "not-reachable"))))
+        ((string= option "edge-fontcolor-by")
+         (cond
+           ((string= variable "adjacent")
+            (get-option cfg "Graphviz sequence reachability edge fontcolors"
+                        "adjacent"))
+           ((string= variable "origin")
+            (get-option cfg "Graphviz sequence reachability edge fontcolors"
+                        "origin"))
+           ((string= variable "reachable")
+            (get-option cfg "Graphviz sequence reachability edge fontcolors"
+                        "reachable"))
+           ((string= variable "not-adjacent")
+            (get-option cfg "Graphviz sequence reachability edge fontcolors"
+                        "not-reachable"))))))
+     ((not (and domain variable))
+      (cond
+        ((string= option "penwidth-max")
+         (get-option cfg "Graphviz sequence edge attributes"
+                     "penwidth-max"))
+        ((string= option "penwidth-min")
+         (get-option cfg "Graphviz sequence edge attributes"
+                     "penwidth-min"))
+        ((string= option "penwidth")
+         (get-option cfg "Graphviz sequence edge attributes"
+                     "penwidth"))
+        ((string= option "arrowhead")
+         (get-option cfg "Graphviz sequence edge attributes"
+                     "arrowhead"))
+        ((string= option "fontcolor")
+         (get-option cfg "Graphviz sequence edge attributes"
+                     "fontcolor"))
+        ((string= option "fontsize")
+         (get-option cfg "Graphviz sequence edge attributes"
+                     "fontsize"))
+        ((string= option "fontname")
+         (get-option cfg "Graphviz sequence edge attributes"
+                     "fontname"))
+        ((string= option "color")
+         (get-option cfg "Graphviz sequence edge attributes"
+                     "color"))
+        ((string= option "style")
+         (get-option cfg "Graphviz sequence edge attributes"
+                     "style"))
+        ((string= option "colorscheme")
+         (get-option cfg "Graphviz sequence edge attributes"
+                     "colorscheme"))))))
+
+(defun lookup-node-option (cfg variable &optional domain option)
+  "Given a user configuration, CFG, a string describing a user-set VARIABLE, and
+optionally strings describing the DOMAIN and OPTION of the VARIABLE, return the
+value of the node option."
+  (cond
+    ((string= domain "units")
+     (cond
+       ((string= option "node-fill-by")
+        (cond
+          ((string= variable "deposit")
+           (get-option cfg "Graphviz sequence unit attributes"
+                       "deposit-node-fill"))
+          ((string= variable "interface")
+           (get-option cfg "Graphviz sequence unit attributes"
+                       "interface-node-fill"))))
+       ((string= option "node-shape-by")
+        (cond
+          ((string= variable "deposit")
+           (get-option cfg "Graphviz sequence unit attributes"
+                       "deposit-node-shape"))
+          ((string= variable "interface")
+           (get-option cfg "Graphviz sequence unit attributes"
+                       "interface-node-shape"))))
+       ((string= option "node-color-by")
+        (cond
+          ((string= variable "deposit")
+           (get-option cfg "Graphviz sequence unit attributes"
+                       "deposit-node-color"))
+          ((string= variable "interface")
+           (get-option cfg "Graphviz sequence unit attributes"
+                       "interface-node-color"))))
+       ((string= option "node-penwidth-by")
+        (cond
+          ((string= variable "deposit")
+           (get-option cfg "Graphviz sequence unit attributes"
+                       "deposit-node-penwidth"))
+          ((string= variable "interface")
+           (get-option cfg "Graphviz sequence unit attributes"
+                       "interface-node-penwidth"))))
+       ((string= option "node-style-by")
+        (cond
+          ((string= variable "deposit")
+           (get-option cfg "Graphviz sequence unit attributes"
+                       "deposit-node-style"))
+          ((string= variable "interface")
+           (get-option cfg "Graphviz sequence unit attributes"
+                       "interface-node-style"))))))
+  ((string= domain "adjacent")
+   (cond
+     ((string= option "node-fill-by")
+      (cond
+        ((string= variable "origin")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "origin-node-fill"))
+        ((string= variable "adjacent")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "adjacent-node-fill"))
+        ((string= variable "not-adjacent")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "not-reachable-node-fill"))))
+     ((string= option "node-shape-by")
+      (cond
+        ((string= variable "origin")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "origin-node-shape"))
+        ((string= variable "adjacent")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "adjacent-node-shape"))
+        ((string= variable "not-adjacent")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "not-reachable-node-shape"))))
+     ((string= option "node-color-by")
+      (cond
+        ((string= variable "origin")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "origin-node-color"))
+        ((string= variable "adjacent")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "adjacent-node-color"))
+        ((string= variable "not-adjacent")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "not-reachable-node-color"))))
+     ((string= option "node-penwidth-by")
+      (cond
+        ((string= variable "origin")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "origin-node-penwidth"))
+        ((string= variable "adjacent")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "adjacent-node-penwidth"))
+        ((string= variable "not-adjacent")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "not-reachable-node-fill"))))
+     ((string= option "node-style-by")
+      (cond
+        ((string= variable "origin")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "origin-node-style"))
+        ((string= variable "adjacent")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "adjacent-node-style"))
+        ((string= variable "not-adjacent")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "not-reachable-node-style"))))))
+  ((string= domain "reachable")
+   (cond
+     ((string= option "node-fill-by")
+      (cond
+        ((string= variable "origin")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "origin-node-fill"))
+        ((string= variable "adjacent")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "adjacent-node-fill"))
+        ((string= variable "reachable")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "reachable-node-fill"))
+        ((string= variable "not-reachable")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "not-reachable-node-fill"))))
+     ((string= option "node-shape-by")
+      (cond
+        ((string= variable "origin")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "origin-node-shape"))
+        ((string= variable "adjacent")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "adjacent-node-shape"))
+        ((string= variable "reachable")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "reachable-node-shape"))
+        ((string= variable "not-reachable")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "not-reachable-node-shape"))))
+     ((string= option "node-color-by")
+      (cond
+        ((string= variable "origin")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "origin-node-color"))
+        ((string= variable "adjacent")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "adjacent-node-color"))
+        ((string= variable "not-reachable")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "not-reachable-node-color"))))
+     ((string= option "node-penwidth-by")
+      (cond
+        ((string= variable "origin")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "origin-node-penwidth"))
+        ((string= variable "adjacent")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "adjacent-node-penwidth"))
+        ((string= variable "reachable")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "reachable-node-penwidth"))
+        ((string= variable "not-reachable")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "not-reachable-node-penwidth"))))
+     ((string= option "node-style-by")
+      (cond
+        ((string= variable "origin")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "origin-node-style"))
+        ((string= variable "adjacent")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "adjacent-node-style"))
+        ((string= variable "reachable")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "reachable-node-style"))
+        ((string= variable "not-reachable")
+         (get-option cfg "Graphviz sequence reachability attributes"
+                     "not-reachable-node-style"))))
+     ((not (and domain variable))
+      (cond
+        ((string= option "fillcolor")
+         (get-option cfg "Graphviz sequence node attributes"
+                     "fillcolor"))
+        ((string= option "penwidth-max")
+         (get-option cfg "Graphviz sequence node attributes"
+                     "penwidth-max"))
+        ((string= option "penwidth-min")
+         (get-option cfg "Graphviz sequence node attributes"
+                     "penwidth-min"))
+        ((string= option "penwidth")
+         (get-option cfg "Graphviz sequence node attributes"
+                     "penwidth"))
+        ((string= option "fontname")
+         (get-option cfg "Graphviz sequence node attributes"
+                     "fontname"))
+        ((string= option "fontcolor")
+         (get-option cfg "Graphviz sequence node attributes"
+                     "fontcolor"))
+        ((string= option "fontsize")
+         (get-option cfg "Graphviz sequence node attributes"
+                     "fontsize"))
+        ((string= option "color")
+         (get-option cfg "Graphviz sequence node attributes"
+                     "color"))
+        ((string= option "style")
+         (get-option cfg "Graphviz sequence node attributes"
+                     "style"))
+        ((string= option "shape")
+         (get-option cfg "Graphviz sequence node attributes"
+                     "shape"))))))))
 
 ;; API
 (defun write-default-configuration (path-name)
