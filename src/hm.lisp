@@ -20,8 +20,7 @@
           (sequence ,seq)
           (map (make-edge-lookup-map cfg))
           (section "Graphviz sequence edge attributes")
-          (class-with-node (get-option cfg "Graphviz sequence classification"
-                                       "edge-classify-by"))
+          (class-with-node (graphviz-edge-classification cfg "classify"))
           (value (when ,classifier
                    (get-option cfg "Graphviz sequence classification"
                                ,classifier))))
@@ -335,360 +334,6 @@ Graphviz dot value."
                  (fset:with 3 "bold"))))
     (fset:lookup map (mod index (fset:size map)))))
 
-(defun make-edge-lookup-map (cfg)
-  (-> (fset:empty-map 0)
-      (fset:with (concatenate 'string "units" "edge-color-by"
-                              "deposit")
-                 (get-option cfg "Graphviz sequence unit attributes"
-                             "deposit-edge-color"))
-      (fset:with (concatenate 'string "units" "edge-color-by"
-                              "interface")
-                 (get-option cfg "Graphviz sequence unit attributes"
-                             "interface-edge-color"))
-      (fset:with (concatenate 'string "units" "edge-fontcolor-by"
-                              "deposit")
-                 (get-option cfg "Graphviz sequence unit attributes"
-                             "deposit-edge-fontcolor"))
-      (fset:with (concatenate 'string "units" "edge-color-by"
-                              "interface")
-                 (get-option cfg "Graphviz sequence unit attributes"
-                             "interface-edge-fontcolor"))
-      (fset:with (concatenate 'string "units" "edge-penwidth-by"
-                              "deposit")
-                 (get-option cfg "Graphviz sequence unit attributes"
-                             "deposit-edge-penwidth"))
-      (fset:with (concatenate 'string "units" "edge-penwidth-by"
-                              "interface")
-                 (get-option cfg "Graphviz sequence unit attributes"
-                             "interface-edge-penwidth"))
-      (fset:with (concatenate 'string "units" "edge-style-by"
-                              "deposit")
-                 (get-option cfg "Graphviz sequence unit attributes"
-                             "deposit-edge-style"))
-      (fset:with (concatenate 'string "units" "edge-style-by"
-                              "interface")
-                 (get-option cfg "Graphviz sequence unit attributes"
-                             "interface-edge-style"))
-      (fset:with (concatenate 'string "adjacent" "edge-penwidth-by"
-                              "adjacent")
-                 (get-option cfg "Graphviz sequence reachability edge penwidths"
-                             "adjacent"))
-      (fset:with (concatenate 'string "adjacent" "edge-penwidth-by"
-                              "origin")
-                 (get-option cfg "Graphviz sequence reachability edge penwidths"
-                             "origin"))
-      (fset:with (concatenate 'string "adjacent" "edge-penwidth-by"
-                              "reachable")
-                 (get-option cfg "Graphviz sequence reachability edge penwidths"
-                             "reachable"))
-      (fset:with (concatenate 'string "adjacent" "edge-penwidth-by"
-                              "not-adjacent")
-                 (get-option cfg "Graphviz sequence reachability edge penwidths"
-                             "not-reachable"))
-      (fset:with (concatenate 'string "adjacent" "edge-color-by"
-                              "adjacent")
-                 (get-option cfg "Graphviz sequence reachability edge colors"
-                             "adjacent"))
-      (fset:with (concatenate 'string "adjacent" "edge-color-by"
-                              "origin")
-                 (get-option cfg "Graphviz sequence reachability edge colors"
-                             "origin"))
-      (fset:with (concatenate 'string "adjacent" "edge-color-by"
-                              "reachable")
-                 (get-option cfg "Graphviz sequence reachability edge colors"
-                             "reachable"))
-      (fset:with (concatenate 'string "adjacent" "edge-color-by"
-                              "not-adjacent")
-                 (get-option cfg "Graphviz sequence reachability edge colors"
-                             "not-reachable"))
-      (fset:with (concatenate 'string "adjacent" "edge-style-by"
-                              "adjacent")
-                 (get-option cfg "Graphviz sequence reachability edge styles"
-                             "adjacent"))
-      (fset:with (concatenate 'string "adjacent" "edge-style-by"
-                              "origin")
-                 (get-option cfg "Graphviz sequence reachability edge styles"
-                             "origin"))
-      (fset:with (concatenate 'string "adjacent" "edge-style-by"
-                              "reachable")
-                 (get-option cfg "Graphviz sequence reachability edge styles"
-                             "reachable"))
-      (fset:with (concatenate 'string "adjacent" "edge-style-by"
-                              "not-adjacent")
-                 (get-option cfg "Graphviz sequence reachability edge styles"
-                             "not-reachable"))
-      (fset:with (concatenate 'string "adjacent" "edge-fontcolor-by"
-                              "adjacent")
-                 (get-option cfg "Graphviz sequence reachability edge fontcolors"
-                             "adjacent"))
-      (fset:with (concatenate 'string "adjacent" "edge-fontcolor-by"
-                              "origin")
-                 (get-option cfg "Graphviz sequence reachability edge fontcolors"
-                             "origin"))
-      (fset:with (concatenate 'string "adjacent" "edge-fontcolor-by"
-                              "reachable")
-                 (get-option cfg "Graphviz sequence reachability edge fontcolors"
-                             "reachable"))
-      (fset:with (concatenate 'string "adjacent" "edge-fontcolor-by"
-                              "not-adjacent")
-                 (get-option cfg "Graphviz sequence reachability edge fontcolors"
-                             "not-reachable"))
-      (fset:with "penwidth-max"
-                 (get-option cfg "Graphviz sequence edge attributes"
-                             "penwidth-max"))
-      (fset:with "penwidth-min"
-                 (get-option cfg "Graphviz sequence edge attributes"
-                             "penwidth-min"))
-      (fset:with "penwidth"
-                 (get-option cfg "Graphviz sequence edge attributes"
-                             "penwidth"))
-      (fset:with "arrowhead"
-                 (get-option cfg "Graphviz sequence edge attributes"
-                             "arrowhead"))
-      (fset:with "fontcolor"
-                 (get-option cfg "Graphviz sequence edge attributes"
-                             "fontcolor"))
-      (fset:with "fontsize"
-                 (get-option cfg "Graphviz sequence edge attributes"
-                             "fontsize"))
-      (fset:with "fontname"
-                 (get-option cfg "Graphviz sequence edge attributes"
-                             "fontname"))
-      (fset:with "color"
-                 (get-option cfg "Graphviz sequence edge attributes"
-                             "color"))
-      (fset:with "style"
-                 (get-option cfg "Graphviz sequence edge attributes"
-                             "style"))
-      (fset:with "colorscheme"
-                 (get-option cfg "Graphviz sequence edge attributes"
-                             "colorscheme"))))
-
-(defun make-node-lookup-map (cfg)
-  "Given a user configuration, CFG, return an fset:map with keys formed by
-concatenating the type of classification, the user option, and the user option
-value, and values taken from the corresponding user configuration option."
-  (-> (fset:empty-map 0)
-      (fset:with (concatenate 'string "units" "node-fill-by"
-                              "deposit")
-                 (get-option cfg "Graphviz sequence unit attributes"
-                             "deposit-node-fill"))
-      (fset:with (concatenate 'string "units" "node-fill-by"
-                              "interface")
-                 (get-option cfg "Graphviz sequence unit attributes"
-                             "interface-node-fill"))
-      (fset:with (concatenate 'string "units" "node-shape-by"
-                              "deposit")
-                 (get-option cfg "Graphviz sequence unit attributes"
-                             "deposit-node-shape"))
-      (fset:with (concatenate 'string "units" "node-shape-by"
-                              "interface")
-                 (get-option cfg "Graphviz sequence unit attributes"
-                             "interface-node-shape"))
-      (fset:with (concatenate 'string "units" "node-color-by"
-                              "deposit")
-                 (get-option cfg "Graphviz sequence unit attributes"
-                             "deposit-node-color"))
-      (fset:with (concatenate 'string "units" "node-color-by"
-                              "interface")
-                 (get-option cfg "Graphviz sequence unit attributes"
-                             "interface-node-color"))
-      (fset:with (concatenate 'string "units" "node-penwidth-by"
-                              "deposit")
-                 (get-option cfg "Graphviz sequence unit attributes"
-                             "deposit-node-penwidth"))
-      (fset:with (concatenate 'string "units" "node-penwidth-by"
-                              "interface")
-                 (get-option cfg "Graphviz sequence unit attributes"
-                             "interface-node-penwidth"))
-      (fset:with (concatenate 'string "units" "node-style-by"
-                              "deposit")
-                 (get-option cfg "Graphviz sequence unit attributes"
-                             "deposit-node-style"))
-      (fset:with (concatenate 'string "units" "node-style-by"
-                              "interface")
-                 (get-option cfg "Graphviz sequence unit attributes"
-                             "interface-node-style"))
-      (fset:with (concatenate 'string "adjacent" "node-fill-by"
-                              "origin")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "origin-node-fill"))
-      (fset:with (concatenate 'string "adjacent" "node-fill-by"
-                              "adjacent")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "adjacent-node-fill"))
-      (fset:with (concatenate 'string "adjacent" "node-fill-by"
-                              "not-adjacent")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "not-reachable-node-fill"))
-      (fset:with (concatenate 'string "adjacent" "node-shape-by"
-                              "origin")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "origin-node-shape"))
-      (fset:with (concatenate 'string "adjacent" "node-shape-by"
-                              "adjacent")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "adjacent-node-shape"))
-      (fset:with (concatenate 'string "adjacent" "node-shape-by"
-                              "not-adjacent")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "not-reachable-node-shape"))
-      (fset:with (concatenate 'string "adjacent" "node-color-by"
-                              "origin")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "origin-node-color"))
-      (fset:with (concatenate 'string "adjacent" "node-color-by"
-                              "adjacent")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "adjacent-node-color"))
-      (fset:with (concatenate 'string "adjacent" "node-color-by"
-                              "not-adjacent")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "not-reachable-node-color"))
-      (fset:with (concatenate 'string "adjacent" "node-penwidth-by"
-                              "origin")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "origin-node-penwidth"))
-      (fset:with (concatenate 'string "adjacent" "node-penwidth-by"
-                              "adjacent")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "adjacent-node-penwidth"))
-      (fset:with (concatenate 'string "adjacent" "node-penwidth-by"
-                              "not-adjacent")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "not-reachable-node-fill"))
-      (fset:with (concatenate 'string "adjacent" "node-style-by"
-                              "origin")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "origin-node-style"))
-      (fset:with (concatenate 'string "adjacent" "node-style-by"
-                              "adjacent")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "adjacent-node-style"))
-      (fset:with (concatenate 'string "adjacent" "node-style-by"
-                              "not-adjacent")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "not-reachable-node-style"))
-      (fset:with (concatenate 'string "reachable" "node-fill-by"
-                              "origin")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "origin-node-fill"))
-      (fset:with (concatenate 'string "reachable" "node-fill-by"
-                              "adjacent")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "adjacent-node-fill"))
-      (fset:with (concatenate 'string "reachable" "node-fill-by"
-                              "reachable")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "reachable-node-fill"))
-      (fset:with (concatenate 'string "reachable" "node-fill-by"
-                              "not-reachable")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "not-reachable-node-fill"))
-      (fset:with (concatenate 'string "reachable" "node-shape-by"
-                              "origin")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "origin-node-shape"))
-      (fset:with (concatenate 'string "reachable" "node-shape-by"
-                              "adjacent")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "adjacent-node-shape"))
-      (fset:with (concatenate 'string "reachable" "node-shape-by"
-                              "reachable")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "reachable-node-shape"))
-      (fset:with (concatenate 'string "reachable" "node-shape-by"
-                              "not-reachable")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "not-reachable-node-shape"))
-      (fset:with (concatenate 'string "reachable" "node-color-by"
-                              "origin")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "origin-node-color"))
-      (fset:with (concatenate 'string "reachable" "node-color-by"
-                              "adjacent")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "adjacent-node-color"))
-      (fset:with (concatenate 'string "reachable" "node-color-by"
-                              "reachable")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "reachable-node-color"))
-      (fset:with (concatenate 'string "reachable" "node-color-by"
-                              "not-reachable")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "not-reachable-node-color"))
-      (fset:with (concatenate 'string "reachable" "node-penwidth-by"
-                              "origin")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "origin-node-penwidth"))
-      (fset:with (concatenate 'string "reachable" "node-penwidth-by"
-                              "adjacent")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "adjacent-node-penwidth"))
-      (fset:with (concatenate 'string "reachable" "node-penwidth-by"
-                              "reachable")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "reachable-node-penwidth"))
-      (fset:with (concatenate 'string "reachable" "node-penwidth-by"
-                              "not-reachable")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "not-reachable-node-penwidth"))
-      (fset:with (concatenate 'string "reachable" "node-style-by"
-                              "origin")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "origin-node-style"))
-      (fset:with (concatenate 'string "reachable" "node-style-by"
-                              "adjacent")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "adjacent-node-style"))
-      (fset:with (concatenate 'string "reachable" "node-style-by"
-                              "reachable")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "reachable-node-style"))
-      (fset:with (concatenate 'string "reachable" "node-style-by"
-                              "not-reachable")
-                 (get-option cfg "Graphviz sequence reachability attributes"
-                             "not-reachable-node-style"))
-      (fset:with "fillcolor"
-                 (get-option cfg "Graphviz sequence node attributes"
-                             "fillcolor"))
-      (fset:with "penwidth-max"
-                 (get-option cfg "Graphviz sequence node attributes"
-                             "penwidth-max"))
-      (fset:with "penwidth-min"
-                 (get-option cfg "Graphviz sequence node attributes"
-                             "penwidth-min"))
-      (fset:with "penwidth"
-                 (get-option cfg "Graphviz sequence node attributes"
-                             "penwidth"))
-      (fset:with "fontname"
-                 (get-option cfg "Graphviz sequence node attributes"
-                             "fontname"))
-      (fset:with "fontcolor"
-                 (get-option cfg "Graphviz sequence node attributes"
-                             "fontcolor"))
-      (fset:with "fontsize"
-                 (get-option cfg "Graphviz sequence node attributes"
-                             "fontsize"))
-      (fset:with "color"
-                 (get-option cfg "Graphviz sequence node attributes"
-                             "color"))
-      (fset:with "style"
-                 (get-option cfg "Graphviz sequence node attributes"
-                             "style"))
-      (fset:with "shape"
-                 (get-option cfg "Graphviz sequence node attributes"
-                             "shape"))))
-
-(defun lookup-option (map value &optional option class)
-  (cond
-   ((and option class)
-    (fset:@ map
-            (concatenate 'string value option class)))
-   (option (fset:@ map
-                   (concatenate 'string value option)))
-   (t (fset:@ map value))))
-
 (defun graphviz-node-style (index)
   "Given an integer, INDEX, return a string with a dot node style."
   (let ((map (-> (fset:empty-map 0)
@@ -749,9 +394,7 @@ shape."
                  (fset:with 36 "rarrow")
                  (fset:with 37 "larrow")
                  (fset:with 38 "lpromoter"))))
-    (fset:@ map
-            (mod index
-                 (fset:size map)))))
+    (fset:@ map (mod index (fset:size map)))))
 
 (defun graphviz-color-string (index scheme &optional range)
   "Given a colorscheme, SCHEME, optionally an integer, RANGE, that indicates how
@@ -835,109 +478,88 @@ shape."
   "Returns a new instance of an empty directed graph."
   (make-instance 'graph:digraph))
 
-(defun add-nodes (graph cfg
-                        &optional
-                        (verbose t))
+(defun add-nodes (graph cfg &optional (verbose t))
   "Add nodes to a graph, GRAPH, using the information in the
 configuration CFG.  If VERBOSE, then advertise the activity.  Returns
 the possibly modified GRAPH."
-  (let ((ret (graph:copy graph)))
-    (when verbose
-      (format t "Adding nodes to the sequence graph.~&"))
-    (dolist (node (read-table (get-option cfg "Input files" "contexts")
-                              (get-option cfg "Input file headers" "contexts")
-                              verbose))
-      (graph:add-node ret
-                      (symbolicate (nth 0 node))))
+  (let ((ret (graph:copy graph))
+        (contexts (read-table (input-file-name cfg "contexts")
+                              (file-header-p cfg "contexts") verbose)))
+    (dolist (node contexts)
+      (graph:add-node ret (symbolicate (nth 0 node))))
+    (when verbose (format t "Added nodes to the sequence graph.~&"))
     ret))
 
-(defun add-arcs (graph cfg
-                       &optional
-                       (verbose t))
-  "Add arcs to a graph, GRAPH, using the information in the
-configuation CFG.  If VERBOSE, then advertise the activity.  Returns
-the possibly modified GRAPH."
-  (let ((ret (graph:copy graph)))
-    (when verbose
-      (format t "Adding arcs to the sequence graph.~&"))
-    (dolist (arc (read-table (get-option cfg "Input files" "observations")
-                             (get-option cfg "Input file headers" "observations")
-                             verbose))
-      (graph:add-edge ret
-                      (list (symbolicate (nth 0 arc))
-                            (symbolicate (nth 1 arc)))))
+(defun add-arcs (graph cfg &optional (verbose t))
+  "Add arcs to a graph, GRAPH, using the information in the configuation CFG. If
+VERBOSE, then advertise the activity. Returns the possibly modified GRAPH."
+  (let ((ret (graph:copy graph))
+        (obs (read-table (input-file-name cfg "observations")
+                         (file-header-p cfg "observations") verbose)))
+    (dolist (arc obs)
+      (graph:add-edge ret (list (symbolicate (nth 0 arc))
+                                (symbolicate (nth 1 arc)))))
+    (when verbose (format t "Added arcs to the sequence graph.~&"))
     ret))
 
-(defun make-new-sequence-graph (cfg &optional
-                                    (verbose t))
-  "Given a configuration CFG, make a new digraph instance and populate
-  it with nodes and arcs from the files specified in the
-  configuration."
+(defun make-new-sequence-graph (cfg &optional (verbose t))
+  "Given a configuration CFG, make a new digraph instance and populate it with
+  nodes and arcs from the files specified in the configuration."
   (let ((new-graph (make-instance 'graph:digraph)))
     (setf new-graph (add-nodes new-graph cfg verbose))
     (setf new-graph (add-arcs new-graph cfg verbose))
     new-graph))
 
-(defun check-cycles (graph &optional
-                           (verbose t))
-  "Reports an error that cycles are present.  Proposes which arcs
-might be problematic."
-  (when (graph:cycles graph)
-    ;; explore graph:strongly-connected-components
-    (when verbose
-      (format t "Oops!~&"))
-    (error "Graph contains a cycle")))
+(defun check-cycles (graph)
+  "Reports an error when cycles are present in GRAPH."
+  (and (graph:cycles graph) (error "Graph contains a cycle")))
 
-(defun assume-correlations (graph cfg
-                                  &optional
-                                  (verbose t))
-  "Given the information in a configuration CFG, possibly merge and
-  rename the nodes of GRAPH.  Check for cycles and error out if
-  present, otherwise return the modified GRAPH."
-  (let ((ret (graph:copy graph)))
-    (when (get-option cfg "General configuration" "assume-correlations"
-                      :type :boolean)
-      (unless (get-option cfg "Input files" "inferences")
-        (error "Error: No inference table specified."))
-      (dolist (part (read-table (get-option cfg "Input files" "inferences")
-                                (get-option cfg "Input file headers" "inferences")
-                                verbose))
-        (graph:merge-nodes ret
-                           (symbolicate (nth 1 part))
+(defun assume-correlations (graph cfg &optional (verbose t))
+  "Given the information in a configuration CFG, possibly merge and rename the
+  nodes of GRAPH. Check for cycles and error out if present, otherwise return
+  the possibly modified GRAPH."
+  (let ((ret (graph:copy graph))
+        (make-assumption (get-option cfg "General configuration"
+                                     "assume-correlations" :type :boolean))
+        (input-file-name (get-option cfg "Input files" "inferences"))
+        (file-header-p (get-option cfg "Input file headers" "inferences"
+                                   :type boolean))
+        (inferences))
+    (when make-assumption
+      (if input-file-name
+          (setf inferences (read-table input-file-name file-header-p verbose))
+          (error "Error: No inference table specified."))
+      (dolist (part inferences)
+        (graph:merge-nodes ret (symbolicate (nth 1 part))
                            (symbolicate (nth 0 part))
-                           :new (correlated-node (nth 0 part)
-                                                 (nth 1 part))))
-      (check-cycles ret verbose))
+                           :new (correlated-node (nth 0 part) (nth 1 part))))
+      (check-cycles ret))
     ret))
 
 ;; passes test
-(defun correlated-node (node-1 node-2
-                               &optional
-                               (as-string nil))
+(defun correlated-node (node-1 node-2 &optional (as-string nil))
   "Given two correlated node symbols, NODE-1 and NODE-2, return a new
 symbol for the correlated nodes.  If AS-STRING is non-nil, return the
 correlated node symbol as a string."
-  (if as-string
-      (string (symbolicate node-1 "=" node-2))
-    (symbolicate node-1 "=" node-2)))
+  (let ((new-node (symbolicate node-1 "=" node-2)))
+    (if as-string (string new-node) new-node)))
 
-(defun graphviz-make-ranks (cfg &optional
-                                (verbose t))
-  (let ((ranks))
-    (when verbose
-      (format t "Setting ranks.~&"))
-    (when (get-option cfg "General configuration" "assume-correlations"
-                      :type :boolean)
-      (appendf ranks
-               (set-same-ranks (read-table (get-option cfg "Input files" "inferences")
-                                           (get-option cfg "Input file headers" "inferences")
-                                           verbose))))
-    (appendf ranks
-             (set-other-ranks (read-table (get-option cfg "Input files" "contexts")
-                                          (get-option cfg "Input file headers" "contexts")
-                                          verbose)))
-    (when verbose
-      (format t "Ranks set.~&"))
+(defun graphviz-make-ranks (cfg &optional (verbose t))
+  "Returns a list of ranks for Graphviz output if the user's configuration, CFG,
+specifies that correlations should be assumed true, nil otherwise."
+  (let ((inferences (read-table (input-file-name cfg "inferences")
+                                (file-header-p cfg "inferences") verbose))
+        (contexts (read-table (input-file-name cfg "contexts")
+                              (file-header-p cfg "contexts") verbose))
+        (ranks))
+    (if (and (assume-correlations-p cfg) (or inferences contexts))
+        (progn
+          (when inferences
+            (appendf ranks (set-same-ranks inferences)))
+          (when contexts
+            (appendf ranks (set-other-ranks contexts)))
+          (when verbose (format t "Ranks set.~&")))
+        (when verbose (format t "Ranks not set.~&")))
     ranks))
 
 ;; passes test
@@ -946,13 +568,11 @@ correlated node symbol as a string."
 value is an index into the matrix representation of GRAPH."
   (let ((counter -1)
         (node-index (fset:empty-map)))
-    (mapc (lambda (node)
-            (setf node-index (fset:with node-index
-                                        (incf counter)
-                                        node)))
+    (mapc
+     (lambda (node)
+       (setf node-index (fset:with node-index (incf counter) node)))
           (graph:nodes graph))
     node-index))
-
 
 (defun tables-to-map (contexts other-table table-type)
   "Given a CONTEXTS table, an OTHER-TABLE, and a TABLE-TYPE in
@@ -961,8 +581,8 @@ and the value is either the period or phase of the context."
   (let ((ht (fset:empty-map))
         (ret (fset:empty-map))
         (n (cond
-            ((equal table-type "periods") 3)
-            ((equal table-type "phases") 4)
+            ((string= table-type "periods") 3)
+            ((string= table-type "phases") 4)
             (t (error "Error: unrecognized table type")))))
     (mapcar #'(lambda (x)
                 (setf ht (fset:with ht
@@ -1030,8 +650,7 @@ visualize the archaeological sequence with d3 and GraphViz."
                                                                                               (new-matrix (fast-matrix-p cfg))))))
 
 (setf (symbol-function 'create-reachability-matrix) (memoize #'(lambda (cfg graph)
-                                                                 (let ((limit (get-option cfg "General configuration" "reachable-limit"
-                                                                                          :type :number)))
+                                                                 (let ((limit (reachable-limit cfg)))
                                                                    (if (or (not limit)
                                                                            (< limit 2))
                                                                        (graph-matrix:to-reachability-matrix graph
@@ -1090,10 +709,7 @@ discrepancies and errors out if it finds one."
       (format t "Configured archaeological sequence.~&"))
     ret))
 
-(defun make-classifier (classifier-type cfg
-                                        seq
-                                        &optional
-                                        (verbose t))
+(defun make-classifier (classifier-type cfg seq &optional (verbose t))
   "Given a string indicating CLASSIFIER-TYPE, a configuration CFG, and an
 archaeological sequence SEQ, return an fset map where the key is a symbol for a
 node in the directed graph of the archaeological sequence and whose value is a
@@ -1171,15 +787,11 @@ number is in the range of CLASSIFIER-TYPE. CLASSIFIER-TYPE is one of `distance',
    (t (error "The classifier '~a' is not known."
              classifier-type))))
 
-(defun create-chronology-graph (seq &optional
-                                    (verbose t))
+(defun create-chronology-graph (seq &optional (verbose t))
   "If the user has requested a chronology graph, then create and return a
 chronology graph, given an archaeological sequence, SEQ. Otherwise, return an
 empty graph. If VERBOSE, then advertise progress."
-  (if (get-option (archaeological-sequence-configuration seq)
-                  "Chronology graph"
-                  "draw"
-                  :type :boolean)
+  (if (chronology-graph-p (archaeological-sequence-configuration seq))
       (when verbose
         (format t "Creating chronology graph.~&"))
     (progn
