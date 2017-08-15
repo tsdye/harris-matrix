@@ -22,15 +22,31 @@
   `phases', `events', or `event-order'."
   (get-option cfg "Input files" content))
 
+(defun input-file-name-p (cfg content)
+  "Return a boolean indicating whether or not the user's configuration, CFG, includes a file name for CONTENT."
+  (not (emptyp (get-option cfg "Input files" content))))
+
 (defun file-header-p (cfg content)
   "Return the boolean value for CONTENT from the `Input file headers' section of
   the user's configuration, CFG."
   (get-option cfg "Input file headers" content :type :boolean))
 
+(defun output-file-name (cfg content)
+  "Return the file name for CONTENT from the user's configuration, CFG.  CONTENT is a string, one of `sequence-dot' or `chronology-dot'."
+  (get-option cfg "Output files" content))
+
+(defun missing-interfaces-p (cfg)
+  "Return the boolean value of `add-missing-interfaces'."
+  (get-option cfg "General configuration" "add-missing-interfaces" :type :boolean))
+
+(defun graphviz-sequence-graph-attribute (cfg attribute)
+  "Return the sequence graph attribute from the user's configuration, CFG."
+  (get-option cfg "Graphviz sequence graph attributes" attribute))
+
 (defun graphviz-node-classification (cfg attribute)
   "Return the value from the user's configuration, CFG, for the node ATTRIBUTE
 classification. ATTRIBUTE is a string, one of `fill', `shape', `color',
-`penwidth', `style', `polygon-distortion', `plygon-image',
+`penwidth', `style', `polygon-distortion', `polygon-image',
 `polygon-orientation', `plygon-sides', or `polygon-skew'."
   (let ((section "Graphviz sequence classification")
         (option (concatenate 'string "node-" attribute "-by")))
@@ -54,6 +70,13 @@ CFG."
   or not to draw the chronology graph."
   (get-option cfg "Chronology graph" "draw" :type :boolean))
 
+(defun include-url-p (cfg)
+  "Return a boolean value read from the user's configuration, CFG, indicating whether or not to include an URL in the output."
+  (get-option cfg "General configuration" "url-include" :type :boolean))
+
+(defun default-url (cfg)
+  "Return the default URL from the user's configuration, CFG, as a string"
+  (get-option cfg "General configuration" "url-default"))
 ;; API
 (defun make-default-configuration ()
   "Returns the default configuration."
