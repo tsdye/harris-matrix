@@ -11,176 +11,146 @@
 ;; that compiles and displays the dot file output.
 ;; (require "inferior-shell")
 
-(defmacro <-dot-edge (seq classifier dot-attr dot-default)
-  `(let* ((cfg (archaeological-sequence-configuration ,seq))
-          (graph (archaeological-sequence-graph ,seq))
-          (classifiers (archaeological-sequence-classifiers ,seq))
-          (def ,dot-default)
-          (attribute ,dot-attr)
-          (sequence ,seq)
-          (map (make-edge-lookup-map cfg))
-          (section "Graphviz sequence edge attributes")
-          (class-with-node (graphviz-edge-classification cfg "classify"))
-          (value (when ,classifier
-                   (get-option cfg "Graphviz sequence classification"
-                               ,classifier))))
-     (if (or (not ,classifier)
-             (and ,classifier
-                  (emptyp value))
-             (not (fset:domain-contains? classifiers value)))
-         (let ((y (process-user-value (lookup-option map attribute)
-                                      attribute
-                                      value
-                                      sequence)))
-           (constantly (if (emptyp y)
-                           def
-                         y)))
+(lol:defmacro! <-dot-edge (o!seq classifier dot-attr)
+  "Make functions to configure Graphviz edges."
+  `(let* ((g!cfg (archaeological-sequence-configuration ,g!seq))
+          (g!graph (archaeological-sequence-graph ,g!seq))
+          (g!classifiers (archaeological-sequence-classifiers ,g!seq))
+          (g!attribute ,dot-attr)
+          (g!map (make-edge-lookup-map g!cfg))
+          (g!class-with-node (graphviz-edge-classification g!cfg "classify"))
+          (g!value (when ,classifier (sequence-classifier g!cfg ,classifier))))
+     (if (or (not ,classifier) (and ,classifier (emptyp g!value))
+             (not (fset:domain-contains? g!classifiers g!value)))
+         (let ((g!y (process-user-value
+                   (lookup-option g!map g!attribute) g!attribute g!value ,g!seq)))
+           (constantly (if (emptyp g!y) "" g!y)))
        (cond
-        ((string= "units" value)
+        ((string= "units" g!value)
          (lambda (x)
-           (let ((user-value (if (= 0 (round (fset:@ (fset:@ classifiers value)
-                                                     (if (string= "to" class-with-node)
-                                                         (nth 1 x)
-                                                       (nth 0 x)))))
-                                 (lookup-option map value ,classifier "deposit")
-                               (lookup-option map value ,classifier "interface"))))
-             (if user-value
-                 (process-user-value user-value ,dot-attr value
-                                     ,seq :element :edge)
+           (let ((g!user-value
+                   (if (= 0 (round (fset:@ (fset:@ g!classifiers g!value)
+                                           (if (string= "to" g!class-with-node)
+                                               (nth 1 x)
+                                               (nth 0 x)))))
+                       (lookup-option g!map g!value ,classifier "deposit")
+                       (lookup-option g!map g!value ,classifier "interface"))))
+             (if g!user-value
+                 (process-user-value g!user-value ,dot-attr g!value
+                                     ,o!seq :element :edge)
+                 (error "Unable to set edge function.  User value not set for ~s.~&"
+                        ,classifier)))))
+        ((string= "adjacent" g!value)
+         (lambda (x)
+           (let ((g!user-value
+                   (case (round (fset:@ (fset:@ g!classifiers g!value)
+                                        (if (string= "to" g!class-with-node)
+                                            (nth 1 x)
+                                            (nth 0 x))))
+                     (0 (lookup-option g!map g!value ,classifier "origin"))
+                     (1 (lookup-option g!map g!value ,classifier "adjacent"))
+                     (t (lookup-option g!map g!value ,classifier "not-adjacent")))))
+             (if g!user-value
+                 (process-user-value g!user-value ,dot-attr g!value
+                                     ,o!seq :element :edge)
                (error "Unable to set edge function.  User value not set for ~s.~&"
                       ,classifier)))))
-        ((string= "adjacent" value)
+        ((string= "reachable" g!value)
          (lambda (x)
-           (let ((user-value (case (round (fset:@ (fset:@ classifiers value)
-                                                  (if (string= "to" class-with-node)
-                                                      (nth 1 x)
-                                                    (nth 0 x))))
-                               (0
-                                (lookup-option map value ,classifier "origin"))
-                               (1
-                                (lookup-option map value ,classifier "adjacent"))
-                               (t (lookup-option map value ,classifier "not-adjacent")))))
-             (if user-value
-                 (process-user-value user-value ,dot-attr value
-                                     ,seq :element :edge)
-               (error "Unable to set edge function.  User value not set for ~s.~&"
-                      ,classifier)))))
-        ((string= "reachable" value)
-         (lambda (x)
-           (let ((user-value (case (round (fset:@ (fset:@ classifiers value)
-                                                  (if (string= "to" class-with-node)
-                                                      (nth 1 x)
-                                                    (nth 0 x))))
-                               (0
-                                (lookup-option map value ,classifier "origin"))
-                               (1
-                                (lookup-option map value ,classifier "adjacent"))
-                               (2
-                                (lookup-option map value ,classifier "reachable"))
-                               (t (lookup-option map value ,classifier "not-reachable")))))
-             (if user-value
-                 (process-user-value user-value ,dot-attr value
-                                     ,seq :element :edge)
+           (let ((g!user-value
+                   (case (round (fset:@ (fset:@ g!classifiers g!value)
+                                        (if (string= "to" g!class-with-node)
+                                            (nth 1 x)
+                                            (nth 0 x))))
+                     (0 (lookup-option g!map g!value ,classifier "origin"))
+                     (1 (lookup-option g!map g!value ,classifier "adjacent"))
+                     (2 (lookup-option g!map g!value ,classifier "reachable"))
+                     (t (lookup-option g!map g!value ,classifier "not-reachable")))))
+             (if g!user-value
+                 (process-user-value g!user-value ,dot-attr g!value
+                                     ,o!seq :element :edge)
                (error "Unable to set edge function.  User value not set for ~s.~&"
                       ,classifier)))))
         ((fset:contains? (fset:set "distance" "levels" "periods" "phases")
-                         value)
+                         g!value)
          (lambda (x)
-           (edge--process-matrix-value (fset:@ (fset:@ classifiers value)
-                                               (if (string= "to" class-with-node)
-                                                   (nth 1 x)
-                                                 (nth 0 x)))
-                                       ,dot-attr
-                                       value
-                                       ,seq)))
+           (edge--process-matrix-value
+            (fset:@ (fset:@ g!classifiers g!value)
+                    (if (string= "to" g!class-with-node)
+                        (nth 1 x)
+                        (nth 0 x)))
+            ,dot-attr
+            g!value
+            ,o!seq)))
         (t (error "Error: Unable to set edge function.~&"))))))
 
-(defmacro <-dot-node (seq classifier dot-attr dot-default)
-  `(let* ((sequence ,seq)
-          (opt ,classifier)
-          (attribute ,dot-attr)
-          (def ,dot-default)
-          (cfg (archaeological-sequence-configuration ,seq))
-          (classifiers (archaeological-sequence-classifiers ,seq))
-          (value (when ,classifier
-                   (get-option cfg "Graphviz sequence classification"
-                               ,classifier)))
-          (map (make-node-lookup-map cfg)))
-     (if (or (not opt)
-             (and opt
-                  (emptyp value))
-             (not (fset:domain-contains? classifiers value)))
-         (let ((y (process-user-value (lookup-option map attribute)
-                                      attribute
-                                      opt
-                                      sequence)))
-           (constantly (if (emptyp y)
-                           def
-                         y)))
+(lol:defmacro! <-dot-node (o!seq classifier dot-attr)
+  `(let* ((g!sequence ,g!seq)
+          (g!opt ,classifier)
+          (g!attribute ,dot-attr)
+          (g!cfg (archaeological-sequence-configuration ,g!seq))
+          (g!classifiers (archaeological-sequence-classifiers ,g!seq))
+          (g!value (when ,classifier (sequence-classifier g!cfg ,classifier)))
+          (map (make-node-lookup-map g!cfg)))
+     (if (or (not g!opt) (and g!opt (emptyp g!value))
+             (not (fset:domain-contains? g!classifiers g!value)))
+         (let ((g!y (process-user-value (lookup-option map g!attribute)
+                                      g!attribute g!opt g!sequence)))
+           (constantly (if (emptyp g!y) "" g!y)))
        (cond
-        ((string= "units" value)
+        ((string= "units" g!value)
          (lambda (x)
-           (let ((user-value (if (= 0 (round (fset:@ (fset:@ classifiers value)
-                                                     x)))
-                                 (lookup-option map value opt "deposit")
-                               (lookup-option map value opt "interface"))))
-             (if (emptyp user-value)
+           (let ((g!user-value
+                   (if (= 0 (round (fset:@ (fset:@ g!classifiers g!value) x)))
+                       (lookup-option map g!value g!opt "deposit")
+                       (lookup-option map g!value g!opt "interface"))))
+             (if (emptyp g!user-value)
                  (error "Unable to set node function.  User value not set for ~s.~&"
-                        opt)
-               (let ((user-value-parsed (parse-integer user-value :junk-allowed t)))
-                 (process-user-value (if user-value-parsed user-value-parsed user-value)
-                                     attribute
-                                     value
-                                     sequence
-                                     :element :node))))))
-        ((string= "adjacent" value)
+                        g!opt)
+                 (let ((g!user-value-parsed
+                         (parse-integer g!user-value :junk-allowed t)))
+                   (process-user-value
+                    (if g!user-value-parsed g!user-value-parsed g!user-value)
+                    g!attribute g!value g!sequence :element :node))))))
+        ((string= "adjacent" g!value)
          (lambda (x)
-           (let ((user-value (case (round (fset:@ (fset:@ classifiers value)
-                                                  x))
-                               (0
-                                (lookup-option map value opt "origin"))
-                               (1
-                                (lookup-option map value opt "adjacent"))
-                               (t (lookup-option map value opt "not-adjacent")))))
-             (if (emptyp user-value)
+           (let ((g!user-value
+                   (case (round (fset:@ (fset:@ g!classifiers g!value) x))
+                     (0 (lookup-option map g!value g!opt "origin"))
+                     (1 (lookup-option map g!value g!opt "adjacent"))
+                     (t (lookup-option map g!value g!opt "not-adjacent")))))
+             (if (emptyp g!user-value)
                  (error "Unable to set node function.  User value not set for ~s.~&"
-                        opt)
-               (let ((user-value-parsed (parse-integer user-value :junk-allowed t)))
-                 (process-user-value (if user-value-parsed user-value-parsed user-value)
-                                     attribute
-                                     value
-                                     sequence
-                                     :element :node))))))
-        ((string= "reachable" value)
+                        g!opt)
+                 (let ((g!user-value-parsed
+                         (parse-integer g!user-value :junk-allowed t)))
+                   (process-user-value
+                    (if g!user-value-parsed g!user-value-parsed g!user-value)
+                    g!attribute g!value g!sequence :element :node))))))
+        ((string= "reachable" g!value)
          (lambda (x)
-           (let ((user-value (case (round (fset:@ (fset:@ classifiers value)
-                                                  x))
-                               (0
-                                (lookup-option map value opt "origin"))
-                               (1
-                                (lookup-option map value opt "adjacent"))
-                               (2
-                                (lookup-option map value opt "reachable"))
-                               (t (lookup-option map value opt "not-reachable")))))
-             (if (emptyp user-value)
+           (let ((g!user-value
+                   (case (round (fset:@ (fset:@ g!classifiers g!value) x))
+                     (0 (lookup-option map g!value g!opt "origin"))
+                     (1 (lookup-option map g!value g!opt "adjacent"))
+                     (2 (lookup-option map g!value g!opt "reachable"))
+                     (t (lookup-option map g!value g!opt "not-reachable")))))
+             (if (emptyp g!user-value)
                  (error "Unable to set node function.  User value not set for ~s.~&"
-                        opt)
-               (let ((user-value-parsed (parse-integer user-value :junk-allowed t)))
-                 (process-user-value (if user-value-parsed user-value-parsed user-value)
-                                     attribute
-                                     value
-                                     sequence
-                                     :element :node))))))
+                        g!opt)
+                 (let ((g!user-value-parsed
+                         (parse-integer g!user-value :junk-allowed t)))
+                   (process-user-value
+                    (if g!user-value-parsed g!user-value-parsed g!user-value)
+                    g!attribute g!value g!sequence :element :node))))))
         ((fset:contains? (fset:set "distance" "levels" "periods" "phases")
-                         value)
+                         g!value)
          (lambda (x)
-           (node--process-matrix-value (fset:@ (fset:@ classifiers value)
-                                               x)
-                                       attribute
-                                       value
-                                       sequence)))
+           (node--process-matrix-value (fset:@ (fset:@ g!classifiers g!value) x)
+                                       g!attribute g!value g!sequence)))
         (t (error "Error: Unable to set node function.~&"))))))
 
+;; Needs work!
 (defun process-user-value (value dot-attr option seq &key element)
   (if (fset:contains? (fset:set "color" "fillcolor" "fontcolor")
                       dot-attr)
@@ -276,10 +246,8 @@ Graphviz dot value."
                                        (fset:least range))))))))))))
 
 ;; Needs work, no docstring
-(defun <-dot-graph (user default)
-  (if (emptyp user)
-      (quotes-around default)
-    (quotes-around user)))
+(defun <-dot-graph (attribute)
+  (quotes-around attribute))
 
 ;; From On Lisp, p. 92, a macro for testing macroexpansion
 
@@ -457,23 +425,6 @@ shape."
         (alpha (/ index steps)))
     (graphviz-hsv-string (rgb-combination c1 c2 alpha))))
 
-;; Needs work
-(defun user-color (seq section option)
-  "Given an archaeological sequence, SEQ, and a string, ATTR,
-  indicating the attribute that requires a color, return a valid
-  Graphviz color string, or the empty string if the user has not
-  indicated a valid color string."
-  (let ((color (get-option (archaeological-sequence-configuration seq)
-                           section
-                           option))
-        (scheme (get-option (archaeological-sequence-configuration seq)
-                            section
-                            "colorscheme")))
-    (if (and (not (emptyp color))
-             (not (emptyp scheme)))
-        (graphviz-color-string color scheme)
-      "")))
-
 (defun new-graph ()
   "Returns a new instance of an empty directed graph."
   (make-instance 'graph:digraph))
@@ -613,13 +564,11 @@ and the value is either the period or phase of the context."
   if the unit-type is `interface'."
   (let ((ret (fset:empty-map)))
     (mapcar #'(lambda (x)
-                (setf ret (fset:with ret
-                                     (symbolicate (nth 0 x))
-                                     (cond
-                                      ((string= (nth 1 x)
-                                                "deposit") 0)
-                                      ((string= (nth 1 x)
-                                                "interface") 1)))))
+                (setf ret
+                      (fset:with ret (symbolicate (nth 0 x))
+                                 (cond
+                                   ((string= (nth 1 x) "deposit") 0)
+                                   ((string= (nth 1 x) "interface") 1)))))
             contexts)
     ret))
 
@@ -640,44 +589,40 @@ visualize the archaeological sequence with d3 and GraphViz."
                                 seq)))
           (length (graph:edges (archaeological-sequence-chronology-graph
                                 seq)))
-          (if (archaeological-sequence-configuration seq)
-              "yes"
-            "no")
+          (if (archaeological-sequence-configuration seq) "yes" "no")
           (fset:size (archaeological-sequence-classifiers seq))))
 
-(setf (symbol-function 'create-distance-matrix) (memoize #'(lambda (cfg graph)
-                                                             (graph-matrix:to-distance-matrix graph
-                                                                                              (new-matrix (fast-matrix-p cfg))))))
+(setf (symbol-function 'create-distance-matrix)
+      (memoize #'(lambda (cfg graph)
+                   (graph-matrix:to-distance-matrix
+                    graph (new-matrix (fast-matrix-p cfg))))))
 
-(setf (symbol-function 'create-reachability-matrix) (memoize #'(lambda (cfg graph)
-                                                                 (let ((limit (reachable-limit cfg)))
-                                                                   (if (or (not limit)
-                                                                           (< limit 2))
-                                                                       (graph-matrix:to-reachability-matrix graph
-                                                                                                            (new-matrix (fast-matrix-p cfg)))
-                                                                     (graph-matrix:to-reachability-matrix graph
-                                                                                                          (new-matrix (fast-matrix-p cfg))
-                                                                                                          :limit limit))))))
+(setf (symbol-function 'create-reachability-matrix)
+      (memoize #'(lambda (cfg graph)
+                   (let ((limit (reachable-limit cfg)))
+                     (if (or (not limit)(< limit 2))
+                         (graph-matrix:to-reachability-matrix
+                          graph (new-matrix (fast-matrix-p cfg)))
+                         (graph-matrix:to-reachability-matrix
+                          graph (new-matrix (fast-matrix-p cfg)) :limit limit))))))
 
-(setf (symbol-function 'create-adjacency-matrix) (memoize #'(lambda (cfg graph)
-                                                              (graph-matrix:to-adjacency-matrix graph
-                                                                                                (new-matrix (fast-matrix-p cfg))))))
+(setf (symbol-function 'create-adjacency-matrix)
+      (memoize #'(lambda (cfg graph)
+                   (graph-matrix:to-adjacency-matrix
+                    graph (new-matrix (fast-matrix-p cfg))))))
 
-(setf (symbol-function 'create-strong-component-matrix) (memoize #'(lambda (cfg graph)
-                                                                     (graph-matrix:to-strong-component-matrix graph
-                                                                                                              (new-matrix (fast-matrix-p cfg))))))
+(setf (symbol-function 'create-strong-component-matrix)
+      (memoize #'(lambda (cfg graph)
+                   (graph-matrix:to-strong-component-matrix
+                    graph (new-matrix (fast-matrix-p cfg))))))
 
-(defun configure-archaeological-sequence (seq cfg
-                                              &optional
-                                              (verbose t))
+(defun configure-archaeological-sequence (seq cfg &optional (verbose t))
   "Configures the archaeological sequence SEQ using the information in
 the configuration CFG, and returns the possibly modified
 archaeological sequence.  Checks for common configuration
 discrepancies and errors out if it finds one."
-  (unless (typep seq 'archaeological-sequence)
-    (error "Error: No sequence information found."))
-  (unless (typep cfg 'config)
-    "Error: No configuration found.")
+  (unless (typep seq 'archaeological-sequence) (error "Error: No sequence found."))
+  (unless (typep cfg 'config) (error "Error: No configuration found."))
   (configuration-errors? cfg)
   (let ((ret (copy-structure seq))
         (c (fset:set "node-fill-by" "node-shape-by" "node-color-by"
@@ -688,104 +633,80 @@ discrepancies and errors out if it finds one."
                      "edge-style-by")))
     (setf (archaeological-sequence-configuration ret) cfg)
     (setf (archaeological-sequence-graph ret) (make-new-sequence-graph cfg verbose))
-    (setf (archaeological-sequence-graph ret) (add-missing-interfaces (archaeological-sequence-graph ret)
-                                                                      cfg
-                                                                      verbose))
-    (setf (archaeological-sequence-graph ret) (assume-correlations (archaeological-sequence-graph ret)
-                                                                   cfg
-                                                                   verbose))
-    (setf (archaeological-sequence-chronology-graph
-           ret) (create-chronology-graph ret verbose))
+    (setf (archaeological-sequence-graph ret)
+          (add-missing-interfaces (archaeological-sequence-graph ret)
+                                  cfg verbose))
+    (setf (archaeological-sequence-graph ret)
+          (assume-correlations (archaeological-sequence-graph ret) cfg verbose))
+    (setf (archaeological-sequence-chronology-graph ret)
+          (create-chronology-graph ret verbose))
     (fset:do-set (classifier c)
-                 (let ((class (get-option cfg "Graphviz sequence classification"
-                                          classifier)))
+                 (let ((class (sequence-classifier cfg)))
                    (unless (emptyp class)
                      (when verbose
                        (format t "Making classifier for ~a.~&" class))
-                     (setf (archaeological-sequence-classifiers ret) (fset:with (archaeological-sequence-classifiers ret)
-                                                                                class
-                                                                                (make-classifier class cfg ret verbose))))))
-    (when verbose
-      (format t "Configured archaeological sequence.~&"))
+                     (setf (archaeological-sequence-classifiers ret)
+                           (fset:with
+                            (archaeological-sequence-classifiers ret)
+                            class (make-classifier class ret verbose))))))
+    (when verbose (format t "Configured archaeological sequence.~&"))
     ret))
 
-(defun make-classifier (classifier-type cfg seq &optional (verbose t))
-  "Given a string indicating CLASSIFIER-TYPE, a configuration CFG, and an
-archaeological sequence SEQ, return an fset map where the key is a symbol for a
-node in the directed graph of the archaeological sequence and whose value is a
-number is in the range of CLASSIFIER-TYPE. CLASSIFIER-TYPE is one of `distance',
-`reachable', `adjacent', `periods', `phases', `units', or `levels'."
-  (cond
-   ((string= classifier-type "units")
-    (when verbose
-      (format t "Creating units classification.~&"))
-    (context-type-to-map (read-table (get-option cfg "Input files" "contexts")
-                                     (get-option cfg "Input file headers" "contexts")
-                                     verbose)))
-   ((string= classifier-type "distance")
-    (when verbose
-      (format t "Creating distance classification.~&"))
-    (let* ((m (create-distance-matrix cfg
-                                      (archaeological-sequence-graph seq)))
-           (i (make-node-index (archaeological-sequence-graph seq)))
-           (o (symbolicate (get-option cfg "General configuration" "reachable-from")))
-           (new-key (fset:@ i o))
-           (map (fset:empty-map 0)))
-      (fset:do-map (key val i)
-                   (let ((new-val (round (min (graph-matrix:matrix-ref m new-key val)
-                                              (graph-matrix:matrix-ref m val new-key)))))
-                     (unless (graph-matrix:infinitep new-val m)
-                       (setf map (fset:with map key new-val)))))
-      (when verbose
-        (format t "Created distance classification.~&"))
-      map))
-   ((string= classifier-type "reachable")
-    (when verbose
-      (format t "Creating reachability classification.~&"))
-    (let ((m (create-reachability-matrix cfg
-                                         (archaeological-sequence-graph seq)))
-          (i (make-node-index (archaeological-sequence-graph seq)))
-          (o (symbolicate (get-option cfg "General configuration" "reachable-from")))
-          (map (fset:empty-map)))
-      (fset:do-map (key val i)
-                   (setf map (fset:with map
-                                        key
-                                        (graph-matrix:matrix-ref m
-                                                                 (fset:@ i o)
-                                                                 val))))
-      map))
-   ((string= classifier-type "adjacent")
-    (when verbose
-      (format t "Creating adjacency classification.~&"))
-    (let ((m (create-adjacency-matrix cfg
-                                      (archaeological-sequence-graph seq)))
-          (i (make-node-index (archaeological-sequence-graph seq)))
-          (o (symbolicate (get-option cfg "General configuration" "reachable-from")))
-          (map (fset:empty-map)))
-      (fset:do-map (key val i)
-                   (setf map (fset:with map
-                                        key
-                                        (graph-matrix:matrix-ref m
-                                                                 (fset:@ i o)
-                                                                 val))))
-      map))
-   ((member classifier-type '("periods" "phases")
-            :test 'string=)
-    (when verbose
-      (format t "Creating classification by ~a.~&"
-              classifier-type))
-    (tables-to-map (read-table (get-option cfg "Input files" "contexts")
-                               (get-option cfg "Input file headers" "contexts")
-                               verbose)
-                   (read-table (get-option cfg "Input files" classifier-type)
-                               (get-option cfg "Input file headers" classifier-type)
-                               verbose)
-                   classifier-type))
-   ((string= classifier-type "levels")
-    (alist-to-map (graph:levels (archaeological-sequence-graph seq)
-                                :alist 't)))
-   (t (error "The classifier '~a' is not known."
-             classifier-type))))
+(defun make-classifier (classifier-type seq &optional (verbose t))
+  "Given a string indicating CLASSIFIER-TYPE and an archaeological sequence SEQ
+return an fset map where the key is a symbol for a node in the directed graph of
+the archaeological sequence and whose value is a number in the range of
+CLASSIFIER-TYPE. CLASSIFIER-TYPE is one of `distance', `reachable', `adjacent',
+`periods', `phases', `units', or `levels'."
+  (let ((cfg (archaeological-sequence-configuration seq))
+        (graph (archaeological-sequence-graph seq)))
+    (when verbose (format t "Creating %a classification.~&" classifier-type))
+    (cond
+      ((string= classifier-type "units")
+       (context-type-to-map (read-table (input-file-name cfg  "contexts")
+                                        (file-header-p cfg  "contexts")
+                                        verbose)))
+      ((string= classifier-type "distance")
+       (let* ((m (create-distance-matrix cfg graph))
+              (i (make-node-index graph))
+              (o (reachable-from-node cfg))
+              (new-key (fset:@ i o))
+              (map (fset:empty-map 0)))
+         (fset:do-map (key val i)
+           (let ((new-val (round (min (graph-matrix:matrix-ref m new-key val)
+                                      (graph-matrix:matrix-ref m val new-key)))))
+             (unless (graph-matrix:infinitep new-val m)
+               (setf map (fset:with map key new-val)))))
+         map))
+      ((string= classifier-type "reachable")
+       (let ((m (create-reachability-matrix cfg graph))
+             (i (make-node-index graph))
+             (o (reachable-from-node cfg))
+             (map (fset:empty-map)))
+         (fset:do-map (key val i)
+           (setf map
+                 (fset:with map key (graph-matrix:matrix-ref m (fset:@ i o) val))))
+         map))
+      ((string= classifier-type "adjacent")
+       (let ((m (create-adjacency-matrix cfg graph))
+             (i (make-node-index graph))
+             (o (reachable-from-node cfg))
+             (map (fset:empty-map)))
+         (fset:do-map (key val i)
+           (setf map
+                 (fset:with map key (graph-matrix:matrix-ref m (fset:@ i o) val))))
+         map))
+      ((member classifier-type '("periods" "phases") :test 'string=)
+       (tables-to-map (read-table (input-file-name cfg "contexts")
+                                  (file-header-p cfg "contexts")
+                                  verbose)
+                      (read-table (input-file-name cfg classifier-type)
+                                  (file-header-p cfg classifier-type)
+                                  verbose)
+                      classifier-type))
+      ((string= classifier-type "levels")
+       (alist-to-map (graph:levels graph :alist 't)))
+      (t (error "The classifier '~a' is not known." classifier-type)))))
 
 (defun create-chronology-graph (seq &optional (verbose t))
   "If the user has requested a chronology graph, then create and return a
@@ -795,27 +716,24 @@ empty graph. If VERBOSE, then advertise progress."
       (when verbose
         (format t "Creating chronology graph.~&"))
     (progn
-      (when verbose
-        (format t "Chronology graph off.~&"))
-      (return-from create-chronology-graph
-        (make-instance 'graph:digraph))))
+      (when verbose (format t "Chronology graph off.~&"))
+      (return-from create-chronology-graph (make-instance 'graph:digraph))))
   (let* ((ret (make-instance 'graph:digraph))
          (distance-matrix (create-distance-matrix (archaeological-sequence-configuration seq)
                                                   (archaeological-sequence-graph seq)))
          (cfg (archaeological-sequence-configuration seq))
-         (event-table (read-table (get-option cfg "Input files" "events")
-                                  (get-option cfg "Input file headers" "events")
+         (event-table (read-table (input-file-name cfg "events")
+                                  (file-header-p cfg "events")
                                   verbose))
-         (event-order-table (when (not (emptyp (get-option cfg "Input files" "event-order")))
-                              (read-table (get-option cfg "Input files" "event-order")
-                                          (get-option cfg "Input file headers" "event-order")
+         (event-order-table (when (input-file-name-p "event-order")
+                              (read-table (input-file-name cfg "event-order")
+                                          (file-header-p cfg "event-order")
                                           verbose))))
     ;; If assume-correlations then adjust the event-table and
     ;; event-order table accordingly
-    (when (get-option cfg "General configuration" "assume-correlations"
-                      :type :boolean)
-      (let ((inference-table (read-table (get-option cfg "Input files" "inferences")
-                                         (get-option cfg "Input file headers" "inferences")
+    (when (assume-correlations-p cfg)
+      (let ((inference-table (read-table (input-file-name cfg "inferences")
+                                         (file-header-p cfg "inferences")
                                          verbose))
             (inference-map (fset:empty-map)))
         (dolist (row inference-table)
@@ -1096,18 +1014,15 @@ routines.  If FAST is nil, then uses CL matrix routines."
       (make-instance 'graph-matrix:fast-matrix)
     (make-instance 'graph-matrix:matrix)))
 
-(defun add-missing-interfaces (graph cfg
-                                     &optional
-                                     (verbose t))
+(defun add-missing-interfaces (graph cfg &optional (verbose t))
   "Check for edges in GRAPH that connect two depositional nodes and, if found,
   insert an interfacial node between them.  Returns the possibly
   modified GRAPH."
-  (if (get-option cfg "General configuration" "add-missing-interfaces"
-                  :type :boolean)
+  (if (missing-interfaces-p cfg)
       (let ((hiatus)
             (g (graph:copy graph))
-            (contexts (read-table (get-option cfg "Input files" "contexts")
-                                  (get-option cfg "Input file headers" "contexts")
+            (contexts (read-table (input-file-name cfg "contexts")
+                                  (file-header-p cfg "contexts")
                                   verbose))
             (context-lookup (fset:empty-map)))
         (dolist (context contexts)
@@ -1140,9 +1055,7 @@ routines.  If FAST is nil, then uses CL matrix routines."
         g)
     graph))
 
-(defun read-table (name header
-                        &optional
-                        (verbose t))
+(defun read-table (name header &optional (verbose t))
   "Checks that NAME is a file, then attempts to read it as
 comma-separated values.  HEADER indicates whether or not the first
 line of NAME contains column heads, rather than values.  If VERBOSE,
@@ -1152,7 +1065,7 @@ give notice."
         (when verbose
           (format t "Reading table ~a.~%" in-file))
         (cl-csv:read-csv in-file :skip-first-p header))
-    (error "Unable to read ~a" name)))
+    (error "Unable to read ~a.~&" name)))
 
 ;; filter function definitions
 
@@ -1663,106 +1576,77 @@ the graph picture."
 
 ;;     ;; write the dot file for the sequence diagram
 
-(defun write-sequence-graph-to-dot-file (seq &optional
-                                             (verbose t))
-  (graph-dot:to-dot-file (archaeological-sequence-graph seq)
-                         (get-option (archaeological-sequence-configuration seq)
-                                     "Output files"
-                                     "sequence-dot")
-                         :ranks (graphviz-make-ranks (archaeological-sequence-configuration seq)):attributes
-                         (list (cons :style (<-dot-graph (get-option (archaeological-sequence-configuration seq)
-                                                                     "Graphviz sequence graph attributes"
-                                                                     "style")
-                                                         ""))
-                               (cons :dpi (<-dot-graph (get-option (archaeological-sequence-configuration seq)
-                                                                   "Graphviz sequence graph attributes"
-                                                                   "dpi")
-                                                       "96.0"))
-                               (cons :URL (<-dot-graph (if (get-option (archaeological-sequence-configuration seq)
-                                                                       "General configuration"
-                                                                       "url-include"
-                                                                       :type :boolean)
-                                                           (get-option (archaeological-sequence-configuration seq)
-                                                                       "General configuration"
-                                                                       "url-default")
-                                                         "")
-                                                       ""))
-                               (cons :margin (<-dot-graph (get-option (archaeological-sequence-configuration seq)
-                                                                      "Graphviz sequence graph attributes"
-                                                                      "margin")
-                                                          ""))
-                               (cons :bgcolor (<-dot-graph (user-color seq "Graphviz sequence graph attributes"
-                                                                       "bgcolor")
-                                                           ""))
-                               (cons :fontname (<-dot-graph (get-option (archaeological-sequence-configuration seq)
-                                                                        "Graphviz sequence graph attributes"
-                                                                        "fontname")
-                                                            ""))
-                               (cons :fontsize (<-dot-graph (get-option (archaeological-sequence-configuration seq)
-                                                                        "Graphviz sequence graph attributes"
-                                                                        "fontsize")
-                                                            "14.0"))
-                               (cons :fontcolor (<-dot-graph (user-color seq "Graphviz sequence graph attributes"
-                                                                         "fontcolor")
-                                                             "black"))
-                               (cons :splines (<-dot-graph (get-option (archaeological-sequence-configuration seq)
-                                                                       "Graphviz sequence graph attributes"
-                                                                       "splines")
-                                                           ""))
-                               (cons :page (<-dot-graph (get-option (archaeological-sequence-configuration seq)
-                                                                    "Graphviz sequence graph attributes"
-                                                                    "page")
-                                                        ""))
-                               (cons :size (<-dot-graph (get-option (archaeological-sequence-configuration seq)
-                                                                    "Graphviz sequence graph attributes"
-                                                                    "size")
-                                                        ""))
-                               (cons :ratio (<-dot-graph (get-option (archaeological-sequence-configuration seq)
-                                                                     "Graphviz sequence graph attributes"
-                                                                     "ratio")
-                                                         ""))
-                               (cons :label (<-dot-graph (get-option (archaeological-sequence-configuration seq)
-                                                                     "Graphviz sequence graph attributes"
-                                                                     "label")
-                                                         ""))
-                               (cons :labelloc (<-dot-graph (get-option (archaeological-sequence-configuration seq)
-                                                                        "Graphviz sequence graph attributes"
-                                                                        "labelloc")
-                                                            "b")))
-                         :edge-attrs (list (cons :style (<-dot-edge seq "edge-style-by" "style" "solid"))
-                                           (cons :arrowhead (<-dot-edge seq nil "arrowhead" ""))
-                                           (cons :color (<-dot-edge seq "edge-color-by" "color" "black"))
-                                           (cons :fontname (<-dot-edge seq nil "fontname" "Times-Roman"))
-                                           (cons :fontsize (<-dot-edge seq nil "fontsize" "14.0"))
-                                           (cons :fontcolor (<-dot-edge seq "edge-fontcolor-by" "fontcolor"
-                                                                        "black"))
-                                           (cons :penwidth (<-dot-edge seq "edge-penwidth-by" "penwidth"
-                                                                       ""))
-                                           ;; (cons :URL (lambda (x) (format-attribute
-                                           ;;                    (if *url-include* (url-decode (fset:@ arc-urls x)) "")
-                                           ;;                    :preserve-case t :quote t))))
-                                           ):node-attrs
-                                            (list (cons :shape (<-dot-node seq "node-shape-by" "shape" "box"))
-                                                  (cons :style (<-dot-node seq "node-style-by" "style" "filled"))
-                                                  (cons :fontname (<-dot-node seq nil "fontname" "Times-Roman"))
-                                                  (cons :fontsize (<-dot-node seq nil "fontsize" "14.0"))
-                                                  (cons :color (<-dot-node seq "node-color-by" "color" "black"))
-                                                  (cons :fillcolor (<-dot-node seq "node-fill-by" "fillcolor"
-                                                                               "white"))
-                                                  (cons :fontcolor (<-dot-node seq nil "fontcolor" "black"))
-                                                  (cons :penwidth (<-dot-node seq "node-penwidth-by" "penwidth"
-                                                                              "1.0"))
-                                                  ;; (cons :URL (lambda (x) (format-attribute
-                                                  ;;                    (if *url-include*
-                                                  ;;                        (url-decode (fset:@ node-urls x))
-                                                  ;;                        "") :preserve-case t :quote t)))
-                                                  ))
-  (when verbose
-    (format t
-            "Wrote ~a.~%"
-            (probe-file (get-option (archaeological-sequence-configuration seq)
-                                    "Output files"
-                                    "sequence-dot"))))
+(defun write-sequence-graph-to-dot-file (seq &optional (verbose t))
+  "Write a sequence graph to a Graphviz dot file, based on the information in the archaeological sequence, SEQ."
+  (let ((cfg (archaeological-sequence-configuration seq))
+        (graph (archaeological-sequence-graph seq))))
+  (graph-dot:to-dot-file
+   graph (output-file-name cfg "sequence-dot")
+   :ranks (graphviz-make-ranks cfg)
+   :attributes (list
+                (cons :style (<-dot-graph
+                              (graphviz-sequence-graph-attribute cfg "style")))
+                (cons :dpi (<-dot-graph
+                            (graphviz-sequence-graph-attribute cfg "dpi")))
+                (cons :URL (<-dot-graph (if (include-url-p cfg)
+                                            (default-url cfg) "")))
+                (cons :margin (<-dot-graph
+                               (graphviz-sequence-graph-attribute cfg "margin")))
+                (cons :bgcolor (<-dot-graph
+                                (user-color
+                                 cfg "Graphviz sequence graph attributes"
+                                 "bgcolor")))
+                (cons :fontname (<-dot-graph
+                                 (graphviz-sequence-graph-attribute
+                                  cfg "fontname")))
+                (cons :fontsize (<-dot-graph
+                                 (graphviz-sequence-graph-attribute
+                                  cfg "fontsize")))
+                (cons :fontcolor (<-dot-graph
+                                  (user-color cfg
+                                              "Graphviz sequence graph attributes"
+                                              "fontcolor")))
+                (cons :splines (<-dot-graph
+                                (graphviz-sequence-graph-attribute cfg "splines")))
+                (cons :page (<-dot-graph
+                             (graphviz-sequence-graph-attribute cfg "page")))
+                (cons :size (<-dot-graph
+                             (graphviz-sequence-graph-attribute cfg "size")))
+                (cons :ratio (<-dot-graph
+                              (graphviz-sequence-graph-attribute cfg "ratio")))
+                (cons :label (<-dot-graph
+                              (graphviz-sequence-graph-attribute cfg "label")))
+                (cons :labelloc (<-dot-graph
+                                 (graphviz-sequence-graph-attribute
+                                  cfg "labelloc"))))
+   :edge-attrs (list (cons :style (<-dot-edge seq "edge-style-by" "style"))
+                     (cons :arrowhead (<-dot-edge seq nil "arrowhead"))
+                     (cons :color (<-dot-edge seq "edge-color-by" "color"))
+                     (cons :fontname (<-dot-edge seq nil "fontname"))
+                     (cons :fontsize (<-dot-edge seq nil "fontsize"))
+                     (cons :fontcolor
+                           (<-dot-edge seq "edge-fontcolor-by" "fontcolor"))
+                     (cons :penwidth (<-dot-edge seq "edge-penwidth-by" "penwidth"))
+                     ;; (cons :URL (lambda (x) (format-attribute
+                     ;;                    (if *url-include* (url-decode (fset:@ arc-urls x)) "")
+                     ;;                    :preserve-case t :quote t))))
+                     )
+   :node-attrs
+   (list (cons :shape (<-dot-node seq "node-shape-by" "shape"))
+         (cons :style (<-dot-node seq "node-style-by" "style"))
+         (cons :fontname (<-dot-node seq nil "fontname"))
+         (cons :fontsize (<-dot-node seq nil "fontsize"))
+         (cons :color (<-dot-node seq "node-color-by" "color"))
+         (cons :fillcolor (<-dot-node seq "node-fill-by" "fillcolor"))
+         (cons :fontcolor (<-dot-node seq nil "fontcolor"))
+         (cons :penwidth (<-dot-node seq "node-penwidth-by" "penwidth"))
+         ;; (cons :URL (lambda (x) (format-attribute
+         ;;                    (if *url-include*
+         ;;                        (url-decode (fset:@ node-urls x))
+         ;;                        "") :preserve-case t :quote t)))
+         ))
+  (when verbose (format t "Wrote ~a.~%"
+                        (probe-file (output-file-name cfg "sequence-dot"))))
   (archaeological-sequence-graph seq))
 
 (defun write-levels (graph out-file)
