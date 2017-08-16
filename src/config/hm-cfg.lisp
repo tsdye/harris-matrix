@@ -65,6 +65,10 @@ classification. ATTRIBUTE is a string, one of `fill', `shape', `color',
 CFG."
   (get-option cfg "Reachability configuration" "reachable-limit" :type :number))
 
+(defun reachable-from-node (cfg)
+  "Returns a symbol from the user's configuration, CFG."
+  (symbolicate (get-option cfg "General configuration" "reachable-from")))
+
 (defun chronology-graph-p (cfg)
   "Return a boolean value read from the user's configuration indicating whether
   or not to draw the chronology graph."
@@ -77,6 +81,20 @@ CFG."
 (defun default-url (cfg)
   "Return the default URL from the user's configuration, CFG, as a string"
   (get-option cfg "General configuration" "url-default"))
+
+(defun user-color (cfg section option)
+  "Given a user's configuration, CFG, a configuration file SECTION and OPTION,
+  return a valid Graphviz color string, or the empty string if the user's CFG
+  does not indicate a valid color string."
+  (let ((color (get-option cfg section option))
+        (scheme (get-option cfg section "colorscheme")))
+    (if (and (not (emptyp color)) (not (emptyp scheme)))
+        (graphviz-color-string color scheme) "")))
+
+(defun sequence-classifier (cfg option)
+  "Get the sequence classification, OPTION, from the user's configuration, CFG."
+  (get-option cfg "Graphviz sequence classification" option))
+
 ;; API
 (defun make-default-configuration ()
   "Returns the default configuration."
