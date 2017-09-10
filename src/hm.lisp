@@ -273,16 +273,6 @@ Graphviz dot value."
           (list form x)))
     x))
 
-;; Paul Graham, On Lisp, p. 65
-(defun memoize (fn)
-  (let ((cache (make-hash-table :test #'equal)))
-    (lambda (&rest args)
-      (multiple-value-bind (val win)
-          (gethash args cache)
-        (if win
-            val
-          (setf (gethash args cache) (apply fn args)))))))
-
 ;; passes test
 (defun quotes-around (string)
   "Put quotes around STRING for output to dot unless string is already quoted."
@@ -592,29 +582,40 @@ visualize the archaeological sequence with d3 and GraphViz."
           (if (archaeological-sequence-configuration seq) "yes" "no")
           (fset:size (archaeological-sequence-classifiers seq))))
 
-(setf (symbol-function 'create-distance-matrix)
-      (memoize #'(lambda (cfg graph)
-                   (graph-matrix:to-distance-matrix
-                    graph (new-matrix (fast-matrix-p cfg))))))
+(defun create-distance-matrix (cfg graph)
+  "Returns a distance matrix of the directed graph, GRAPH, using the
+instructions in the user's configuration, CFG."
+  (graph-matrix:to-distance-matrix
+   graph (new-matrix (fast-matrix-p cfg))))
 
-(setf (symbol-function 'create-reachability-matrix)
-      (memoize #'(lambda (cfg graph)
-                   (let ((limit (reachable-limit cfg)))
-                     (if (or (not limit)(< limit 2))
-                         (graph-matrix:to-reachability-matrix
-                          graph (new-matrix (fast-matrix-p cfg)))
-                         (graph-matrix:to-reachability-matrix
-                          graph (new-matrix (fast-matrix-p cfg)) :limit limit))))))
+(fmemo:memoize 'create-distance-matrix)
 
-(setf (symbol-function 'create-adjacency-matrix)
-      (memoize #'(lambda (cfg graph)
-                   (graph-matrix:to-adjacency-matrix
-                    graph (new-matrix (fast-matrix-p cfg))))))
+(defun create-reachability-matrix (cfg graph)
+  "Returns a reachability matrix of the directed graph, GRAPH, using the
+  instructions in the user's configuration, CFG."
+  (let ((limit (reachable-limit cfg)))
+    (if (or (not limit)(< limit 2))
+        (graph-matrix:to-reachability-matrix
+         graph (new-matrix (fast-matrix-p cfg)))
+        (graph-matrix:to-reachability-matrix
+         graph (new-matrix (fast-matrix-p cfg)) :limit limit))))
 
-(setf (symbol-function 'create-strong-component-matrix)
-      (memoize #'(lambda (cfg graph)
-                   (graph-matrix:to-strong-component-matrix
-                    graph (new-matrix (fast-matrix-p cfg))))))
+(fmemo:memoize 'create-reachability-matrix)
+
+(defun create-adjacency-matrix (cfg graph)
+  "Returns an adjacency matrix of the directed graph, GRAPH, using the instructions in the user's configuration, CFG."
+  (graph-matrix:to-adjacency-matrix
+   graph (new-matrix (fast-matrix-p cfg))))
+
+(fmemo:memoize 'create-adjacency-matrix)
+
+(defun create-strong-component-matrix (cfg graph)
+  "Returns a strong-component-matrix of the directed graph, GRAPH, using
+  instructions in the user's configuration, CFG."
+  (graph-matrix:to-strong-component-matrix
+   graph (new-matrix (fast-matrix-p cfg))))
+
+(fmemo:memoize 'create-strong-component-matrix)
 
 (defun configure-archaeological-sequence (seq cfg &optional (verbose t))
   "Configures the archaeological sequence SEQ using the information in
@@ -851,54 +852,22 @@ empty graph. If VERBOSE, then advertise progress."
     (setf ret (transitive-reduction ret cfg verbose))
     ret))
 
-;; Needs work, fails test
-(defun transitive-reduction (graph cfg &optional (verbose t))
-  "Perform transitive reduction on the directed acyclic GRAPH,
-according to information in the configuration, CFG.  Returns the
+(defun transitive-reduction (graph)
+  "Perform transitive reduction on the directed acyclic GRAPH. Returns the
 possibly modified directed acyclic GRAPH."
   (let ((ret (graph:copy graph))
-        (r (graph-matrix:to-reachability-matrix graph
-                                                (new-matrix (fast-matrix-p cfg))))
-        (zero (if (fast-matrix-p cfg) 0s0 0)))
-    (when verbose
-      (format t "Performing transitive reduction.~&"))
-    (let ((n (graph-matrix:matrix-n-cols r))
-          (i (make-node-index graph)))
-      (loop :for x
-            :below n
-            :do (loop :for y
-                      :below n
-                      :do (loop :for z
-                                :below n
-                                :do (and (= 1 (graph-matrix:matrix-ref r x y))
-                                         (= 1 (graph-matrix:matrix-ref r y z))
-                                         (setf (graph-matrix:matrix-ref r x z) zero)
-                                         (when (graph:has-edge-p ret
-                                                                 (list (fset:@ i x)
-                                                                       (fset:@ i z)))
-                                           (graph:delete-edge ret
-                                                              (list (fset:@ i x)
-                                                                    (fset:@ i z)))))))))
-    ret))
-
-;; Needs work, fails test
-(defun transitive-reduction-new (graph cfg)
-  (let* ((ret (graph:copy graph))
-         (fast (fast-matrix-p cfg))
-         (A (graph-matrix:to-adjacency-matrix graph (new-matrix fast)))
-         (B (graph-matrix:to-reachability-matrix graph (new-matrix fast)))
-         (AB (graph-matrix::matrix-product a b))
-         (n (graph-matrix:matrix-n-cols A))
-         (i (make-node-index graph))
-         (zero (if fast 0s0 0)))
-    (loop :for x :below n
-          :do (loop :for y :below n
-                    :do (and (and (not (= zero (graph-matrix:matrix-ref A x y)))
-                                     (= zero (graph-matrix:matrix-ref AB x y)))
-                          (graph:has-edge-p ret (list (fset:lookup i x)
-                                                             (fset:lookup i y)))
-                          (graph:delete-edge ret (list (fset:lookup i x)
-                                                       (fset:lookup i y))))))
+        (r (graph-matrix:to-adjacency-matrix graph (new-matrix nil)))
+        (n (length (graph:nodes graph)))
+        (i (make-node-index graph)))
+    (loop :for x :below n :do
+      (loop :for y :below n :do
+        (loop :for z :below n :do
+          (and (= 1 (graph-matrix:matrix-ref r x y))
+               (= 1 (graph-matrix:matrix-ref r y z))
+               (= 1 (graph-matrix:matrix-ref r x z))
+               (progn
+                 (setf (graph-matrix:matrix-ref r x z) 0)
+                 (graph:delete-edge ret (list (fset:@ i x) (fset:@ i z))))))))
     ret))
 
 (defun solarized-map (name &key member)
