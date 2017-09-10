@@ -7,32 +7,308 @@
 (in-package #:hm)
 
 ;; API
-(defun fast-matrix-p (cfg)
-  "Returns the boolean value for fast-matrix in the user's configuration, CFG."
-  (get-option cfg "General configuration" "fast-matrix" :type :boolean))
 
+(defun master-table ()
+  '(("Output files" "sequence-dot" "sequence" "" "output" "" "" )
+    ("Output files" "chronology-dot" "chronology" "" "output" "" "" )
+    ("Input files" "contexts" "" "" "input" "" "" )
+    ("Input files" "observations" "" "" "input" "" "" )
+    ("Input files" "inferences" "" "" "input" "" "" )
+    ("Input files" "periods" "" "" "input" "" "" )
+    ("Input files" "phases" "" "" "input" "" "" )
+    ("Input files" "events" "" "" "input" "" "" )
+    ("Input files" "event-order" "" "" "input" "" "" )
+    ("Input file headers" "contexts" "" "" "header" "" "" )
+    ("Input file headers" "observations" "" "" "header" "" "" )
+    ("Input file headers" "inferences" "" "" "header" "" "" )
+    ("Input file headers" "periods" "" "" "header" "" "" )
+    ("Input file headers" "phases" "" "" "header" "" "" )
+    ("Input file headers" "events" "" "" "header" "" "" )
+    ("Input file headers" "event-order" "" "" "header" "" "" )
+    ("General configuration" "chronology-graph-draw" "chronology" "" "general" "" "off" )
+    ("General configuration" "url-include" "" "" "general" "" "off" )
+    ("General configuration" "url-default" "" "" "general" "" "http://tsdye.github.io/harris-matrix/" )
+    ("General configuration" "legend" "" "" "general" "" "off" )
+    ("General configuration" "assume-correlations" "sequence" "" "general" "" "no" )
+    ("General configuration" "fast-matrix" "sequence" "" "general" "" "on" )
+    ("General configuration" "add-interfaces" "sequence" "" "general" "" "no" )
+    ("Graphviz sequence classification" "node-fill-by" "sequence" "node" "classification" "" "" )
+    ("Graphviz sequence classification" "node-shape-by" "sequence" "node" "classification" "" "units" )
+    ("Graphviz sequence classification" "node-color-by" "sequence" "node" "classification" "" "" )
+    ("Graphviz sequence classification" "node-penwidth-by" "sequence" "node" "classification" "" "" )
+    ("Graphviz sequence classification" "node-style-by" "sequence" "node" "classification" "" "" )
+    ("Graphviz sequence classification" "node-polygon-distortion-by" "sequence" "node" "classification" "" "" )
+    ("Graphviz sequence classification" "node-polygon-image-by" "sequence" "node" "classification" "" "" )
+    ("Graphviz sequence classification" "node-polygon-orientation-by" "sequence" "node" "classification" "" "" )
+    ("Graphviz sequence classification" "node-polygon-sides-by" "sequence" "node" "classification" "" "" )
+    ("Graphviz sequence classification" "node-polygon-skew-by" "sequence" "node" "classification" "" "" )
+    ("Graphviz sequence classification" "edge-color-by" "sequence" "edge" "classification" "" "" )
+    ("Graphviz sequence classification" "edge-fontcolor-by" "sequence" "edge" "classification" "" "" )
+    ("Graphviz sequence classification" "edge-penwidth-by" "sequence" "edge" "classification" "" "" )
+    ("Graphviz sequence classification" "edge-style-by" "sequence" "edge" "classification" "" "" )
+    ("Graphviz sequence classification" "edge-classify-by" "sequence" "edge" "classification" "" "from" )
+    ("Graphviz sequence graph attributes" "colorscheme" "sequence" "graph" "graph" "" "x11" )
+    ("Graphviz sequence graph attributes" "bgcolor" "sequence" "graph" "graph" "" "white" )
+    ("Graphviz sequence graph attributes" "fontname" "sequence" "graph" "graph" "" "Helvetica" )
+    ("Graphviz sequence graph attributes" "fontsize" "sequence" "graph" "graph" "" "14.0" )
+    ("Graphviz sequence graph attributes" "fontcolor" "sequence" "graph" "graph" "" "black" )
+    ("Graphviz sequence graph attributes" "label" "sequence" "graph" "graph" "" "Sequence Diagram" )
+    ("Graphviz sequence graph attributes" "labelloc" "sequence" "graph" "graph" "" "t" )
+    ("Graphviz sequence graph attributes" "style" "sequence" "graph" "graph" "" "filled" )
+    ("Graphviz sequence graph attributes" "size" "sequence" "graph" "graph" "" "6,4!" )
+    ("Graphviz sequence graph attributes" "ratio" "sequence" "graph" "graph" "" "auto" )
+    ("Graphviz sequence graph attributes" "page" "sequence" "graph" "graph" "" "7,5" )
+    ("Graphviz sequence graph attributes" "dpi" "sequence" "graph" "graph" "" "96" )
+    ("Graphviz sequence graph attributes" "margin" "sequence" "graph" "graph" "" "0.5,0.5" )
+    ("Graphviz sequence graph attributes" "label-break" "sequence" "graph" "graph" "" "" )
+    ("Graphviz sequence graph attributes" "fontsize-subscript" "sequence" "graph" "graph" "" "10" )
+    ("Graphviz sequence graph attributes" "splines" "sequence" "graph" "graph" "" "ortho" )
+    ("Graphviz sequence edge attributes" "colorscheme" "sequence" "edge" "edge" "" "x11" )
+    ("Graphviz sequence edge attributes" "style" "sequence" "edge" "edge" "" "solid" )
+    ("Graphviz sequence edge attributes" "color" "sequence" "edge" "edge" "" "black" )
+    ("Graphviz sequence edge attributes" "fontname" "sequence" "edge" "edge" "" "Helvetica" )
+    ("Graphviz sequence edge attributes" "fontsize" "sequence" "edge" "edge" "" "14.0" )
+    ("Graphviz sequence edge attributes" "fontcolor" "sequence" "edge" "edge" "" "black" )
+    ("Graphviz sequence edge attributes" "arrowhead" "sequence" "edge" "edge" "" "normal" )
+    ("Graphviz sequence edge attributes" "penwidth" "sequence" "edge" "edge" "" "1.0" )
+    ("Graphviz sequence edge attributes" "penwidth-min" "sequence" "edge" "edge" "" "1.0" )
+    ("Graphviz sequence edge attributes" "penwidth-max" "sequence" "edge" "edge" "" "1.0" )
+    ("Graphviz sequence node attributes" "shape" "sequence" "node" "node" "" "box" )
+    ("Graphviz sequence node attributes" "colorscheme" "sequence" "node" "node" "" "x11" )
+    ("Graphviz sequence node attributes" "style" "sequence" "node" "node" "" "filled" )
+    ("Graphviz sequence node attributes" "color" "sequence" "node" "node" "" "black" )
+    ("Graphviz sequence node attributes" "fontsize" "sequence" "node" "node" "" "14.0" )
+    ("Graphviz sequence node attributes" "fontcolor" "sequence" "node" "node" "" "black" )
+    ("Graphviz sequence node attributes" "fillcolor" "sequence" "node" "node" "" "white" )
+    ("Graphviz sequence node attributes" "fontname" "sequence" "node" "node" "" "Helvetica" )
+    ("Graphviz sequence node attributes" "penwidth" "sequence" "node" "node" "" "1.0" )
+    ("Graphviz sequence node attributes" "penwidth-min" "sequence" "node" "node" "" "1.0" )
+    ("Graphviz sequence node attributes" "penwidth-max" "sequence" "node" "node" "" "1.0" )
+    ("Graphviz sequence node attributes" "polygon-distortion" "sequence" "node" "node" "" "0.0" )
+    ("Graphviz sequence node attributes" "polygon-image" "sequence" "node" "node" "" "" )
+    ("Graphviz sequence node attributes" "polygon-orientation" "sequence" "node" "node" "" "0" )
+    ("Graphviz sequence node attributes" "polygon-sides" "sequence" "node" "node" "" "4" )
+    ("Graphviz sequence node attributes" "polygon-skew" "sequence" "node" "node" "" "0.0" )
+    ("Reachability configuration" "reachable-from" "sequence" "node" "reachable" "" "" )
+    ("Reachability configuration" "reachable-limit" "sequence" "node" "reachable" "" "" )
+    ("Graphviz sequence reachability node colors" "origin" "sequence" "node" "reachable" "node-color-by" "1" )
+    ("Graphviz sequence reachability node colors" "reachable" "sequence" "node" "reachable" "node-color-by" "2" )
+    ("Graphviz sequence reachability node colors" "not-reachable" "sequence" "node" "reachable" "node-color-by" "3" )
+    ("Graphviz sequence reachability node colors" "colorscheme" "sequence" "node" "reachable" "node-color-by" "accent3" )
+    ("Graphviz sequence reachability node fillcolors" "origin" "sequence" "node" "reachable" "node-fill-by" "1" )
+    ("Graphviz sequence reachability node fillcolors" "reachable" "sequence" "node" "reachable" "node-fill-by" "2" )
+    ("Graphviz sequence reachability node fillcolors" "not-reachable" "sequence" "node" "reachable" "node-fill-by" "3" )
+    ("Graphviz sequence reachability node fillcolors" "colorscheme" "sequence" "node" "reachable" "node-fill-by" "accent3" )
+    ("Graphviz sequence reachability node shapes" "origin" "sequence" "node" "reachable" "node-shape-by" "polygon" )
+    ("Graphviz sequence reachability node shapes" "reachable" "sequence" "node" "reachable" "node-shape-by" "polygon" )
+    ("Graphviz sequence reachability node shapes" "not-reachable" "sequence" "node" "reachable" "node-shape-by" "polygon" )
+    ("Graphviz sequence reachability node styles" "origin" "sequence" "node" "reachable" "node-style-by" "solid,filled" )
+    ("Graphviz sequence reachability node styles" "reachable" "sequence" "node" "reachable" "node-style-by" "dashed,filled" )
+    ("Graphviz sequence reachability node styles" "not-reachable" "sequence" "node" "reachable" "node-style-by" "dotted,filled" )
+    ("Graphviz sequence reachability node polygon distortion" "origin" "sequence" "node" "reachable" "node-polygon-distortion-by" "0" )
+    ("Graphviz sequence reachability node polygon distortion" "reachable" "sequence" "node" "reachable" "node-polygon-distortion-by" "50" )
+    ("Graphviz sequence reachability node polygon distortion" "not-reachable" "sequence" "node" "reachable" "node-polygon-distortion-by" "-50" )
+    ("Graphviz sequence reachability node polygon image" "origin" "sequence" "node" "reachable" "node-polygon-image-by" "" )
+    ("Graphviz sequence reachability node polygon image" "reachable" "sequence" "node" "reachable" "node-polygon-image-by" "" )
+    ("Graphviz sequence reachability node polygon image" "not-reachable" "sequence" "node" "reachable" "node-polygon-image-by" "" )
+    ("Graphviz sequence reachability node polygon orientation" "origin" "sequence" "node" "reachable" "node-polygon-orientation-by" "0" )
+    ("Graphviz sequence reachability node polygon orientation" "reachable" "sequence" "node" "reachable" "node-polygon-orientation-by" "45" )
+    ("Graphviz sequence reachability node polygon orientation" "not-reachable" "sequence" "node" "reachable" "node-polygon-orientation-by" "90" )
+    ("Graphviz sequence reachability node polygon sides" "origin" "sequence" "node" "reachable" "node-polygon-sides-by" "4" )
+    ("Graphviz sequence reachability node polygon sides" "reachable" "sequence" "node" "reachable" "node-polygon-sides-by" "4" )
+    ("Graphviz sequence reachability node polygon sides" "not-reachable" "sequence" "node" "reachable" "node-polygon-sides-by" "4" )
+    ("Graphviz sequence reachability node polygon skew" "origin" "sequence" "node" "reachable" "node-polygon-skew-by" "0" )
+    ("Graphviz sequence reachability node polygon skew" "reachable" "sequence" "node" "reachable" "node-polygon-skew-by" "50" )
+    ("Graphviz sequence reachability node polygon skew" "not-reachable" "sequence" "node" "reachable" "node-polygon-skew-by" "-50" )
+    ("Graphviz sequence reachability node penwidths" "origin" "sequence" "node" "reachable" "node-penwidth-by" "3" )
+    ("Graphviz sequence reachability node penwidths" "reachable" "sequence" "node" "reachable" "node-penwidth-by" "2" )
+    ("Graphviz sequence reachability node penwidths" "not-reachable" "sequence" "node" "reachable" "node-penwidth-by" "1" )
+    ("Graphviz sequence reachability edge penwidths" "origin" "sequence" "edge" "reachable" "edge-penwidth-by" "3" )
+    ("Graphviz sequence reachability edge penwidths" "reachable" "sequence" "edge" "reachable" "edge-penwidth-by" "2" )
+    ("Graphviz sequence reachability edge penwidths" "not-reachable" "sequence" "edge" "reachable" "edge-penwidth-by" "1" )
+    ("Graphviz sequence reachability edge colors" "origin" "sequence" "edge" "reachable" "edge-color-by" "1" )
+    ("Graphviz sequence reachability edge colors" "reachable" "sequence" "edge" "reachable" "edge-color-by" "2" )
+    ("Graphviz sequence reachability edge colors" "not-reachable" "sequence" "edge" "reachable" "edge-color-by" "3" )
+    ("Graphviz sequence reachability edge colors" "colorscheme" "sequence" "edge" "reachable" "edge-color-by" "accent3" )
+    ("Graphviz sequence reachability edge styles" "origin" "sequence" "edge" "reachable" "edge-style-by" "solid" )
+    ("Graphviz sequence reachability edge styles" "reachable" "sequence" "edge" "reachable" "edge-style-by" "dashed" )
+    ("Graphviz sequence reachability edge styles" "not-reachable" "sequence" "edge" "reachable" "edge-style-by" "dotted" )
+    ("Graphviz sequence reachability edge fontcolors" "origin" "sequence" "edge" "reachable" "edge-fontcolor-by" "1" )
+    ("Graphviz sequence reachability edge fontcolors" "reachable" "sequence" "edge" "reachable" "edge-fontcolor-by" "2" )
+    ("Graphviz sequence reachability edge fontcolors" "not-reachable" "sequence" "edge" "reachable" "edge-fontcolor-by" "3" )
+    ("Graphviz sequence reachability edge fontcolors" "colorscheme" "sequence" "edge" "reachable" "edge-fontcolor-by" "accent3" )
+    ("Adjacency configuration" "origin" "sequence" "edge" "adjacent" "" "" )
+    ("Graphviz sequence adjacent node colors" "origin" "sequence" "node" "adjacent" "node-color-by" "1" )
+    ("Graphviz sequence adjacent node colors" "adjacent" "sequence" "node" "adjacent" "node-color-by" "2" )
+    ("Graphviz sequence adjacent node colors" "not-adjacent" "sequence" "node" "adjacent" "node-color-by" "3" )
+    ("Graphviz sequence adjacent node colors" "colorscheme" "sequence" "node" "adjacent" "node-color-by" "rdylbu3" )
+    ("Graphviz sequence adjacent node fillcolors" "origin" "sequence" "node" "adjacent" "node-fill-by" "1" )
+    ("Graphviz sequence adjacent node fillcolors" "adjacent" "sequence" "node" "adjacent" "node-fill-by" "2" )
+    ("Graphviz sequence adjacent node fillcolors" "not-adjacent" "sequence" "node" "adjacent" "node-fill-by" "3" )
+    ("Graphviz sequence adjacent node fillcolors" "colorscheme" "sequence" "node" "adjacent" "node-fill-by" "rdylbu3" )
+    ("Graphviz sequence adjacent node shapes" "adjacent" "sequence" "node" "adjacent" "node-shape-by" "polygon" )
+    ("Graphviz sequence adjacent node shapes" "not-adjacent" "sequence" "node" "adjacent" "node-shape-by" "polygon" )
+    ("Graphviz sequence adjacent node shapes" "origin" "sequence" "node" "adjacent" "node-shape-by" "polygon" )
+    ("Graphviz sequence adjacent node styles" "adjacent" "sequence" "node" "adjacent" "node-style-by" "solid,filled" )
+    ("Graphviz sequence adjacent node styles" "not-adjacent" "sequence" "node" "adjacent" "node-style-by" "dashed,filled" )
+    ("Graphviz sequence adjacent node styles" "origin" "sequence" "node" "adjacent" "node-style-by" "dotted,filled" )
+    ("Graphviz sequence adjacent node penwidths" "origin" "sequence" "node" "adjacent" "node-penwidth-by" "3" )
+    ("Graphviz sequence adjacent node penwidths" "adjacent" "sequence" "node" "adjacent" "node-penwidth-by" "2" )
+    ("Graphviz sequence adjacent node penwidths" "not-adjacent" "sequence" "node" "adjacent" "node-penwidth-by" "1" )
+    ("Graphviz sequence adjacent node polygon distortion" "adjacent" "sequence" "node" "adjacent" "node-polygon-distortion-by" "0" )
+    ("Graphviz sequence adjacent node polygon distortion" "not-adjacent" "sequence" "node" "adjacent" "node-polygon-distortion-by" "50" )
+    ("Graphviz sequence adjacent node polygon distortion" "origin" "sequence" "node" "adjacent" "node-polygon-distortion-by" "-50" )
+    ("Graphviz sequence adjacent node polygon image" "adjacent" "sequence" "node" "adjacent" "node-polygon-image-by" "" )
+    ("Graphviz sequence adjacent node polygon image" "not-adjacent" "sequence" "node" "adjacent" "node-polygon-image-by" "" )
+    ("Graphviz sequence adjacent node polygon image" "origin" "sequence" "node" "adjacent" "node-polygon-image-by" "" )
+    ("Graphviz sequence adjacent node polygon orientation" "adjacent" "sequence" "node" "adjacent" "node-polygon-orientation-by" "0" )
+    ("Graphviz sequence adjacent node polygon orientation" "not-adjacent" "sequence" "node" "adjacent" "node-polygon-orientation-by" "45" )
+    ("Graphviz sequence adjacent node polygon orientation" "origin" "sequence" "node" "adjacent" "node-polygon-orientation-by" "90" )
+    ("Graphviz sequence adjacent node polygon sides" "origin" "sequence" "node" "adjacent" "node-polygon-side-by" "4" )
+    ("Graphviz sequence adjacent node polygon sides" "adjacent" "sequence" "node" "adjacent" "node-polygon-side-by" "4" )
+    ("Graphviz sequence adjacent node polygon sides" "not-adjacent" "sequence" "node" "adjacent" "node-polygon-side-by" "4" )
+    ("Graphviz sequence adjacent node polygon skew" "origin" "sequence" "node" "adjacent" "node-polygon-skew-by" "0" )
+    ("Graphviz sequence adjacent node polygon skew" "adjacent" "sequence" "node" "adjacent" "node-polygon-skew-by" "50" )
+    ("Graphviz sequence adjacent node polygon skew" "not-adjacent" "sequence" "node" "adjacent" "node-polygon-skew-by" "-50" )
+    ("Graphviz sequence adjacent edge penwidths" "origin" "sequence" "edge" "adjacent" "edge-penwidth-by" "3" )
+    ("Graphviz sequence adjacent edge penwidths" "adjacent" "sequence" "edge" "adjacent" "edge-penwidth-by" "2" )
+    ("Graphviz sequence adjacent edge penwidths" "not-adjacent" "sequence" "edge" "adjacent" "edge-penwidth-by" "1" )
+    ("Graphviz sequence adjacent edge colors" "origin" "sequence" "edge" "adjacent" "edge-color-by" "1" )
+    ("Graphviz sequence adjacent edge colors" "adjacent" "sequence" "edge" "adjacent" "edge-color-by" "2" )
+    ("Graphviz sequence adjacent edge colors" "not-adjacent" "sequence" "edge" "adjacent" "edge-color-by" "3" )
+    ("Graphviz sequence adjacent edge colors" "colorscheme" "sequence" "edge" "adjacent" "edge-color-by" "rdylbu3" )
+    ("Graphviz sequence adjacent edge styles" "origin" "sequence" "edge" "adjacent" "edge-style-by" "solid" )
+    ("Graphviz sequence adjacent edge styles" "adjacent" "sequence" "edge" "adjacent" "edge-style-by" "dashed" )
+    ("Graphviz sequence adjacent edge styles" "not-adjacent" "sequence" "edge" "adjacent" "edge-style-by" "dotted" )
+    ("Graphviz sequence adjacent edge fontcolors" "origin" "sequence" "edge" "adjacent" "edge-fontcolor-by" "1" )
+    ("Graphviz sequence adjacent edge fontcolors" "adjacent" "sequence" "edge" "adjacent" "edge-fontcolor-by" "2" )
+    ("Graphviz sequence adjacent edge fontcolors" "not-adjacent" "sequence" "edge" "adjacent" "edge-fontcolor-by" "3" )
+    ("Graphviz sequence adjacent edge fontcolors" "colorscheme" "sequence" "edge" "adjacent" "edge-fontcolor-by" "rdylbu3" )
+    ("Graphviz sequence unit node shape" "deposit" "sequence" "node" "units" "node-shape-by" "box" )
+    ("Graphviz sequence unit node shape" "interface" "sequence" "node" "units" "node-shape-by" "trapezium" )
+    ("Graphviz sequence unit node color" "deposit" "sequence" "node" "units" "node-color-by" "green" )
+    ("Graphviz sequence unit node color" "interface" "sequence" "node" "units" "node-color-by" "red" )
+    ("Graphviz sequence unit node color" "colorscheme" "sequence" "node" "units" "node-color-by" "x11" )
+    ("Graphviz sequence unit node fillcolor" "deposit" "sequence" "node" "units" "node-fill-by" "green" )
+    ("Graphviz sequence unit node fillcolor" "interface" "sequence" "node" "units" "node-fill-by" "red" )
+    ("Graphviz sequence unit node fillcolor" "colorscheme" "sequence" "node" "units" "node-fill-by" "x11" )
+    ("Graphviz sequence unit node penwidth" "deposit" "sequence" "node" "units" "node-penwidth-by" "2" )
+    ("Graphviz sequence unit node penwidth" "interface" "sequence" "node" "units" "node-penwidth-by" "1" )
+    ("Graphviz sequence unit node style" "deposit" "sequence" "node" "units" "node-style-by" "solid,filled" )
+    ("Graphviz sequence unit node style" "interface" "sequence" "node" "units" "node-style-by" "dashed,filled" )
+    ("Graphviz sequence unit node polygon distortion" "deposit" "sequence" "node" "units" "node-polygon-distortion-by" "" )
+    ("Graphviz sequence unit node polygon distortion" "interface" "sequence" "node" "units" "node-polygon-distortion-by" "" )
+    ("Graphviz sequence unit node polygon image" "deposit" "sequence" "node" "units" "node-polygon-image-by" "" )
+    ("Graphviz sequence unit node polygon image" "interface" "sequence" "node" "units" "node-polygon-image-by" "" )
+    ("Graphviz sequence unit node polygon orientation" "deposit" "sequence" "node" "units" "node-polygon-orientation-by" "" )
+    ("Graphviz sequence unit node polygon orientation" "interface" "sequence" "node" "units" "node-polygon-orientation-by" "" )
+    ("Graphviz sequence unit node polygon sides" "deposit" "sequence" "node" "units" "node-polygon-sides-by" "" )
+    ("Graphviz sequence unit node polygon sides" "interface" "sequence" "node" "units" "node-polygon-sides-by" "" )
+    ("Graphviz sequence unit node polygon skew" "deposit" "sequence" "node" "units" "node-polygon-skew-by" "" )
+    ("Graphviz sequence unit node polygon skew" "interface" "sequence" "node" "units" "node-polygon-skew-by" "" )
+    ("Graphviz sequence unit edge color" "deposit" "sequence" "edge" "units" "edge-color-by" "green" )
+    ("Graphviz sequence unit edge color" "interface" "sequence" "edge" "units" "edge-color-by" "red" )
+    ("Graphviz sequence unit edge color" "colorscheme" "sequence" "edge" "units" "edge-color-by" "x11" )
+    ("Graphviz sequence unit edge fontcolor" "deposit" "sequence" "edge" "units" "edge-fontcolor-by" "green" )
+    ("Graphviz sequence unit edge fontcolor" "interface" "sequence" "edge" "units" "edge-fontcolor-by" "red" )
+    ("Graphviz sequence unit edge fontcolor" "colorscheme" "sequence" "edge" "units" "edge-fontcolor-by" "x11" )
+    ("Graphviz sequence unit edge penwidth" "deposit" "sequence" "edge" "units" "edge-penwidth-by" "2" )
+    ("Graphviz sequence unit edge penwidth" "interface" "sequence" "edge" "units" "edge-penwidth-by" "1" )
+    ("Graphviz sequence unit edge style" "deposit" "sequence" "edge" "units" "edge-style-by" "solid" )
+    ("Graphviz sequence unit edge style" "interface" "sequence" "edge" "units" "edge-style-by" "dashed" )
+    ("Graphviz chronology graph attributes" "colorscheme" "chronology" "graph" "" "" "x11" )
+    ("Graphviz chronology graph attributes" "fontname" "chronology" "graph" "" "" "Time-Roman" )
+    ("Graphviz chronology graph attributes" "fontsize" "chronology" "graph" "" "" "14.0" )
+    ("Graphviz chronology graph attributes" "fontcolor" "chronology" "graph" "" "" "black" )
+    ("Graphviz chronology graph attributes" "label" "chronology" "graph" "" "" "Chronology Graph" )
+    ("Graphviz chronology graph attributes" "labelloc" "chronology" "graph" "" "" "t" )
+    ("Graphviz chronology graph attributes" "style" "chronology" "graph" "" "" "filled" )
+    ("Graphviz chronology graph attributes" "size" "chronology" "graph" "" "" "" )
+    ("Graphviz chronology graph attributes" "ratio" "chronology" "graph" "" "" "" )
+    ("Graphviz chronology graph attributes" "page" "chronology" "graph" "" "" "" )
+    ("Graphviz chronology graph attributes" "dpi" "chronology" "graph" "" "" "0.0" )
+    ("Graphviz chronology graph attributes" "margin" "chronology" "graph" "" "" "" )
+    ("Graphviz chronology graph attributes" "bgcolor" "chronology" "graph" "" "" "white" )
+    ("Graphviz chronology graph attributes" "label-break" "chronology" "graph" "" "" "" )
+    ("Graphviz chronology graph attributes" "fontsize-subscript" "chronology" "graph" "" "" "" )
+    ("Graphviz chronology graph attributes" "splines" "chronology" "graph" "" "" "ortho" )
+    ("Graphviz chronology node attributes" "colorscheme" "chronology" "node" "" "" "" )
+    ("Graphviz chronology node attributes" "style" "chronology" "node" "" "" "filled" )
+    ("Graphviz chronology node attributes" "fontname" "chronology" "node" "" "" "Helvetica" )
+    ("Graphviz chronology node attributes" "fontsize" "chronology" "node" "" "" "14.0" )
+    ("Graphviz chronology node attributes" "fontcolor" "chronology" "node" "" "" "black" )
+    ("Graphviz chronology node attributes" "color" "chronology" "node" "" "" "black" )
+    ("Graphviz chronology node attributes" "fillcolor" "chronology" "node" "" "" "white" )
+    ("Graphviz chronology edge attributes" "fontname" "chronology" "edge" "" "" "Helvetica" )
+    ("Graphviz chronology edge attributes" "colorscheme" "chronology" "edge" "" "" "" )
+    ("Graphviz chronology edge attributes" "fontsize" "chronology" "edge" "" "" "14.0" )
+    ("Graphviz chronology edge attributes" "fontcolor" "chronology" "edge" "" "" "black" )
+    ("Graphviz chronology edge attributes" "arrowhead" "chronology" "edge" "" "" "normal" )
+    ("Graphviz chronology edge attributes" "sequential" "chronology" "edge" "" "" "solid" )
+    ("Graphviz chronology edge attributes" "abutting" "chronology" "edge" "" "" "dashed" )
+    ("Graphviz chronology edge attributes" "separated" "chronology" "edge" "" "" "dotted" )
+    ("Graphviz chronology edge attributes" "color" "chronology" "edge" "" "" "black" )
+    ("Graphviz chronology node shapes" "phase" "chronology" "node" "" "" "box" )
+    ("Graphviz chronology node shapes" "event" "chronology" "node" "" "" "ellipse" )
+    ("Graphviz colors" "label-dark" "" "" "" "" "black" )
+    ("Graphviz colors" "label-light" "" "" "" "" "white" )
+    ("Graphviz legend node attributes" "color" "legend" "node" "" "" "black" )
+    ("Graphviz legend node attributes" "fillcolor" "legend" "node" "" "" "white" )
+    ("Graphviz legend node attributes" "shape" "legend" "node" "" "" "box" )
+    ))
+
+
+;;API
+(defun fast-matrix-p (cfg)
+  "Returns the boolean value for fast-matrix in the user's configuration, CFG,
+or nil if CFG contains a value not interpreted by py-configparser as a boolean."
+  (let ((value (get-option cfg "General configuration" "fast-matrix")))
+    (if (member value '("1" "yes" "true" "on" "0" "no" "false" "off")
+                :test #'string=)
+        (get-option cfg "General configuration" "fast-matrix" :type :boolean)
+        nil)))
+
+;;API
 (defun assume-correlations-p (cfg)
   "Returns the boolean value for assume-correlations in the user's
-  configuration, CFG."
-  (get-option cfg "General configuration" "assume-correlations" :type :boolean))
+  configuration, CFG, or nil if CFG contains a value not interpreted by
+  py-configparser as a boolean."
+  (let ((value (get-option cfg "General configuration" "assume-correlations")))
+    (if (member value '("1" "yes" "true" "on" "0" "no" "false" "off")
+                :test #'string=)
+        (get-option cfg "General configuration" "assume-correlations"
+                    :type :boolean)
+        nil)))
 
+;;API
 (defun input-file-name (cfg content)
   "Return the file name for CONTENT from the user's configuration, CFG. CONTENT
   is a string, one of `contexts', `observations', `inferences', `periods',
   `phases', `events', or `event-order'."
   (get-option cfg "Input files" content))
 
+;;API
 (defun input-file-name-p (cfg content)
-  "Return a boolean indicating whether or not the user's configuration, CFG, includes a file name for CONTENT."
+  "Return a boolean indicating whether or not the user's configuration, CFG,
+  includes a file name for CONTENT. CONTENT is a string, one of `contexts',
+  `observations', `inferences', `periods', `phases', `events', or
+  `event-order'."
   (not (emptyp (get-option cfg "Input files" content))))
 
+;; API
 (defun file-header-p (cfg content)
   "Return the boolean value for CONTENT from the `Input file headers' section of
-  the user's configuration, CFG."
+  the user's configuration, CFG. CONTENT is a string, one of `contexts',
+  `observations', `inferences', `periods', `phases', `events', or
+  `event-order'."
   (get-option cfg "Input file headers" content :type :boolean))
 
+;; API
 (defun output-file-name (cfg content)
-  "Return the file name for CONTENT from the user's configuration, CFG.  CONTENT is a string, one of `sequence-dot' or `chronology-dot'."
+  "Return the file name for CONTENT from the user's configuration, CFG. CONTENT
+  is a string, one of `sequence-dot' or `chronology-dot'. CONTENT is a string,
+  one of `contexts', `observations', `inferences', `periods', `phases',
+  `events', or `event-order'."
   (get-option cfg "Output files" content))
 
 (defun missing-interfaces-p (cfg)
@@ -96,738 +372,68 @@ CFG."
   (get-option cfg "Graphviz sequence classification" option))
 
 ;; API
-(defun make-default-configuration ()
-  "Returns the default configuration."
-  (let ((cfg (make-config)))
-    (add-section cfg "Output files")
-    (set-option cfg "Output files" "sequence-dot" "")
-    (set-option cfg "Output files" "chronology-dot" "")
 
-    (add-section cfg "Input files")
-    (set-option cfg "Input files" "contexts" "")
-    (set-option cfg "Input files" "observations" "")
-    (set-option cfg "Input files" "inferences" "")
-    (set-option cfg "Input files" "periods" "")
-    (set-option cfg "Input files" "phases" "")
-    (set-option cfg "Input files" "events" "")
-    (set-option cfg "Input files" "event-order" "")
+(defun default-configuration ()
+  "Convenience function returns the default configuration."
+  (make-default-or-empty-configuration (master-table)))
 
-    (add-section cfg "Input file headers")
-    (set-option cfg "Input file headers" "contexts" "")
-    (set-option cfg "Input file headers" "observations" "")
-    (set-option cfg "Input file headers" "inferences" "")
-    (set-option cfg "Input file headers" "periods" "")
-    (set-option cfg "Input file headers" "phases" "")
-    (set-option cfg "Input file headers" "events" "")
-    (set-option cfg "Input file headers" "event-order" "")
+(defun empty-configuration ()
+  "Convenience function returns an empty configuration."
+  (make-default-or-empty-configuration (master-table) t))
 
-    (add-section cfg "Chronology graph")
-    (set-option cfg "Chronology graph" "draw" "off")
-
-    (add-section cfg "General configuration")
-    (set-option cfg "General configuration" "url-include" "off")
-    (set-option cfg "General configuration" "url-default"
-                "http://tsdye.github.io/harris-matrix/")
-    (set-option cfg "General configuration" "legend" "off")
-    (set-option cfg "General configuration" "assume-correlations" "no")
-    (set-option cfg "General configuration" "fast-matrix" "on")
-    (set-option cfg "General configuration" "add-missing-interfaces" "off")
-
-    (add-section cfg "Graphviz sequence classification")
-    ;; Node classifiers
-    (set-option cfg "Graphviz sequence classification" "node-fill-by" "")
-    (set-option cfg "Graphviz sequence classification" "node-shape-by" "units")
-    (set-option cfg "Graphviz sequence classification" "node-color-by" "")
-    (set-option cfg "Graphviz sequence classification" "node-penwidth-by" "")
-    (set-option cfg "Graphviz sequence classification" "node-style-by" "")
-    ;; Polygon classifiers
-    (set-option cfg "Graphviz sequence classification"
-                "node-polygon-distortion-by" "")
-    (set-option cfg "Graphviz sequence classification"
-                "node-polygon-image-by" "")
-    (set-option cfg "Graphviz sequence classification"
-                "node-polygon-orientation-by" "")
-    (set-option cfg "Graphviz sequence classification"
-                "node-polygon-sides-by" "")
-    (set-option cfg "Graphviz sequence classification"
-                "node-polygon-skew-by" "")
-    ;; Edge classifiers
-    (set-option cfg "Graphviz sequence classification" "edge-color-by" "")
-    (set-option cfg "Graphviz sequence classification" "edge-fontcolor-by" "")
-    (set-option cfg "Graphviz sequence classification" "edge-penwidth-by" "")
-    (set-option cfg "Graphviz sequence classification" "edge-style-by" "")
-    (set-option cfg "Graphviz sequence classification" "edge-classify-by" "from")
-
-    (add-section cfg "Graphviz sequence graph attributes")
-    (set-option cfg "Graphviz sequence graph attributes" "colorscheme" "x11")
-    (set-option cfg "Graphviz sequence graph attributes" "bgcolor" "white")
-    (set-option cfg "Graphviz sequence graph attributes" "fontname" "Times-Roman")
-    (set-option cfg "Graphviz sequence graph attributes" "fontsize" "14.0")
-    (set-option cfg "Graphviz sequence graph attributes" "fontcolor" "black")
-    (set-option cfg "Graphviz sequence graph attributes" "label" "Sequence Diagram")
-    (set-option cfg "Graphviz sequence graph attributes" "labelloc" "t")
-    (set-option cfg "Graphviz sequence graph attributes" "style" "filled")
-    (set-option cfg "Graphviz sequence graph attributes" "size" "")
-    (set-option cfg "Graphviz sequence graph attributes" "ratio" "")
-    (set-option cfg "Graphviz sequence graph attributes" "page" "")
-    (set-option cfg "Graphviz sequence graph attributes" "dpi" "0.0")
-    (set-option cfg "Graphviz sequence graph attributes" "margin" "")
-    (set-option cfg "Graphviz sequence graph attributes" "label-break" "")
-    (set-option cfg "Graphviz sequence graph attributes"
-                "fontsize-subscript" "10.0")
-    (set-option cfg "Graphviz sequence graph attributes" "splines" "ortho")
-
-    (add-section cfg "Graphviz sequence edge attributes")
-    (set-option cfg "Graphviz sequence edge attributes" "colorscheme" "x11")
-    (set-option cfg "Graphviz sequence edge attributes" "style" "solid")
-    (set-option cfg "Graphviz sequence edge attributes" "color" "black")
-    (set-option cfg "Graphviz sequence edge attributes" "fontname" "Helvetica")
-    (set-option cfg "Graphviz sequence edge attributes" "fontsize" "14.0")
-    (set-option cfg "Graphviz sequence edge attributes" "fontcolor" "black")
-    (set-option cfg "Graphviz sequence edge attributes" "arrowhead" "normal")
-    (set-option cfg "Graphviz sequence edge attributes" "penwidth" "1.0")
-    (set-option cfg "Graphviz sequence edge attributes" "penwidth-min" "1.0")
-    (set-option cfg "Graphviz sequence edge attributes" "penwidth-max" "1.0")
-
-    (add-section cfg "Graphviz sequence node attributes")
-    (set-option cfg "Graphviz sequence node attributes" "shape" "box")
-    (set-option cfg "Graphviz sequence node attributes" "colorscheme" "x11")
-    (set-option cfg "Graphviz sequence node attributes" "style" "filled")
-    (set-option cfg "Graphviz sequence node attributes" "color" "black")
-    (set-option cfg "Graphviz sequence node attributes" "fontsize" "14.0")
-    (set-option cfg "Graphviz sequence node attributes" "fontcolor" "black")
-    (set-option cfg "Graphviz sequence node attributes" "fillcolor" "white")
-    (set-option cfg "Graphviz sequence node attributes" "fontname" "Helvetica")
-    (set-option cfg "Graphviz sequence node attributes" "penwidth" "1.0")
-    (set-option cfg "Graphviz sequence node attributes" "penwidth-min" "1.0")
-    (set-option cfg "Graphviz sequence node attributes" "penwidth-max" "1.0")
-
-    ;;; Colorschemes
-    (add-section cfg "Graphviz colorscheme")
-    (set-option cfg "Graphviz colorscheme" "reachability" "")
-    (set-option cfg "Graphviz colorscheme" "adjacency" "")
-    (set-option cfg "Graphviz colorscheme" "units" "")
-    (set-option cfg "Graphviz colorscheme" "distance" "")
-    (set-option cfg "Graphviz colorscheme" "levels" "")
-    (set-option cfg "Graphviz colorscheme" "periods" "")
-    (set-option cfg "Graphviz colorscheme" "phases" "")
-
- ;;; Reachability configuration
-    (add-section cfg "Reachability configuration")
-    (set-option cfg "Reachability configuration" "reachable-from" "")
-    (set-option cfg "Reachability configuration" "reachable-limit" "")
-
-    ;; Reachability node colors
-    (add-section cfg "Graphviz sequence reachability node colors")
-    (set-option cfg "Graphviz sequence reachability node colors"
-                "reachable" "grey25")
-    (set-option cfg "Graphviz sequence reachability node colors"
-                "not-reachable" "black")
-    (set-option cfg "Graphviz sequence reachability node colors"
-                "origin" "white")
-
-    ;; Reachability node fills
-    (add-section cfg "Graphviz sequence reachability node fillcolors")
-    (set-option cfg "Graphviz sequence reachability node fillcolors"
-                "reachable" "gray25")
-    (set-option cfg "Graphviz sequence reachability node fillcolors"
-                "not-reachable" "black")
-    (set-option cfg "Graphviz sequence reachability node fillcolors"
-                "origin" "white")
-
-    ;; Reachability node shapes
-    (add-section cfg "Graphviz sequence reachability node shapes")
-    (set-option cfg "Graphviz sequence reachability node shapes"
-                "reachable" "")
-    (set-option cfg "Graphviz sequence reachability node shapes"
-                "not-reachable" "")
-    (set-option cfg "Graphviz sequence reachability node shapes"
-                "origin" "")
-
-    ;; Reachability node styles
-    (add-section cfg "Graphviz sequence reachability node styles")
-    (set-option cfg "Graphviz sequence reachability node styles"
-                "reachable" "")
-    (set-option cfg "Graphviz sequence reachability node styles"
-                "not-reachable" "")
-    (set-option cfg "Graphviz sequence reachability node styles"
-                "origin" "")
-
-    ;; Reachability node penwidths
-    (add-section cfg "Graphviz sequence reachability node penwidths")
-    (set-option cfg "Graphviz sequence reachability node penwidths"
-                "reachable" "")
-    (set-option cfg "Graphviz sequence reachability node penwidths"
-                "not-reachable" "")
-    (set-option cfg "Graphviz sequence reachability node penwidths"
-                "origin" "")
-
-    ;; Reachability edge penwidths
-    (add-section cfg "Graphviz sequence reachability edge penwidths")
-    (set-option cfg "Graphviz sequence reachability edge penwidths"
-                "reachable" "")
-    (set-option cfg "Graphviz sequence reachability edge penwidths"
-                "not-reachable" "")
-    (set-option cfg "Graphviz sequence reachability edge penwidths"
-                "origin" "")
-
-    ;; Reachability edge colors
-    (add-section cfg "Graphviz sequence reachability edge colors")
-    (set-option cfg "Graphviz sequence reachability edge colors"
-                "reachable" "grey25")
-    (set-option cfg "Graphviz sequence reachability edge colors"
-                "not-reachable" "black")
-    (set-option cfg "Graphviz sequence reachability edge colors"
-                "origin" "white")
-
-    ;; Reachability edge styles
-    (add-section cfg "Graphviz sequence reachability edge styles")
-    (set-option cfg "Graphviz sequence reachability edge styles"
-                "reachable" "")
-    (set-option cfg "Graphviz sequence reachability edge styles"
-                "not-reachable" "")
-    (set-option cfg "Graphviz sequence reachability edge styles"
-                "origin" "")
-
-    ;; Reachability edge fontcolors
-    (add-section cfg "Graphviz sequence reachability edge fontcolors")
-    (set-option cfg "Graphviz sequence reachability edge fontcolors"
-                "reachable" "")
-    (set-option cfg "Graphviz sequence reachability edge fontcolors"
-                "not-reachable" "")
-    (set-option cfg "Graphviz sequence reachability edge fontcolors"
-                "origin" "")
-
-    (add-section cfg "Adjacency configuration")
-    (set-option cfg "Adjacency configuration" "origin" "")
-
-
-    ;; Adjacent node colors
-    (add-section cfg "Graphviz sequence adjacent node colors")
-    (set-option cfg "Graphviz sequence adjacent node colors"
-                "adjacent" "grey25")
-    (set-option cfg "Graphviz sequence adjacent node colors"
-                "not-adjacent" "black")
-    (set-option cfg "Graphviz sequence adjacent node colors"
-                "origin" "white")
-
-
-    ;; Adjacent node fills
-    (add-section cfg "Graphviz sequence adjacent node fillcolors")
-    (set-option cfg "Graphviz sequence adjacent node fillcolors"
-                "adjacent" "gray25")
-    (set-option cfg "Graphviz sequence adjacent node fillcolors"
-                "not-adjacent" "black")
-    (set-option cfg "Graphviz sequence adjacent node fillcolors"
-                "origin" "white")
-
-
-    ;; Adjacent node shapes
-    (add-section cfg "Graphviz sequence adjacent node shapes")
-    (set-option cfg "Graphviz sequence adjacent node shapes"
-                "adjacent" "")
-    (set-option cfg "Graphviz sequence adjacent node shapes"
-                "not-adjacent" "")
-    (set-option cfg "Graphviz sequence adjacent node shapes"
-                "origin" "")
-
-
-    ;; Adjacent node styles
-    (add-section cfg "Graphviz sequence adjacent node styles")
-    (set-option cfg "Graphviz sequence adjacent node styles"
-                "adjacent" "")
-    (set-option cfg "Graphviz sequence adjacent node styles"
-                "not-adjacent" "")
-    (set-option cfg "Graphviz sequence adjacent node styles"
-                "origin" "")
-
-
-    ;; Adjacent node penwidths
-    (add-section cfg "Graphviz sequence adjacent node penwidths")
-    (set-option cfg "Graphviz sequence adjacent node penwidths"
-                "adjacent" "")
-    (set-option cfg "Graphviz sequence adjacent node penwidths"
-                "not-adjacent" "")
-    (set-option cfg "Graphviz sequence adjacent node penwidths"
-                "origin" "")
-
-
-    ;; Adjacent edge penwidths
-    (add-section cfg "Graphviz sequence adjacent edge penwidths")
-    (set-option cfg "Graphviz sequence adjacent edge penwidths"
-                "adjacent" "")
-    (set-option cfg "Graphviz sequence adjacent edge penwidths"
-                "not-adjacent" "")
-    (set-option cfg "Graphviz sequence adjacent edge penwidths"
-                "origin" "")
-
-
-    ;; Adjacent edge colors
-    (add-section cfg "Graphviz sequence adjacent edge colors")
-    (set-option cfg "Graphviz sequence adjacent edge colors"
-                "adjacent" "grey25")
-    (set-option cfg "Graphviz sequence adjacent edge colors"
-                "not-adjacent" "black")
-    (set-option cfg "Graphviz sequence adjacent edge colors"
-                "origin" "white")
-
-
-;; Adjacent edge styles
-    (add-section cfg "Graphviz sequence adjacent edge styles")
-    (set-option cfg "Graphviz sequence adjacent edge styles"
-                "adjacent" "")
-    (set-option cfg "Graphviz sequence adjacent edge styles"
-                "not-adjacent" "")
-    (set-option cfg "Graphviz sequence adjacent edge styles"
-                "origin" "")
-
-
-    ;; Adjacent edge fontcolors
-    (add-section cfg "Graphviz sequence adjacent edge fontcolors")
-    (set-option cfg "Graphviz sequence adjacent edge fontcolors"
-                "adjacent" "")
-    (set-option cfg "Graphviz sequence adjacent edge fontcolors"
-                "not-adjacent" "")
-    (set-option cfg "Graphviz sequence adjacent edge fontcolors"
-                "origin" "")
-
-
-    (add-section cfg "Graphviz sequence unit node attributes")
-;; Unit nodes
-    (set-option cfg "Graphviz sequence unit node attributes"
-                "deposit-shape" "box")
-    (set-option cfg "Graphviz sequence unit node attributes"
-                "deposit-color" "black")
-    (set-option cfg "Graphviz sequence unit node attributes"
-                "deposit-fill" "white")
-    (set-option cfg "Graphviz sequence unit node attributes"
-                "deposit-penwidth" "")
-    (set-option cfg "Graphviz sequence unit node attributes"
-                "deposit-style" "filled")
-    (set-option cfg "Graphviz sequence unit node attributes"
-                "interface-shape" "trapezium")
-    (set-option cfg "Graphviz sequence unit node attributes"
-                "interface-fill" "white")
-    (set-option cfg "Graphviz sequence unit node attributes"
-                "interface-color" "black")
-    (set-option cfg "Graphviz sequence unit node attributes"
-                "interface-penwidth" "")
-    (set-option cfg "Graphviz sequence unit node attributes"
-                "interface-style" "")
-
-
-    ;; Unit edges
-    (add-section cfg "Graphviz sequence unit edge attributes")
-    (set-option cfg "Graphviz sequence unit edge attributes"
-                "interface-color" "")
-    (set-option cfg "Graphviz sequence unit edge attributes"
-                "interface-fontcolor" "")
-    (set-option cfg "Graphviz sequence unit edge attributes"
-                "interface-penwidth" "")
-    (set-option cfg "Graphviz sequence unit edge attributes"
-                "interface-style" "")
-    (set-option cfg "Graphviz sequence unit edge attributes"
-                "deposit-color" "")
-    (set-option cfg "Graphviz sequence unit edge attributes"
-                "deposit-fontcolor" "")
-    (set-option cfg "Graphviz sequence unit edge attributes"
-                "deposit-penwidth" "")
-    (set-option cfg "Graphviz sequence unit edge attributes"
-                "deposit-style" "")
-
-    (add-section cfg "Graphviz chronology graph attributes")
-    (set-option cfg "Graphviz chronology graph attributes" "colorscheme" "x11")
-    (set-option cfg "Graphviz chronology graph attributes" "fontname" "Times-Roman")
-    (set-option cfg "Graphviz chronology graph attributes" "fontsize" "14.0")
-    (set-option cfg "Graphviz chronology graph attributes" "fontcolor" "black")
-    (set-option
-     cfg "Graphviz chronology graph attributes" "label" "Chronology Graph")
-    (set-option cfg "Graphviz chronology graph attributes" "labelloc" "t")
-    (set-option cfg "Graphviz chronology graph attributes" "style" "filled")
-    (set-option cfg "Graphviz chronology graph attributes" "size" "")
-    (set-option cfg "Graphviz chronology graph attributes" "ratio" "")
-    (set-option cfg "Graphviz chronology graph attributes" "page" "")
-    (set-option cfg "Graphviz chronology graph attributes" "dpi" "0.0")
-    (set-option cfg "Graphviz chronology graph attributes" "margin" "")
-    (set-option cfg "Graphviz chronology graph attributes" "bgcolor" "white")
-    (set-option cfg "Graphviz chronology graph attributes" "label-break" "")
-    (set-option
-     cfg "Graphviz chronology graph attributes" "fontsize-subscript" "10.0")
-    (set-option cfg "Graphviz chronology graph attributes" "splines" "ortho")
-
-    (add-section cfg "Graphviz chronology node attributes")
-    (set-option cfg "Graphviz chronology node attributes" "style" "filled")
-    (set-option cfg "Graphviz chronology node attributes" "fontname" "Times-Roman")
-    (set-option cfg "Graphviz chronology node attributes" "fontsize" "14.0")
-    (set-option cfg "Graphviz chronology node attributes" "fontcolor" "black")
-    (set-option cfg "Graphviz chronology node attributes" "color" "black")
-    (set-option cfg "Graphviz chronology node attributes" "fillcolor" "white")
-
-    (add-section cfg "Graphviz chronology edge attributes")
-    (set-option cfg "Graphviz chronology edge attributes" "fontname" "Times-Roman")
-    (set-option cfg "Graphviz chronology edge attributes" "fontsize" "14.0")
-    (set-option cfg "Graphviz chronology edge attributes" "fontcolor" "black")
-    (set-option cfg "Graphviz chronology edge attributes" "arrowhead" "normal")
-    (set-option cfg "Graphviz chronology edge attributes" "sequential" "solid")
-    (set-option cfg "Graphviz chronology edge attributes" "abutting" "dashed")
-    (set-option cfg "Graphviz chronology edge attributes" "separated" "dotted")
-    (set-option cfg "Graphviz chronology edge attributes" "color" "black")
-
-    (add-section cfg "Graphviz chronology node shapes")
-    (set-option cfg "Graphviz chronology node shapes" "phase" "box")
-    (set-option cfg "Graphviz chronology node shapes" "event" "ellipse")
-
-    (add-section cfg "Graphviz colors")
-    (set-option cfg "Graphviz colors" "color-label-dark" "black")
-    (set-option cfg "Graphviz colors" "color-label-light" "white")
-
-    (add-section cfg "Graphviz legend node attributes")
-    (set-option cfg "Graphviz legend node attributes" "color" "black")
-    (set-option cfg "Graphviz legend node attributes" "fillcolor" "white")
-    (set-option cfg "Graphviz legend node attributes" "shape" "box")
+(defun make-default-or-empty-configuration (master &optional empty)
+  "Returns a configuration from the values in MASTER. By default, returns the
+default configuration. If EMPTY is non-nil, then returns an empty
+configuration."
+  (let ((cfg (make-config))
+        (sections))
+    (dolist (row master)
+      (let ((section (nth 0 row))
+            (option (nth 1 row))
+            (default (nth 6 row)))
+        (when (not (member section sections))
+          (push section sections)
+          (add-section cfg section))
+        (set-option cfg section option (if empty "" default))))
     cfg))
 
-(defun lookup-edge-option (cfg variable &optional domain option)
-  "Given a user configuration, CFG, a string describing a user-set VARIABLE, and
-optionally strings describing the DOMAIN and OPTION of the VARIABLE, return the
-value of the edge option."
-  (cond
-    ((string= domain "units")
-     (cond
-       ((string= option "edge-color-by")
-        (cond
-          ((string= variable "deposit")
-           (get-option cfg "Graphviz sequence unit edge attributes"
-                       "deposit-color"))
-          ((string= variable "interface")
-           (get-option cfg "Graphviz sequence unit edge attributes"
-                       "interface-color"))))
-       ((string= option "edge-fontcolor-by")
-        (cond
-          ((string= variable "deposit")
-           (get-option cfg "Graphviz sequence unit edge attributes"
-                       "deposit-fontcolor"))
-          ((string= variable "interface")
-           (get-option cfg "Graphviz sequence unit edge attributes"
-                       "interface-fontcolor"))))
-       ((string= option "edge-penwidth-by")
-        (cond
-          ((string= variable "deposit")
-           (get-option cfg "Graphviz sequence unit edge attributes"
-                       "deposit-penwidth" :type :number))
-          ((string= variable "interface")
-           (get-option cfg "Graphviz sequence unit edge attributes"
-                       "interface-penwidth"))))
-       ((string= option "edge-style-by")
-        (cond
-          ((string= variable "deposit")
-           (get-option cfg "Graphviz sequence unit edge attributes"
-                       "deposit-style"))
-          ((string= variable "interface")
-           (get-option cfg "Graphviz sequence unit edge attributes"
-                       "interface-style"))))))
-     ((string= domain "adjacent")
-      (cond
-        ((string= option "edge-penwidth-by")
-         (cond
-           ((string= variable "adjacent")
-            (get-option cfg "Graphviz sequence reachability edge penwidths"
-                        "reachable"))
-           ((string= variable "origin")
-            (get-option cfg "Graphviz sequence reachability edge penwidths"
-                                   "origin"))
-           ((string= variable "reachable")
-            (get-option cfg "Graphviz sequence reachability edge penwidths"
-                        "reachable"))
-           ((string= variable "not-adjacent")
-            (get-option cfg "Graphviz sequence reachability edge penwidths"
-                        "not-reachable"))
-           ))
-        ((string= option "edge-color-by")
-         (cond
-           ((string= variable "adjacent")
-            (get-option cfg "Graphviz sequence reachability edge colors"
-                        "adjacent"))
-           ((string= variable "origin")
-            (get-option cfg "Graphviz sequence reachability edge colors"
-                        "origin"))
-           ((string= variable "reachable")
-            (get-option cfg "Graphviz sequence reachability edge colors"
-                        "reachable"))
-           ((string= variable "not-adjacent")
-            (get-option cfg "Graphviz sequence reachability edge colors"
-                        "not-reachable"))))
-        ((string= option "edge-style-by")
-         (cond
-           ((string= variable "adjacent")
-            (get-option cfg "Graphviz sequence reachability edge styles"
-                        "adjacent"))
-           ((string= variable "origin")
-            (get-option cfg "Graphviz sequence reachability edge styles"
-                        "origin"))
-           ((string= variable "reachable")
-            (get-option cfg "Graphviz sequence reachability edge styles"
-                        "reachable"))
-           ((string= variable "not-adjacent")
-            (get-option cfg "Graphviz sequence reachability edge styles"
-                        "not-reachable"))))
-        ((string= option "edge-fontcolor-by")
-         (cond
-           ((string= variable "adjacent")
-            (get-option cfg "Graphviz sequence reachability edge fontcolors"
-                        "adjacent"))
-           ((string= variable "origin")
-            (get-option cfg "Graphviz sequence reachability edge fontcolors"
-                        "origin"))
-           ((string= variable "reachable")
-            (get-option cfg "Graphviz sequence reachability edge fontcolors"
-                        "reachable"))
-           ((string= variable "not-adjacent")
-            (get-option cfg "Graphviz sequence reachability edge fontcolors"
-                        "not-reachable"))))))
-     ((not (and domain variable))
-      (cond
-        ((string= option "penwidth-max")
-         (get-option cfg "Graphviz sequence edge attributes"
-                     "penwidth-max"))
-        ((string= option "penwidth-min")
-         (get-option cfg "Graphviz sequence edge attributes"
-                     "penwidth-min"))
-        ((string= option "penwidth")
-         (get-option cfg "Graphviz sequence edge attributes"
-                     "penwidth"))
-        ((string= option "arrowhead")
-         (get-option cfg "Graphviz sequence edge attributes"
-                     "arrowhead"))
-        ((string= option "fontcolor")
-         (get-option cfg "Graphviz sequence edge attributes"
-                     "fontcolor"))
-        ((string= option "fontsize")
-         (get-option cfg "Graphviz sequence edge attributes"
-                     "fontsize"))
-        ((string= option "fontname")
-         (get-option cfg "Graphviz sequence edge attributes"
-                     "fontname"))
-        ((string= option "color")
-         (get-option cfg "Graphviz sequence edge attributes"
-                     "color"))
-        ((string= option "style")
-         (get-option cfg "Graphviz sequence edge attributes"
-                     "style"))
-        ((string= option "colorscheme")
-         (get-option cfg "Graphviz sequence edge attributes"
-                     "colorscheme"))))))
+(defun make-lookup-table (master)
+  (let ((map (fset:empty-map)))
+    (dolist (row master)
+      (let ((key (fset:empty-set)))
+        (dolist (column '(1 2 3 4 5))
+          (setq key (fset:with key (nth column row))))
+        (setq map (fset:with map key (nth 0 row)))))
+    map))
 
-(defun lookup-node-option (cfg variable &optional domain option)
-  "Given a user configuration, CFG, a string describing a user-set VARIABLE, and
-optionally strings describing the DOMAIN and OPTION of the VARIABLE, return the
-value of the node option."
-  (cond
-    ((string= domain "units")
-     (cond
-       ((string= option "node-fill-by")
-        (cond
-          ((string= variable "deposit")
-           (get-option cfg "Graphviz sequence unit attributes"
-                       "deposit-node-fill"))
-          ((string= variable "interface")
-           (get-option cfg "Graphviz sequence unit attributes"
-                       "interface-node-fill"))))
-       ((string= option "node-shape-by")
-        (cond
-          ((string= variable "deposit")
-           (get-option cfg "Graphviz sequence unit attributes"
-                       "deposit-node-shape"))
-          ((string= variable "interface")
-           (get-option cfg "Graphviz sequence unit attributes"
-                       "interface-node-shape"))))
-       ((string= option "node-color-by")
-        (cond
-          ((string= variable "deposit")
-           (get-option cfg "Graphviz sequence unit attributes"
-                       "deposit-node-color"))
-          ((string= variable "interface")
-           (get-option cfg "Graphviz sequence unit attributes"
-                       "interface-node-color"))))
-       ((string= option "node-penwidth-by")
-        (cond
-          ((string= variable "deposit")
-           (get-option cfg "Graphviz sequence unit attributes"
-                       "deposit-node-penwidth"))
-          ((string= variable "interface")
-           (get-option cfg "Graphviz sequence unit attributes"
-                       "interface-node-penwidth"))))
-       ((string= option "node-style-by")
-        (cond
-          ((string= variable "deposit")
-           (get-option cfg "Graphviz sequence unit attributes"
-                       "deposit-node-style"))
-          ((string= variable "interface")
-           (get-option cfg "Graphviz sequence unit attributes"
-                       "interface-node-style"))))))
-  ((string= domain "adjacent")
-   (cond
-     ((string= option "node-fill-by")
-      (cond
-        ((string= variable "origin")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "origin-node-fill"))
-        ((string= variable "adjacent")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "adjacent-node-fill"))
-        ((string= variable "not-adjacent")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "not-reachable-node-fill"))))
-     ((string= option "node-shape-by")
-      (cond
-        ((string= variable "origin")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "origin-node-shape"))
-        ((string= variable "adjacent")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "adjacent-node-shape"))
-        ((string= variable "not-adjacent")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "not-reachable-node-shape"))))
-     ((string= option "node-color-by")
-      (cond
-        ((string= variable "origin")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "origin-node-color"))
-        ((string= variable "adjacent")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "adjacent-node-color"))
-        ((string= variable "not-adjacent")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "not-reachable-node-color"))))
-     ((string= option "node-penwidth-by")
-      (cond
-        ((string= variable "origin")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "origin-node-penwidth"))
-        ((string= variable "adjacent")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "adjacent-node-penwidth"))
-        ((string= variable "not-adjacent")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "not-reachable-node-fill"))))
-     ((string= option "node-style-by")
-      (cond
-        ((string= variable "origin")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "origin-node-style"))
-        ((string= variable "adjacent")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "adjacent-node-style"))
-        ((string= variable "not-adjacent")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "not-reachable-node-style"))))))
-  ((string= domain "reachable")
-   (cond
-     ((string= option "node-fill-by")
-      (cond
-        ((string= variable "origin")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "origin-node-fill"))
-        ((string= variable "adjacent")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "adjacent-node-fill"))
-        ((string= variable "reachable")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "reachable-node-fill"))
-        ((string= variable "not-reachable")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "not-reachable-node-fill"))))
-     ((string= option "node-shape-by")
-      (cond
-        ((string= variable "origin")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "origin-node-shape"))
-        ((string= variable "adjacent")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "adjacent-node-shape"))
-        ((string= variable "reachable")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "reachable-node-shape"))
-        ((string= variable "not-reachable")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "not-reachable-node-shape"))))
-     ((string= option "node-color-by")
-      (cond
-        ((string= variable "origin")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "origin-node-color"))
-        ((string= variable "adjacent")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "adjacent-node-color"))
-        ((string= variable "not-reachable")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "not-reachable-node-color"))))
-     ((string= option "node-penwidth-by")
-      (cond
-        ((string= variable "origin")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "origin-node-penwidth"))
-        ((string= variable "adjacent")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "adjacent-node-penwidth"))
-        ((string= variable "reachable")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "reachable-node-penwidth"))
-        ((string= variable "not-reachable")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "not-reachable-node-penwidth"))))
-     ((string= option "node-style-by")
-      (cond
-        ((string= variable "origin")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "origin-node-style"))
-        ((string= variable "adjacent")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "adjacent-node-style"))
-        ((string= variable "reachable")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "reachable-node-style"))
-        ((string= variable "not-reachable")
-         (get-option cfg "Graphviz sequence reachability attributes"
-                     "not-reachable-node-style"))))
-     ((not (and domain variable))
-      (cond
-        ((string= option "fillcolor")
-         (get-option cfg "Graphviz sequence node attributes"
-                     "fillcolor"))
-        ((string= option "penwidth-max")
-         (get-option cfg "Graphviz sequence node attributes"
-                     "penwidth-max"))
-        ((string= option "penwidth-min")
-         (get-option cfg "Graphviz sequence node attributes"
-                     "penwidth-min"))
-        ((string= option "penwidth")
-         (get-option cfg "Graphviz sequence node attributes"
-                     "penwidth"))
-        ((string= option "fontname")
-         (get-option cfg "Graphviz sequence node attributes"
-                     "fontname"))
-        ((string= option "fontcolor")
-         (get-option cfg "Graphviz sequence node attributes"
-                     "fontcolor"))
-        ((string= option "fontsize")
-         (get-option cfg "Graphviz sequence node attributes"
-                     "fontsize"))
-        ((string= option "color")
-         (get-option cfg "Graphviz sequence node attributes"
-                     "color"))
-        ((string= option "style")
-         (get-option cfg "Graphviz sequence node attributes"
-                     "style"))
-        ((string= option "shape")
-         (get-option cfg "Graphviz sequence node attributes"
-                     "shape"))))))))
+(fmemo:memoize 'make-lookup-table)
+
+(defun lookup-option (cfg option graph-type graph-element domain
+                      &optional (classification ""))
+  "Returns the value of OPTION from the user configuration CFG associated with a
+  key specified by GRAPH-TYPE, GRAPH-ELEMENT, DOMAIN, and CLASSIFICATION.
+  GRAPH-TYPE is one of `sequence' `chronology', `legend', or `'. GRAPH-ELEMENT
+  is one of `edge', `node', `graph', or `'. DOMAIN is one of `output', `input',
+  `header', `general', `classification', `graph', `edge', `node', `reachable',
+  `adjacent', `units', or `'. CLASSIFICATION is one of `node-color-by',
+  `node-fill-by', `node-shape-by', `node-style-by',
+  `node-polygon-distortion-by', `node-polygon-image-by',
+  `node-polygon-orientation-by', `node-polygon-sides-by',
+  `node-polygon-skew-by', `node-penwidth-by', `edge-penwidth-by',
+  `edge-color-by', `edge-style-by', `edge-fontcolor-by', or `'."
+  (let ((lookup-table (make-lookup-table (master-table)))
+        (key (fset:empty-set))
+        (param-list (list option graph-type graph-element domain classification))
+        (section))
+    (dolist (param param-list)
+      (setq key (fset:with key param)))
+    (setq section (fset:lookup lookup-table key))
+    (get-option cfg section option)))
 
 ;; API
 (defun write-default-configuration (path-name)
   "Write the default configuration to path-name."
-  (let ((config (make-default-configuration)))
+  (let ((config (make-default-or-empty-configuration (master-table))))
     (with-open-file (stream path-name :direction :output :if-exists :supersede)
       (write-stream config stream))))
 
@@ -869,7 +475,7 @@ value of the node option."
 file, CSV-FILE, and returns a possibly modified configuration.  This
 function can be used to convert the old style csv initialization files
 to the new ini style."
-  (let ((cfg (make-default-configuration))
+  (let ((cfg (make-default-or-empty-configuration (master-table)))
         (ht (make-hash-table :test 'equal)))
     (cl-csv:read-csv csv-file
                      :map-fn #'(lambda (row)
@@ -1311,10 +917,10 @@ If NAME exists and VERBOSE is non-nil, then asks about overwriting it."
 (defun read-configuration-from-files (verbose &rest file-names)
   "Reads the initialization files FILE-NAMES and returns a configuration. Errors
 out if one or more initialization files were not read. Prints a status message."
-  (let ((config (make-default-configuration)))
+  (let ((config (make-default-or-empty-configuration (master-table))))
     (dolist (file file-names)
       (when (null (probe-file file))
-        (error "Error: unable to read file: ~s.~&" i)))
+        (error "Error: unable to read file: ~s.~&" file)))
     (when verbose
       (format t "Read ~r initialization file~:p: ~{~a~^, ~}.~&"
               (length file-names) file-names))
