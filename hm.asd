@@ -18,7 +18,8 @@
                #:py-configparser
                #:cl-colors
                #:let-over-lambda
-               #:named-readtables)
+               #:named-readtables
+               #:fare-memoization)
   :components ((:static-file "COPYING")
                (:file "src/package")
                (:file "src/config/hm-cfg")
