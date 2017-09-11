@@ -354,64 +354,66 @@ shape."
                  (fset:with 38 "lpromoter"))))
     (fset:@ map (mod index (fset:size map)))))
 
+;; internal, tested
 (defun graphviz-color-string (index scheme &optional range)
   "Given a colorscheme, SCHEME, optionally an integer, RANGE, that indicates how
-  many colors to select from, and an INDEX, return the Graphviz color string.
-  INDEX can be an integer, in which case SCHEME must be the base of a Brewer
-  color name, or a string, in which case SCHEME must be `x11', `svg', or
+  many colors to select from, and a zero-based INDEX, return the Graphviz color
+  string. INDEX can be an integer, in which case SCHEME must be the base of a
+  Brewer color name, or a string, in which case SCHEME must be `x11', `svg', or
   `solarized', else `x11' will be used."
   (let ((local-scheme scheme)
-        (local-range (if (and range
-                              (> 3 range))
-                         3
-                       range)))
+        (local-range (if (and range (> 3 range)) 3 range)))
     (etypecase index
       (integer (unless (brewer-colorscheme-distinctions scheme :member t)
                  (error "Error: ~s does not indicate a Brewer colorscheme.~&"
                         scheme))
-               (unless range
-                 (error "Error: No range for `graphviz-color-string'.~&"))
-               (let ((brewer-range (if (> local-range (brewer-colorscheme-distinctions scheme))
-                                       (brewer-colorscheme-distinctions scheme)
-                                     local-range)))
-                 (format nil
-                         "/~a~s/~s"
-                         scheme
-                         brewer-range
-                         (1+ (mod index brewer-range)))))
+       (unless range
+         (error "Error: No range for `graphviz-color-string'.~&"))
+       (let ((brewer-range
+               (if (> local-range (brewer-colorscheme-distinctions scheme))
+                   (brewer-colorscheme-distinctions scheme)
+                   local-range)))
+         (format nil
+                 "/~a~s/~s"
+                 scheme
+                 brewer-range
+                 (1+ (mod index brewer-range)))))
       (string (unless (fset:contains? (fset:set "x11" "svg" "solarized")
                                       scheme)
                 (setf local-scheme "x11"))
-              (if (string= "solarized" local-scheme)
-                  (if (solarized-map index :member t)
-                      (graphviz-hex-color (solarized-map index))
-                    (error "Error: ~s is not a solarized color name.~&"
-                           index))
-                (format nil "/~a/~a" local-scheme index))))))
+       (if (string= "solarized" local-scheme)
+           (if (solarized-map index :member t)
+               (graphviz-hex-color (solarized-map index))
+               (error "Error: ~s is not a solarized color name.~&"
+                      index))
+           (format nil "/~a/~a" local-scheme index))))))
 
+;; internal
+(defun color-name-to-rgb (color)
+  "Return the rgb representation of the x11 color name COLOR."
+  (eval (symbolicate #\+ (string-upcase color) #\+)))
+
+;; internal, tested
 (defun graphviz-hsv-string (color)
-  "Given a cl-colors COLOR, return the Graphviz HSV string that
-  specifies the color."
-  (let ((hsv-color (as-hsv color)))
-    (format nil
-            "~,3f ~,3f ~,3f"
-            (/ (hsv-hue hsv-color)
-               360)
+  "Given a cl-colors package x11 color name COLOR, return the Graphviz HSV
+  string that specifies the color."
+  (let ((hsv-color (etypecase color
+                     (string (rgb-to-hsv (color-name-to-rgb color)))
+                     (rgb (as-hsv color)))))
+    (format nil "~,3f ~,3f ~,3f"
+            (/ (hsv-hue hsv-color) 360)
             (hsv-saturation hsv-color)
             (hsv-value hsv-color))))
 
+;; internal, tested
 (defun graphviz-color-from-ramp (index color1 color2 steps)
   "Given two strings, COLOR1 and COLOR2, each with a valid x11 color
   name and the number of STEPS in the ramp, return a Graphviz hsv
   color string."
   (when (> index steps)
     (error "Error: Index out of bounds."))
-  (let ((c1 (eval (symbolicate #\+
-                               (string-upcase color1)
-                               #\+)))
-        (c2 (eval (symbolicate #\+
-                               (string-upcase color2)
-                               #\+)))
+  (let ((c1 (color-name-to-rgb color1))
+        (c2 (color-name-to-rgb color2))
         (alpha (/ index steps)))
     (graphviz-hsv-string (rgb-combination c1 c2 alpha))))
 
@@ -603,7 +605,8 @@ instructions in the user's configuration, CFG."
 (fmemo:memoize 'create-reachability-matrix)
 
 (defun create-adjacency-matrix (cfg graph)
-  "Returns an adjacency matrix of the directed graph, GRAPH, using the instructions in the user's configuration, CFG."
+  "Returns an adjacency matrix of the directed graph, GRAPH, using the
+instructions in the user's configuration, CFG."
   (graph-matrix:to-adjacency-matrix
    graph (new-matrix (fast-matrix-p cfg))))
 
@@ -716,9 +719,9 @@ empty graph. If VERBOSE, then advertise progress."
   (if (chronology-graph-p (archaeological-sequence-configuration seq))
       (when verbose
         (format t "Creating chronology graph.~&"))
-    (progn
-      (when verbose (format t "Chronology graph off.~&"))
-      (return-from create-chronology-graph (make-instance 'graph:digraph))))
+      (progn
+        (when verbose (format t "Chronology graph off.~&"))
+        (return-from create-chronology-graph (make-instance 'graph:digraph))))
   (let* ((ret (make-instance 'graph:digraph))
          (distance-matrix (create-distance-matrix (archaeological-sequence-configuration seq)
                                                   (archaeological-sequence-graph seq)))
@@ -759,61 +762,45 @@ empty graph. If VERBOSE, then advertise progress."
                                           (setf (nth 1 row) node-2))))
                                   event-table))
         (when event-order-table
-          (setf event-order-table (mapcar #'(lambda (row)
-                                              (let ((node-1 (fset:lookup inference-map
-                                                                         (nth 0 row)))
-                                                    (node-2 (fset:lookup inference-map
-                                                                         (nth 1 row))))
-                                                (when node-1
-                                                  (setf (nth 0 row) node-1))
-                                                (when node-2
-                                                  (setf (nth 1 row) node-2))))
-                                          event-order-table)))))
+          (setf event-order-table
+                (mapcar #'(lambda (row)
+                            (let ((node-1 (fset:lookup inference-map
+                                                       (nth 0 row)))
+                                  (node-2 (fset:lookup inference-map
+                                                       (nth 1 row))))
+                              (when node-1
+                                (setf (nth 0 row) node-1))
+                              (when node-2
+                                (setf (nth 1 row) node-2))))
+                        event-order-table)))))
     ;; Steps 1 and 2 of the algorithm
     (dolist (col event-table)
-      (graph:add-node ret
-                      (symbolicate "alpha-"
-                                   (nth 1 col)))
-      (graph:add-node ret
-                      (symbolicate "beta-"
-                                   (nth 1 col)))
-      (graph:add-node ret
-                      (symbolicate "theta-"
-                                   (nth 0 col))))
+      (graph:add-node ret (symbolicate "alpha-"(nth 1 col)))
+      (graph:add-node ret (symbolicate "beta-" (nth 1 col)))
+      (graph:add-node ret (symbolicate "theta-"(nth 0 col))))
     ;; Step 3 of the algorithm
     (when event-order-table
       (dolist (pair event-order-table)
         (graph:add-edge ret
-                        (list (symbolicate "theta-"
-                                           (nth 1 pair))
-                              (symbolicate "theta-"
-                                           (nth 0 pair)))
+                        (list (symbolicate "theta-" (nth 1 pair))
+                              (symbolicate "theta-" (nth 0 pair)))
                         0)))
     (when verbose
       (format t "Modeling radiocarbon dates.~&"))
     ;; Step 4 of the algorithm
     (dolist (node event-table)
-      (and (eq 0 (graph:indegree ret
-                                 (symbolicate "theta-"
-                                              (nth 0 node))))
-           (not (string= (nth 3 node)
-                         "disparate"))
+      (and (eq 0 (graph:indegree ret (symbolicate "theta-" (nth 0 node))))
+           (not (string= (nth 3 node) "disparate"))
            (graph:add-edge ret
-                           (list (symbolicate "beta-"
-                                              (nth 1 node))
-                                 (symbolicate "theta-"
-                                              (nth 0 node)))
+                           (list (symbolicate "beta-" (nth 1 node))
+                                 (symbolicate "theta-" (nth 0 node)))
                            0))
       (and (eq 0 (graph:outdegree ret
-                                  (symbolicate "theta-"
-                                               (nth 0 node))))
-           (not (string= (nth 3 node)
-                         "disjunct"))
+                                  (symbolicate "theta-" (nth 0 node))))
+           (not (string= (nth 3 node) "disjunct"))
            (graph:add-edge ret
-                           (list (symbolicate "theta-"
-                                              (nth 0 node))
-                                 (symbolicate "alpha-"
-                                              (nth 1 node)))
+                           (list (symbolicate "theta-" (nth 0 node))
+                                 (symbolicate "alpha-" (nth 1 node)))
                            0)))
     ;; Step 5 of the algorithm
     (let ((i (make-node-index (archaeological-sequence-graph seq)))
@@ -824,32 +811,23 @@ empty graph. If VERBOSE, then advertise progress."
         (push (symbolicate (nth 1 row))
               events)
         (graph:add-edge ret
-                        (list (symbolicate "beta-"
-                                           (nth 1 row))
-                              (symbolicate "alpha-"
-                                           (nth 1 row)))
+                        (list (symbolicate "beta-" (nth 1 row))
+                              (symbolicate "alpha-" (nth 1 row)))
                         2))
       (dolist (pair (append (unique-pairs events)
                             (unique-pairs (reverse events))))
         (let ((distance (graph-matrix:matrix-ref distance-matrix
-                                                 (fset:@ i
-                                                         (nth 0 pair))
-                                                 (fset:@ i
-                                                         (nth 1 pair)))))
+                                                 (fset:@ i (nth 0 pair))
+                                                 (fset:@ i (nth 1 pair)))))
           (unless (graph-matrix:infinitep distance distance-matrix)
             (graph:add-edge ret
-                            (list (symbolicate "alpha-"
-                                               (nth 0 pair))
-                                  (symbolicate "beta-"
-                                               (nth 1 pair)))
-                            (if (eql 1
-                                     (round distance))
-                                1
-                              2))))))
+                            (list (symbolicate "alpha-" (nth 0 pair))
+                                  (symbolicate "beta-" (nth 1 pair)))
+                            (if (eql 1 (round distance)) 1 2))))))
     ;; Step 6 of the algorithm
     (when (graph:cycles ret)
       (error "Error: chronology graph has a cycle."))
-    (setf ret (transitive-reduction ret cfg verbose))
+    (setf ret (transitive-reduction ret))
     ret))
 
 (defun transitive-reduction (graph)
@@ -1014,12 +992,8 @@ routines.  If FAST is nil, then uses CL matrix routines."
           (let ((new-node (symbolicate (nth 1 edge)
                                        "-*surface*")))
             (graph:add-node g new-node)
-            (graph:add-edge g
-                            (list (nth 0 edge)
-                                  new-node))
-            (graph:add-edge g
-                            (list new-node
-                                  (nth 1 edge)))
+            (graph:add-edge g (list (nth 0 edge) new-node))
+            (graph:add-edge g (list new-node (nth 1 edge)))
             (graph:delete-edge g edge)))
         g)
     graph))
@@ -1113,16 +1087,17 @@ picture."
 where the indicated nodes either appear at the top or the bottom of
 the graph picture."
   (let ((ranks))
-    (mapcar #'(lambda (x)
-                (let ((rank (nth 2 x)))
-                  (when (or (string= rank "basal")
-                            (string= rank "surface"))
-                    (push (graph-dot::make-rank :value (cond
-                                                        ((string= rank "basal") "sink")
-                                                        ((string= rank "surface") "source")):node-list
-                                                        (list (nth 0 x)))
-                          ranks))))
-            table)
+    (mapcar
+     #'(lambda (x)
+         (let ((rank (nth 2 x)))
+           (when (or (string= rank "basal") (string= rank "surface"))
+             (push (graph-dot::make-rank
+                    :value (cond
+                             ((string= rank "basal") "sink")
+                             ((string= rank "surface") "source"))
+                    :node-list (list (nth 0 x)))
+                   ranks))))
+     table)
     ranks))
 
 
