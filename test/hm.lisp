@@ -174,3 +174,32 @@
     (set-dot-file *cfg* "sequence-dot" "bar.dot" nil)
     (is (string= (hm::get-option *cfg* "Output files" "chronology-dot") "foo.dot"))
     (is (string= (hm::get-option *cfg* "Output files" "sequence-dot") "bar.dot"))))
+
+;; color functions
+
+(deftest test-graphviz-color-string ()
+  (is (string= (hm::graphviz-color-string 1 "reds" 3) "/reds3/2"))
+  (is (string= (hm::graphviz-color-string "white" "x11") "/x11/white"))
+  (is (string= (hm::graphviz-color-string "white" "x11" 3) "/x11/white"))
+  (is (string= (hm::graphviz-color-string "blue" "solarized") "#268bd2"))
+  (is (string= (hm::graphviz-color-string "base03" "solarized") "#002b36"))
+  (with-expected-failures
+    (is (string= (hm::graphviz-color-string "whiter" "x11") "/x11/whiter"))
+    (is (string= (hm::graphviz-color-string "0" "x11") "/x11/0"))))
+
+(deftest test-graphviz-hsv-string ()
+  (is (string= (hm::graphviz-hsv-string "white") "0.000 0.000 1.000"))
+  (is (string= (hm::graphviz-hsv-string "black") "0.000 0.000 0.000"))
+  (is (string= (hm::graphviz-hsv-string "red") "0.000 1.000 1.000"))
+  (is (string= (hm::graphviz-hsv-string "turquoise") "0.483 0.714 0.878"))
+  (is (string= (hm::graphviz-hsv-string "sienna") "0.054 0.719 0.627")))
+
+(deftest test-graphviz-color-from-ramp ()
+  (is (string= (hm::graphviz-color-from-ramp 0 "black" "white" 3)
+               "0.000 0.000 0.000")
+      (string= (hm::graphviz-color-from-ramp 1 "black" "white" 3)
+               "0.000 0.000 0.033")
+      (string= (hm::graphviz-color-from-ramp 2 "black" "white" 3)
+               "0.000 0.000 0.067")
+      (string= (hm::graphviz-color-from-ramp 3 "black" "white" 3)
+               "0.000 0.000 1.000")))
