@@ -1,6 +1,6 @@
 ;;; hm-cfg.lisp
 
-;; Copyright (C) Thomas Dye 2016
+;; Copyright (C) Thomas Dye 2017
 
 ;; Licensed under the Gnu Public License Version 3 or later
 
