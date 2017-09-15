@@ -19,6 +19,13 @@
 (defvar *cfg* nil
   "Variable for use in hm tests.")
 
+(defvar *hm-test-path* nil
+  "Variable for use in hm tests.")
+
+(defixture hm-test-path
+  (:setup (setf *hm-test-path* (asdf:system-source-directory :hm-test)))
+  (:teardown (setf *hm-test-path* nil)))
+
 (defixture transitive-graph
   (:setup (setf *transitive* (graph:populate (make-instance 'graph:digraph)
                                              :nodes '(a b c)
@@ -111,33 +118,39 @@
   (is (string-equal "002b36" (hm::solarized-map "base03"))))
 
 (deftest solarized-map-name-member()
-  (is (hm::solarized-map "base03" :member t)))
+  (is (hm::solarized-map "base03" t)))
 
 ;;; Tests for exported functions
 
 ;; test that configurations are written to file and read back in correctly
 (deftest read-write-configuration ()
-  (let ((path-name "../test/temp/test-config.ini")
-        (config-from-file nil))
-    (with-fixture default-config
-      (write-configuration *cfg* path-name)
-      (setf config-from-file (read-configuration-from-files nil path-name))
-      (is (equal (get-configuration-sections *cfg*)
-                 (get-configuration-sections config-from-file)))
-      (is (equal (get-all-configuration-options *cfg*)
-                 (get-all-configuration-options config-from-file))))))
+  (with-fixture hm-test-path
+    (let ((path-name
+            (uiop:merge-pathnames* "test/temp/test-config.ini" *hm-test-path*))
+          (config-from-file nil))
+      (with-fixture default-config
+        (write-configuration *cfg* path-name)
+        (setf config-from-file (read-configuration-from-files nil path-name))
+        (is (equal (get-configuration-sections *cfg*)
+                   (get-configuration-sections config-from-file)))
+        (is (equal (get-all-configuration-options *cfg*)
+                   (get-all-configuration-options config-from-file)))))))
 
 ;; test that configurations written to two files are read back in correctly
 (deftest read-write-split-configuration ()
-  (let ((general-path-name "../test/temp/test-general-config.ini")
-        (graphviz-path-name "../test/temp/test-graphviz-config.ini")
-        (config-from-file nil))
-    (with-fixture default-config
+  (with-fixtures (hm-test-path default-config)
+    (let ((general-path-name
+            (uiop:merge-pathnames* "test/temp/test-general-config.ini"
+                                   *hm-test-path*))
+          (graphviz-path-name
+            (uiop:merge-pathnames* "test/temp/test-graphviz-config.ini"
+                                   *hm-test-path*))
+          (config-from-file nil))
       (write-general-configuration *cfg* general-path-name)
       (write-Graphviz-style-configuration *cfg* graphviz-path-name)
       (setf config-from-file
             (read-configuration-from-files nil
-             general-path-name graphviz-path-name))
+                                           general-path-name graphviz-path-name))
       (is (equal (get-configuration-sections *cfg*)
                  (get-configuration-sections config-from-file)))
       (is (equal (get-all-configuration-options *cfg*)
@@ -155,17 +168,17 @@
 
 ;; test set-input-file
 (deftest test-set-input-file ()
-  (let ((file-name "../test/temp/contexts-eg.csv"))
-    (with-fixture default-config
+  (with-fixture default-config
+    (let ((file-name
+            (uiop:merge-pathnames* "test/assets/contexts-eg.csv" *hm-test-path*)))
       (set-input-file *cfg* "contexts" file-name t)
       (set-input-file *cfg* "observations" file-name nil)
       (is (string= (hm::get-option *cfg* "Input files" "contexts") file-name))
       (is (string= (hm::get-option *cfg* "Input files" "observations") file-name))
       (is (hm::get-option *cfg* "Input file headers" "contexts" :type :boolean))
-      (is
-       (not
-        (hm::get-option *cfg* "Input file headers" "observations"
-                        :type :boolean))))))
+      (is (not
+           (hm::get-option *cfg* "Input file headers" "observations"
+                           :type :boolean))))))
 
 ;; test set-dot-file
 (deftest test-set-dot-file ()
