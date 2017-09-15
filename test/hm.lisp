@@ -169,12 +169,13 @@
 ;; test set-input-file
 (deftest test-set-input-file ()
   (with-fixture default-config
-    (let ((file-name
-            (uiop:merge-pathnames* "test/assets/contexts-eg.csv" *hm-test-path*)))
-      (set-input-file *cfg* "contexts" file-name t)
-      (set-input-file *cfg* "observations" file-name nil)
-      (is (string= (hm::get-option *cfg* "Input files" "contexts") file-name))
-      (is (string= (hm::get-option *cfg* "Input files" "observations") file-name))
+    (let* ((file-name-string "test/assets/contexts-eg.csv"))
+      (set-input-file *cfg* "contexts" file-name-string t)
+      (set-input-file *cfg* "observations" file-name-string nil)
+      (is (string= (hm::get-option *cfg* "Input files" "contexts")
+                   file-name-string))
+      (is (string= (hm::get-option *cfg* "Input files" "observations")
+                   file-name-string))
       (is (hm::get-option *cfg* "Input file headers" "contexts" :type :boolean))
       (is (not
            (hm::get-option *cfg* "Input file headers" "observations"
