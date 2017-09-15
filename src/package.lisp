@@ -32,4 +32,5 @@
    :input-file-name
    :input-file-name-p
    :file-header-p
-   :output-file-name))
+   :output-file-name
+   :write-levels))
