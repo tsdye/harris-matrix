@@ -854,17 +854,7 @@ routines.  If FAST is nil, then uses CL matrix routines."
         g)
     graph))
 
-(defun read-table (name header &optional (verbose t))
-  "Checks that NAME is a file, then attempts to read it as
-comma-separated values.  HEADER indicates whether or not the first
-line of NAME contains column heads, rather than values.  If VERBOSE,
-give notice."
-  (if-let (in-file (probe-file (string name)))
-      (progn
-        (when verbose
-          (format t "Reading table ~a.~%" in-file))
-        (cl-csv:read-csv in-file :skip-first-p header))
-    (error "Unable to read ~a.~&" name)))
+
 
 ;; graph structure functions
 
@@ -900,7 +890,7 @@ the graph picture."
     ranks))
 
 
-;;     ;; write the dot file for the sequence diagram
+;; write the dot file for the sequence diagram
 
 (defun write-sequence-graph-to-dot-file (seq &optional (verbose t))
   "Write a sequence graph to a Graphviz dot file, based on the information in the archaeological sequence, SEQ."
@@ -974,13 +964,3 @@ the graph picture."
   (when verbose (format t "Wrote ~a.~%"
                         (probe-file (output-file-name cfg "sequence-dot"))))
   (archaeological-sequence-graph seq))
-
-(defun write-levels (graph out-file)
-  (let ((levels (graph:levels graph)))
-    (with-open-file (stream out-file :direction :output
-                            :if-exists :overwrite
-                            :if-does-not-exist :create)
-                    (maphash (lambda (key value)
-                               (cl-csv:write-csv-row (list key value)
-                                                     :stream stream))
-                             levels))))
