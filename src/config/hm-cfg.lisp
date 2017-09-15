@@ -430,44 +430,11 @@ configuration."
     (setq section (fset:lookup lookup-table key))
     (get-option cfg section option)))
 
-;; API
-(defun write-default-configuration (path-name)
-  "Write the default configuration to path-name."
-  (let ((config (make-default-or-empty-configuration (master-table))))
-    (with-open-file (stream path-name :direction :output :if-exists :supersede)
-      (write-stream config stream))))
-
-;; API
-(defun write-configuration (cfg path-name)
-  "Write configuration, CFG, to the file, PATH-NAME."
-  (with-open-file (stream path-name :direction :output :if-exists :supersede)
-    (write-stream cfg stream)))
-
 (defun Graphviz-section-p (section)
   "Given a section name string, SECTION, return true if the section
   contains options for Graphviz configuration.  Function depends on
   the convention of starting such sections with \"Graphviz\"."
   (eq 0 (search "Graphviz" section)))
-
-;; API
-(defun write-Graphviz-style-configuration (config path-name)
-  "Write the Graphviz style portion of CONFIG to PATH-NAME."
-  (let ((cfg (copy-structure config))
-        (file-sections (sections config)))
-    (dolist (section file-sections)
-      (when (not (Graphviz-section-p section))
-        (remove-section cfg section)))
-    (write-configuration cfg path-name)))
-
-;; API
-(defun write-general-configuration (config path-name)
-  "Write the non-Graphviz portion of CONFIG to PATH-NAME."
-  (let ((cfg (copy-structure config))
-        (file-sections (sections config)))
-    (dolist (section file-sections)
-      (when (Graphviz-section-p section)
-        (remove-section cfg section)))
-    (write-configuration cfg path-name)))
 
 ;; API
 (defun convert-csv-config-to-ini (csv-file)
