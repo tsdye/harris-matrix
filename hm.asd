@@ -25,4 +25,5 @@
                (:file "src/config/hm-cfg")
                (:file "src/chronology/hm-chronology")
                (:file "src/color/hm-color")
+               (:file "src/files/hm-file")
                (:file "src/hm")))
