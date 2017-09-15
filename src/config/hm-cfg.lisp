@@ -853,18 +853,14 @@ settings."
     (error "Error: Graphviz node polygons are classified.  Check that \"node-shape-by\" is not set and that node \"shape\" is \"polygon\".")))
 
 (defun set-input-file (cfg option file-name header)
-  "If the input file FILE-NAME exists and OPTION is recognized, then FILE-NAME
-and HEADER are registered with the configuration, CFG."
+  "If OPTION is recognized, then FILE-NAME and HEADER are registered with the
+configuration, CFG."
   (let ((option-list (options cfg "Input files")))
     (assert (member option option-list :test #'equal)
             (option) "Error: \"~a\" is not one of ~a"
             option option-list)
-    (if (probe-file file-name)
-        (progn
-          (set-option cfg "Input files" option file-name)
-          (set-option cfg "Input file headers" option
-                      (if header "yes" "no")))
-        (error "Unable to find ~a." file-name))))
+    (set-option cfg "Input files" option file-name)
+    (set-option cfg "Input file headers" option (if header "yes" "no"))))
 
 (defun set-dot-file (cfg option name &optional (verbose t))
   "Registers the chronology output file, NAME, with the OPTION in the
