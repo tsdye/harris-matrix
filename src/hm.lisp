@@ -527,7 +527,7 @@ instructions in the user's configuration, CFG."
   (graph-matrix:to-distance-matrix
    graph (new-matrix (fast-matrix-p cfg))))
 
-(fmemo:memoize 'create-distance-matrix)
+
 
 (defun create-reachability-matrix (cfg graph)
   "Returns a reachability matrix of the directed graph, GRAPH, using the
@@ -539,7 +539,7 @@ instructions in the user's configuration, CFG."
         (graph-matrix:to-reachability-matrix
          graph (new-matrix (fast-matrix-p cfg)) :limit limit))))
 
-(fmemo:memoize 'create-reachability-matrix)
+
 
 (defun create-adjacency-matrix (cfg graph)
   "Returns an adjacency matrix of the directed graph, GRAPH, using the
@@ -547,7 +547,7 @@ instructions in the user's configuration, CFG."
   (graph-matrix:to-adjacency-matrix
    graph (new-matrix (fast-matrix-p cfg))))
 
-(fmemo:memoize 'create-adjacency-matrix)
+
 
 (defun create-strong-component-matrix (cfg graph)
   "Returns a strong-component-matrix of the directed graph, GRAPH, using
@@ -555,7 +555,7 @@ instructions in the user's configuration, CFG."
   (graph-matrix:to-strong-component-matrix
    graph (new-matrix (fast-matrix-p cfg))))
 
-(fmemo:memoize 'create-strong-component-matrix)
+
 
 (defun configure-archaeological-sequence (seq cfg &optional (verbose t))
   "Configures the archaeological sequence SEQ using the information in
@@ -809,6 +809,22 @@ possibly modified directed acyclic GRAPH."
             (pair-with (first rest)
                        (rest rest)))
           (remove-duplicates list)))
+
+(defun memoize-functions ()
+  (fmemo:memoize 'create-distance-matrix)
+  (fmemo:memoize 'create-reachability-matrix)
+  (fmemo:memoize 'create-adjacency-matrix)
+  (fmemo:memoize 'create-strong-component-matrix)
+  (fmemo:memoize 'make-lookup-table)
+  (fmemo:memoize 'cet-map))
+
+(defun unmemoize-functions ()
+  (fmemo:unmemoize 'create-distance-matrix)
+  (fmemo:unmemoize 'create-reachability-matrix)
+  (fmemo:unmemoize 'create-adjacency-matrix)
+  (fmemo:unmemoize 'create-strong-component-matrix)
+  (fmemo:unmemoize 'make-lookup-table)
+  (fmemo:unmemoize 'cet-map))
 
 (defun new-matrix (&optional (fast t))
   "Makes a matrix instance.  If FAST is t, then uses fast matrix

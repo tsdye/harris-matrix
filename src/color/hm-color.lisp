@@ -203,8 +203,6 @@ specification is prefixed with an octothorp."
       (setf counter (1+ counter)))
     map))
 
-(fmemo:memoize 'cet-map)
-
 (defun cet-color (map index colors)
   "Return a graphviz HSV color string from MAP simulating a color ramp with
   COLORS colors. INDEX is an index into the color map, an integer in the range

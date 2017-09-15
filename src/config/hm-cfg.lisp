@@ -406,8 +406,6 @@ configuration."
         (setq map (fset:with map key (nth 0 row)))))
     map))
 
-(fmemo:memoize 'make-lookup-table)
-
 (defun lookup-option (cfg option graph-type graph-element domain
                       &optional (classification ""))
   "Returns the value of OPTION from the user configuration CFG associated with a
