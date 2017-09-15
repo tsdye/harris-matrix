@@ -11,34 +11,35 @@
   "Given a colorscheme, SCHEME, optionally an integer, RANGE, that indicates how
   many colors to select from, and a zero-based INDEX, return the Graphviz color
   string. INDEX can be an integer, in which case SCHEME must be the base of a
-  Brewer color name, or a string, in which case SCHEME must be `x11', `svg', or
-  `solarized', else `x11' will be used."
-  (let ((local-scheme scheme)
-        (local-range (if (and range (> 3 range)) 3 range)))
+  Brewer color name or a CET color name; or a string, in which case SCHEME must
+  be `x11', `svg', or `solarized'."
+  (let ((named-colors (fset:set "x11" "svg" "solarized")))
+    (unless (or (fset:contains? named-colors scheme)
+                (brewer-colorscheme-distinctions scheme t)
+                (cet-name-p scheme))
+      (error "The string \"~a\" is an invalid color scheme.~%" scheme))
     (etypecase index
-      (integer (unless (brewer-colorscheme-distinctions scheme :member t)
-                 (error "Error: ~s does not indicate a Brewer colorscheme.~&"
-                        scheme))
-       (unless range
-         (error "Error: No range for `graphviz-color-string'.~&"))
-       (let ((brewer-range
-               (if (> local-range (brewer-colorscheme-distinctions scheme))
-                   (brewer-colorscheme-distinctions scheme)
-                   local-range)))
-         (format nil
-                 "/~a~s/~s"
-                 scheme
-                 brewer-range
-                 (1+ (mod index brewer-range)))))
-      (string (unless (fset:contains? (fset:set "x11" "svg" "solarized")
-                                      scheme)
-                (setf local-scheme "x11"))
-       (if (string= "solarized" local-scheme)
-           (if (solarized-map index :member t)
-               (graphviz-hex-color (solarized-map index))
-               (error "Error: ~s is not a solarized color name.~&"
-                      index))
-           (format nil "/~a/~a" local-scheme index))))))
+      (integer
+       (progn
+         (unless (>= index 0)
+           (error "The index ~a is not in the range [0 .. ~a].~%" index range))
+         (when (fset:contains? named-colors scheme)
+           (error "The ~a colorscheme requires a color name, not ~a.~%"
+                  scheme index))
+         (if (cet-name-p scheme)
+             (let ((map (cet-map scheme)))
+               (cet-color map (1+ index) range))
+             (let ((b-range (brewer-colorscheme-distinctions scheme)))
+               (when (< range b-range) (setf b-range range))
+               (format nil "/~a~s/~s" scheme b-range
+                       (1+ (mod index b-range)))))))
+      (string
+       (progn
+         (when (and (string= "solarized" scheme) (not (solarized-map index t)))
+           (error "Error: ~s is not a solarized color name.~&" index))
+         (if (string= scheme "solarized")
+             (graphviz-hex-color (solarized-map index))
+             (format nil "/~a/~a" scheme index)))))))
 
 ;; internal
 (defun color-name-to-rgb (color)
@@ -69,7 +70,7 @@
         (alpha (/ index steps)))
     (graphviz-hsv-string (rgb-combination c1 c2 alpha))))
 
-(defun solarized-map (name &key member)
+(defun solarized-map (name &optional (member nil))
   "Given a solarized color NAME, return as values the corresponding
 hexadecimal representation string and a boolean indicating whether or
 not color-scale was found.  If MEMBER is non-nil, then return nil if
@@ -95,7 +96,7 @@ NAME is not a map key and non-nil otherwise."
         (fset:domain-contains? map name)
         (fset:@ map name))))
 
-(defun brewer-colorscheme-distinctions (color-scale &key member)
+(defun brewer-colorscheme-distinctions (color-scale &optional (member nil))
   "Given a COLOR-SCALE name as a string, return as values the number
 of distinctions as an integer and a boolean indicating whether or not
 color-scale was found.  If MEMBER is non-nil, then return nil if
@@ -150,3 +151,65 @@ specification is prefixed with an octothorp."
           "Error: ~a is not 6 characters."
           hex)
   (format nil "#~a" hex))
+
+(defun cet-name-p (name)
+  (fset:contains? (fset:set "cet-bgyw" "cet-kbc" "cet-blues" "cet-bmw"
+                            "cet-inferno" "cet-kgy" "cet-gray" "cet-dimgray"
+                            "cet-fire" "cet-kb" "cet-kg" "cet-kr" "cet-rainbow")
+                  name))
+
+(defun cet-pathname (name)
+  "Returns a path to the CET csv file NAME."
+  (let ((source (asdf:system-source-directory :hm)))
+    (uiop:merge-pathnames* name source)))
+
+(defun cet-map (name)
+  "Return an fset map of the CET colormap, NAME, where the key is an integer in
+[1..256] and the value is a graphviz HSV color string."
+  (let ((file-name
+          (cond
+            ((string= name "cet-bgyw") "src/color/linear_bgyw_15-100_c67_n256.csv")
+            ((string= name "cet-kbc") "src/color/linear_blue_5-95_c73_n256.csv")
+            ((string= name "cet-blues") "src/color/linear_blue_95-50_c20_n256.csv")
+            ((string= name "cet-bmw") "src/color/linear_bmw_5-95_c86_n256.csv")
+            ((string= name "cet-inferno") "src/color/linear_bmy_10-95_c71_n256.csv")
+            ((string= name "cet-kgy") "src/color/linear_green_5-95_c69_n256.csv")
+            ((string= name "cet-gray") "src/color/linear_grey_0-100_c0_n256.csv")
+            ((string= name "cet-dimgray") "src/color/linear_grey_10-95_c0_n256.csv")
+            ((string= name "cet-fire") "src/color/linear_kryw_0-100_c71_n256.csv")
+            ((string= name "cet-kb")
+             "src/color/linear_ternary-blue_0-44_c57_n256.csv")
+            ((string= name "cet-kg")
+             "src/color/linear_ternary-green_0-46_c42_n256.csv")
+            ((string= name "cet-kr")
+             "src/color/linear_ternary-red_0-50_c52_n256.csv")
+            ((string= name "cet-rainbow")
+             "src/color/rainbow_bgyr_35-85_c72_n256.csv")
+            (t nil)))
+        (csv-file)
+        (counter 1)
+        (divisor 255.0)
+        (map (fset:empty-map)))
+    (unless file-name
+      (error "The string \"~a\" is an invalid CET map alias.~%" name))
+    (setf csv-file (read-table (cet-pathname file-name) nil nil))
+    (dolist (row csv-file)
+      (setf map
+            (fset:with map counter
+                       (graphviz-hsv-string
+                        (rgb (/ (parse-integer (nth 0 row)) divisor)
+                             (/ (parse-integer (nth 1 row)) divisor)
+                             (/ (parse-integer (nth 2 row)) divisor)))))
+      (setf counter (1+ counter)))
+    map))
+
+(fmemo:memoize 'cet-map)
+
+(defun cet-color (map index colors)
+  "Return a graphviz HSV color string from MAP simulating a color ramp with
+  COLORS colors. INDEX is an index into the color map, an integer in the range
+  [1..COLORS]."
+  (unless (and (> index 0) (<= index colors))
+    (error "Color index ~a out of range [1 .. ~a].~%" index colors))
+  (multiple-value-bind (increment base) (floor 256 colors)
+    (fset:@ map (+ base (* index increment)))))
