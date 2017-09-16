@@ -37,7 +37,9 @@
        (progn
          (when (and (string= "solarized" scheme) (not (solarized-name-p index)))
            (error "Error: \"~s\" is not a solarized color name.~&" index))
-         (when (and (string= "x11" scheme) (not (color-name-to-rgb index)))
+         (when (and (string= "x11" scheme) (not (x11-name-p index)))
+           (error "Error: the name \"~a\" is not an ~a color.~%" index scheme))
+         (when (and (string= "svg" scheme) (not (svg-name-p index)))
            (error "Error: the name \"~a\" is not an ~a color.~%" index scheme))
          (if (string= scheme "solarized")
              (graphviz-hex-color (solarized-map index))
@@ -48,6 +50,11 @@
   "Return the rgb representation of the x11 color name COLOR."
   (let ((sym (symbolicate #\+ (string-upcase color) #\+)))
     (if (boundp sym) (eval sym) nil)))
+
+;; internal
+(defun x11-name-p (name)
+  "Return non-nil if NAME is an x11 color name, nil otherwise."
+  (if (color-name-to-rgb name) t nil))
 
 ;; internal
 (defun color-name-to-hsv (color)
@@ -61,7 +68,8 @@
   string that specifies the color."
   (let ((hsv-color (etypecase color
                      (string (rgb-to-hsv (color-name-to-rgb color)))
-                     (rgb (as-hsv color)))))
+                     (rgb (as-hsv color))
+                     (hsv color))))
     (format nil "~,3f ~,3f ~,3f"
             (/ (hsv-hue hsv-color) 360)
             (hsv-saturation hsv-color)
@@ -236,3 +244,31 @@ specification is prefixed with an octothorp."
       (setf ret
             (fset:@ map (+ (floor (/ (+ base increment) 2)) (* index increment)))))
     ret))
+
+(defun svg-pathname ()
+  "Returns a path to the CET csv file NAME."
+  (let ((source (asdf:system-source-directory :hm)))
+    (uiop:merge-pathnames* "src/color/svg.csv" source)))
+
+(defun svg-map ()
+  "Returns an fset map where the keys are svg color names and the values are
+  hexadecimal color strings."
+  (let ((csv-file (read-table (svg-pathname) nil nil))
+        (map (fset:empty-map)))
+    (dolist (row csv-file)
+      (setf map (fset:with map (nth 0 row) (nth 1 row))))
+    map))
+
+(defun svg-name-p (name)
+  (fset:domain-contains? (svg-map) name))
+
+(defun graphviz-svg-hex-color (name)
+  (if (svg-name-p name) (graphviz-hex-color (fset:@ (svg-map) name))
+      (error "Error: \"~a\" is not an svg color name.~% " name)))
+
+(defun svg-hex-color (name)
+  (if (svg-name-p name) (fset:@ (svg-map) name)
+      (error "Error: \"~a\" is not an svg color name.~% " name)))
+
+(defun svg-hsv-color (name)
+  (graphviz-hsv-string (hex-to-rgb (svg-hex-color name))))
