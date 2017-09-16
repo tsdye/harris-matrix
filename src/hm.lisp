@@ -465,15 +465,12 @@ and the value is either the period or phase of the context."
             ((string= table-type "phases") 4)
             (t (error "Error: unrecognized table type")))))
     (mapcar #'(lambda (x)
-                (setf ht (fset:with ht
-                                    (nth 0 x)
-                                    (nth 2 x))))
+                (setf ht (fset:with ht (nth 0 x) (nth 2 x))))
             other-table)
     (mapcar #'(lambda (x)
-                (setf ret (fset:with ret
-                                     (symbolicate (nth 0 x))
-                                     (read-from-string (fset:@ ht
-                                                               (nth n x))))))
+                (setf ret
+                      (fset:with ret (symbolicate (nth 0 x))
+                                 (read-from-string (fset:@ ht (nth n x))))))
             contexts)
     ret))
 
@@ -481,9 +478,7 @@ and the value is either the period or phase of the context."
   "Given an assoc-list, ALIST, return the corresponding fset map."
   (let ((ret (fset:empty-map)))
     (mapc #'(lambda (pair)
-              (setq ret (fset:with ret
-                                   (car pair)
-                                   (cdr pair))))
+              (setq ret (fset:with ret (car pair) (cdr pair))))
           alist)
     ret))
 
@@ -527,8 +522,6 @@ instructions in the user's configuration, CFG."
   (graph-matrix:to-distance-matrix
    graph (new-matrix (fast-matrix-p cfg))))
 
-
-
 (defun create-reachability-matrix (cfg graph)
   "Returns a reachability matrix of the directed graph, GRAPH, using the
   instructions in the user's configuration, CFG."
@@ -539,23 +532,17 @@ instructions in the user's configuration, CFG."
         (graph-matrix:to-reachability-matrix
          graph (new-matrix (fast-matrix-p cfg)) :limit limit))))
 
-
-
 (defun create-adjacency-matrix (cfg graph)
   "Returns an adjacency matrix of the directed graph, GRAPH, using the
 instructions in the user's configuration, CFG."
   (graph-matrix:to-adjacency-matrix
    graph (new-matrix (fast-matrix-p cfg))))
 
-
-
 (defun create-strong-component-matrix (cfg graph)
   "Returns a strong-component-matrix of the directed graph, GRAPH, using
   instructions in the user's configuration, CFG."
   (graph-matrix:to-strong-component-matrix
    graph (new-matrix (fast-matrix-p cfg))))
-
-
 
 (defun configure-archaeological-sequence (seq cfg &optional (verbose t))
   "Configures the archaeological sequence SEQ using the information in
@@ -811,12 +798,15 @@ possibly modified directed acyclic GRAPH."
           (remove-duplicates list)))
 
 (defun memoize-functions ()
+  (unmemoize-functions)
   (fmemo:memoize 'create-distance-matrix)
   (fmemo:memoize 'create-reachability-matrix)
   (fmemo:memoize 'create-adjacency-matrix)
   (fmemo:memoize 'create-strong-component-matrix)
   (fmemo:memoize 'make-lookup-table)
-  (fmemo:memoize 'cet-map))
+  (fmemo:memoize 'cet-map)
+  (fmemo:memoize 'make-solarized-map)
+  (fmemo:memoize 'make-brewer-map))
 
 (defun unmemoize-functions ()
   (fmemo:unmemoize 'create-distance-matrix)
@@ -824,7 +814,9 @@ possibly modified directed acyclic GRAPH."
   (fmemo:unmemoize 'create-adjacency-matrix)
   (fmemo:unmemoize 'create-strong-component-matrix)
   (fmemo:unmemoize 'make-lookup-table)
-  (fmemo:unmemoize 'cet-map))
+  (fmemo:unmemoize 'cet-map)
+  (fmemo:unmemoize 'make-solarized-map)
+  (fmemo:unmemoize 'make-brewer-map))
 
 (defun new-matrix (&optional (fast t))
   "Makes a matrix instance.  If FAST is t, then uses fast matrix
