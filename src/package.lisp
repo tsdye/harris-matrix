@@ -33,4 +33,6 @@
    :input-file-name-p
    :file-header-p
    :output-file-name
-   :write-levels))
+   :write-levels
+   :memoize-functions
+   :unmemoize-functions))
