@@ -806,7 +806,8 @@ possibly modified directed acyclic GRAPH."
   (fmemo:memoize 'make-lookup-table)
   (fmemo:memoize 'cet-map)
   (fmemo:memoize 'make-solarized-map)
-  (fmemo:memoize 'make-brewer-map))
+  (fmemo:memoize 'make-brewer-map)
+  (fmemo:memoize 'svg-map))
 
 (defun unmemoize-functions ()
   (fmemo:unmemoize 'create-distance-matrix)
@@ -816,7 +817,8 @@ possibly modified directed acyclic GRAPH."
   (fmemo:unmemoize 'make-lookup-table)
   (fmemo:unmemoize 'cet-map)
   (fmemo:unmemoize 'make-solarized-map)
-  (fmemo:unmemoize 'make-brewer-map))
+  (fmemo:unmemoize 'make-brewer-map)
+  (fmemo:unmemoize 'svg-map))
 
 (defun new-matrix (&optional (fast t))
   "Makes a matrix instance.  If FAST is t, then uses fast matrix
