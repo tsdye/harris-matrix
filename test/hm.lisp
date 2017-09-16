@@ -114,12 +114,6 @@
          (hm::transitive-reduction *transitive*)
          *intransitive*))))
 
-(deftest solarized-map-name ()
-  (is (string-equal "002b36" (hm::solarized-map "base03"))))
-
-(deftest solarized-map-name-member()
-  (is (hm::solarized-map "base03" t)))
-
 ;;; Tests for exported functions
 
 ;; test that configurations are written to file and read back in correctly
