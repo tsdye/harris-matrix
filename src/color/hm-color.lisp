@@ -21,22 +21,24 @@
     (etypecase index
       (integer
        (progn
-         (unless (>= index 0)
-           (error "The index ~a is not in the range [0 .. ~a].~%" index range))
          (when (fset:contains? named-colors scheme)
            (error "The ~a colorscheme requires a color name, not ~a.~%"
                   scheme index))
+         (unless range (error "Range is missing.~%"))
+         (unless (and (>= index 0) (<= index range))
+           (error "The index ~a is not in the range [0 .. ~a].~%" index range))
          (if (cet-name-p scheme)
-             (let ((map (cet-map scheme)))
-               (cet-color map (1+ index) range))
+             (cet-color scheme index range)
              (let ((b-range (brewer-colorscheme-distinctions scheme)))
                (when (< range b-range) (setf b-range range))
                (format nil "/~a~s/~s" scheme b-range
                        (1+ (mod index b-range)))))))
       (string
        (progn
-         (when (and (string= "solarized" scheme) (not (solarized-map index t)))
-           (error "Error: ~s is not a solarized color name.~&" index))
+         (when (and (string= "solarized" scheme) (not (solarized-name-p index)))
+           (error "Error: \"~s\" is not a solarized color name.~&" index))
+         (when (and (string= "x11" scheme) (not (color-name-to-rgb index)))
+           (error "Error: the name \"~a\" is not an ~a color.~%" index scheme))
          (if (string= scheme "solarized")
              (graphviz-hex-color (solarized-map index))
              (format nil "/~a/~a" scheme index)))))))
@@ -44,7 +46,14 @@
 ;; internal
 (defun color-name-to-rgb (color)
   "Return the rgb representation of the x11 color name COLOR."
-  (eval (symbolicate #\+ (string-upcase color) #\+)))
+  (let ((sym (symbolicate #\+ (string-upcase color) #\+)))
+    (if (boundp sym) (eval sym) nil)))
+
+;; internal
+(defun color-name-to-hsv (color)
+  "Return the hsv string of the x11 color name COLOR."
+  (let ((rgb-color (color-name-to-rgb color)))
+    (if rgb-color (rgb-to-hsv rgb-color) nil)))
 
 ;; internal, tested
 (defun graphviz-hsv-string (color)
@@ -70,11 +79,9 @@
         (alpha (/ index steps)))
     (graphviz-hsv-string (rgb-combination c1 c2 alpha))))
 
-(defun solarized-map (name &optional (member nil))
-  "Given a solarized color NAME, return as values the corresponding
-hexadecimal representation string and a boolean indicating whether or
-not color-scale was found.  If MEMBER is non-nil, then return nil if
-NAME is not a map key and non-nil otherwise."
+(defun make-solarized-map ()
+  "Return an fset map where the key is a solarized color name and the value is
+the hexadecimal representation of the color."
   (let ((map (-> (fset:empty-map)
                  (fset:with "base03" "002b36")
                  (fset:with "base02" "073642")
@@ -92,15 +99,21 @@ NAME is not a map key and non-nil otherwise."
                  (fset:with "blue" "268bd2")
                  (fset:with "cyan" "2aa198")
                  (fset:with "green" "859900"))))
-    (if member
-        (fset:domain-contains? map name)
-        (fset:@ map name))))
+    map))
 
-(defun brewer-colorscheme-distinctions (color-scale &optional (member nil))
-  "Given a COLOR-SCALE name as a string, return as values the number
-of distinctions as an integer and a boolean indicating whether or not
-color-scale was found.  If MEMBER is non-nil, then return nil if
-COLOR-SCALE is not a map key and non-nil otherwise."
+(defun solarized-name-p (name)
+  "Return nil if NAME is not a solarized color name, non-nil otherwise."
+  (fset:domain-contains? (make-solarized-map) name))
+
+(defun solarized-map (name)
+  "Given a solarized color NAME, return as values the corresponding
+hexadecimal representation string and a boolean indicating whether or
+not color-scale was found."
+  (fset:@ (make-solarized-map) name))
+
+(defun make-brewer-map ()
+  "Return an fset map where key is a brewer color scheme base name and value is
+the number of distinctions in the color scheme."
   (let ((map (-> (fset:empty-map)
                  (fset:with "accent" 8)
                  (fset:with "blues" 9)
@@ -137,9 +150,17 @@ COLOR-SCALE is not a map key and non-nil otherwise."
                  (fset:with "ylgnbu" 9)
                  (fset:with "ylorbr" 9)
                  (fset:with "ylorrd" 9))))
-    (if member
-        (fset:domain-contains? map color-scale)
-        (fset:@ map color-scale))))
+    map))
+
+(defun brewer-color-scale-distinctions (color-scale)
+  "Given a COLOR-SCALE name as a string, return as values the number
+of distinctions as an integer and a boolean indicating whether or not
+color-scale was found.  If MEMBER is non-nil, then return nil if
+COLOR-SCALE is not a map key and non-nil otherwise."
+  (fset:@ (make-brewer-map) color-scale))
+
+(defun brewer-color-scale-p (color-scale)
+  (fset:domain-contains? (make-brewer-map) color-scale))
 
 (defun graphviz-hex-color (hex)
   "A convenience function to bridge a difference in how cl-colors and
@@ -165,7 +186,7 @@ specification is prefixed with an octothorp."
 
 (defun cet-map (name)
   "Return an fset map of the CET colormap, NAME, where the key is an integer in
-[1..256] and the value is a graphviz HSV color string."
+[0..255] and the value is a graphviz HSV color string."
   (let ((file-name
           (cond
             ((string= name "cet-bgyw") "src/color/linear_bgyw_15-100_c67_n256.csv")
@@ -187,7 +208,7 @@ specification is prefixed with an octothorp."
              "src/color/rainbow_bgyr_35-85_c72_n256.csv")
             (t nil)))
         (csv-file)
-        (counter 1)
+        (counter 0)
         (divisor 255.0)
         (map (fset:empty-map)))
     (unless file-name
@@ -203,11 +224,15 @@ specification is prefixed with an octothorp."
       (setf counter (1+ counter)))
     map))
 
-(defun cet-color (map index colors)
-  "Return a graphviz HSV color string from MAP simulating a color ramp with
-  COLORS colors. INDEX is an index into the color map, an integer in the range
-  [1..COLORS]."
-  (unless (and (> index 0) (<= index colors))
-    (error "Color index ~a out of range [1 .. ~a].~%" index colors))
-  (multiple-value-bind (increment base) (floor 256 colors)
-    (fset:@ map (+ base (* index increment)))))
+(defun cet-color (name index colors)
+  "Return a graphviz HSV color string from the CET map NAME simulating a color
+  ramp with COLORS colors. INDEX is an index into the color map, an integer in
+  the range [0..COLORS-1]."
+  (let ((map (cet-map name))
+        (ret))
+    (unless (and (>= index 0) (< index colors))
+      (error "Color index ~a out of range [0 .. ~a].~%" index (1- colors)))
+    (multiple-value-bind (increment base) (floor 256 colors)
+      (setf ret
+            (fset:@ map (+ (floor (/ (+ base increment) 2)) (* index increment)))))
+    ret))
