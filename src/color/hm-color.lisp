@@ -6,7 +6,7 @@
 
 (in-package #:hm)
 
-;; internal, tested
+;; internal
 (defun graphviz-color-string (index scheme &optional range)
   "Given a colorscheme, SCHEME, optionally an integer, RANGE, that indicates how
   many colors to select from, and a zero-based INDEX, return the Graphviz color
