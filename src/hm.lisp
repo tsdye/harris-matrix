@@ -575,55 +575,49 @@ empty graph. If VERBOSE, then advertise progress."
         (when verbose (format t "Chronology graph off.~&"))
         (return-from create-chronology-graph (make-instance 'graph:digraph))))
   (let* ((ret (make-instance 'graph:digraph))
-         (distance-matrix (create-distance-matrix (archaeological-sequence-configuration seq)
-                                                  (archaeological-sequence-graph seq)))
+         (distance-matrix
+           (create-distance-matrix (archaeological-sequence-configuration seq)
+                                   (archaeological-sequence-graph seq)))
          (cfg (archaeological-sequence-configuration seq))
          (event-table (read-table (input-file-name cfg "events")
                                   (file-header-p cfg "events")
                                   verbose))
-         (event-order-table (when (input-file-name-p "event-order")
-                              (read-table (input-file-name cfg "event-order")
-                                          (file-header-p cfg "event-order")
-                                          verbose))))
+         (event-order-table
+           (when (input-file-name-p "event-order")
+             (read-table (input-file-name cfg "event-order")
+                         (file-header-p cfg "event-order")
+                         verbose))))
     ;; If assume-correlations then adjust the event-table and
     ;; event-order table accordingly
     (when (assume-correlations-p cfg)
-      (let ((inference-table (read-table (input-file-name cfg "inferences")
-                                         (file-header-p cfg "inferences")
-                                         verbose))
+      (let ((inference-table
+              (read-table (input-file-name cfg "inferences")
+                          (file-header-p cfg "inferences")
+                          verbose))
             (inference-map (fset:empty-map)))
         (dolist (row inference-table)
-          (setq inference-map (fset:with inference-map
-                                         (nth 0 row)
-                                         (correlated-node (nth 0 row)
-                                                          (nth 1 row)
-                                                          t)))
-          (setq inference-map (fset:with inference-map
-                                         (nth 1 row)
-                                         (correlated-node (nth 0 row)
-                                                          (nth 1 row)
-                                                          t))))
-        (setf event-table (mapcar #'(lambda (row)
-                                      (let ((node-1 (fset:lookup inference-map
-                                                                 (nth 0 row)))
-                                            (node-2 (fset:lookup inference-map
-                                                                 (nth 1 row))))
-                                        (when node-1
-                                          (setf (nth 0 row) node-1))
-                                        (when node-2
-                                          (setf (nth 1 row) node-2))))
-                                  event-table))
+          (setq inference-map
+                (fset:with inference-map
+                           (nth 0 row)
+                           (correlated-node (nth 0 row) (nth 1 row) t)))
+          (setq inference-map
+                (fset:with inference-map
+                           (nth 1 row)
+                           (correlated-node (nth 0 row) (nth 1 row) t))))
+        (setf event-table
+              (mapcar #'(lambda (row)
+                          (let ((node-1 (fset:lookup inference-map (nth 0 row)))
+                                (node-2 (fset:lookup inference-map (nth 1 row))))
+                            (when node-1 (setf (nth 0 row) node-1))
+                            (when node-2 (setf (nth 1 row) node-2))))
+                      event-table))
         (when event-order-table
           (setf event-order-table
                 (mapcar #'(lambda (row)
-                            (let ((node-1 (fset:lookup inference-map
-                                                       (nth 0 row)))
-                                  (node-2 (fset:lookup inference-map
-                                                       (nth 1 row))))
-                              (when node-1
-                                (setf (nth 0 row) node-1))
-                              (when node-2
-                                (setf (nth 1 row) node-2))))
+                            (let ((node-1 (fset:lookup inference-map (nth 0 row)))
+                                  (node-2 (fset:lookup inference-map (nth 1 row))))
+                              (when node-1 (setf (nth 0 row) node-1))
+                              (when node-2 (setf (nth 1 row) node-2))))
                         event-order-table)))))
     ;; Steps 1 and 2 of the algorithm
     (dolist (col event-table)
@@ -724,37 +718,6 @@ possibly modified directed acyclic GRAPH."
             (pair-with (first rest)
                        (rest rest)))
           (remove-duplicates list)))
-
-(defun memoize-functions ()
-  (unmemoize-functions)
-  (fmemo:memoize 'create-distance-matrix)
-  (fmemo:memoize 'create-reachability-matrix)
-  (fmemo:memoize 'create-adjacency-matrix)
-  (fmemo:memoize 'create-strong-component-matrix)
-  (fmemo:memoize 'make-lookup-table)
-  (fmemo:memoize 'cet-map)
-  (fmemo:memoize 'make-solarized-map)
-  (fmemo:memoize 'make-brewer-map)
-  (fmemo:memoize 'svg-map)
-  (fmemo:memoize 'graphviz-node-style-map)
-  (fmemo:memoize 'graphviz-edge-style-map)
-  (fmemo:memoize 'graphviz-node-shape-map)
-  (fmemo:memoize 'graphviz-arrow-shape-map))
-
-(defun unmemoize-functions ()
-  (fmemo:unmemoize 'create-distance-matrix)
-  (fmemo:unmemoize 'create-reachability-matrix)
-  (fmemo:unmemoize 'create-adjacency-matrix)
-  (fmemo:unmemoize 'create-strong-component-matrix)
-  (fmemo:unmemoize 'make-lookup-table)
-  (fmemo:unmemoize 'cet-map)
-  (fmemo:unmemoize 'make-solarized-map)
-  (fmemo:unmemoize 'make-brewer-map)
-  (fmemo:unmemoize 'svg-map)
-  (fmemo:unmemoize 'graphviz-node-style-map)
-  (fmemo:unmemoize 'graphviz-edge-style-map)
-  (fmemo:unmemoize 'graphviz-node-shape-map)
-  (fmemo:unmemoize 'graphviz-arrow-shape-map))
 
 (defun new-matrix (&optional (fast t))
   "Makes a matrix instance.  If FAST is t, then uses fast matrix
