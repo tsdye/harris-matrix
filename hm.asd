@@ -26,4 +26,5 @@
                (:file "src/chronology/hm-chronology")
                (:file "src/color/hm-color")
                (:file "src/files/hm-file")
+               (:file "src/elements/hm-elements")
                (:file "src/hm")))
