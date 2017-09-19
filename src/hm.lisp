@@ -11,243 +11,34 @@
 ;; that compiles and displays the dot file output.
 ;; (require "inferior-shell")
 
-(lol:defmacro! <-dot-edge (o!seq classifier dot-attr)
-  "Make functions to configure Graphviz edges."
-  `(let* ((g!cfg (archaeological-sequence-configuration ,g!seq))
-          (g!graph (archaeological-sequence-graph ,g!seq))
-          (g!classifiers (archaeological-sequence-classifiers ,g!seq))
-          (g!attribute ,dot-attr)
-          (g!map (make-edge-lookup-map g!cfg))
-          (g!class-with-node (graphviz-edge-classification g!cfg "classify"))
-          (g!value (when ,classifier (sequence-classifier g!cfg ,classifier))))
-     (if (or (not ,classifier) (and ,classifier (emptyp g!value))
-             (not (fset:domain-contains? g!classifiers g!value)))
-         (let ((g!y (process-user-value
-                   (lookup-option g!map g!attribute) g!attribute g!value ,g!seq)))
-           (constantly (if (emptyp g!y) "" g!y)))
-       (cond
-        ((string= "units" g!value)
-         (lambda (x)
-           (let ((g!user-value
-                   (if (= 0 (round (fset:@ (fset:@ g!classifiers g!value)
-                                           (if (string= "to" g!class-with-node)
-                                               (nth 1 x)
-                                               (nth 0 x)))))
-                       (lookup-option g!map g!value ,classifier "deposit")
-                       (lookup-option g!map g!value ,classifier "interface"))))
-             (if g!user-value
-                 (process-user-value g!user-value ,dot-attr g!value
-                                     ,o!seq :element :edge)
-                 (error "Unable to set edge function.  User value not set for ~s.~&"
-                        ,classifier)))))
-        ((string= "adjacent" g!value)
-         (lambda (x)
-           (let ((g!user-value
-                   (case (round (fset:@ (fset:@ g!classifiers g!value)
-                                        (if (string= "to" g!class-with-node)
-                                            (nth 1 x)
-                                            (nth 0 x))))
-                     (0 (lookup-option g!map g!value ,classifier "origin"))
-                     (1 (lookup-option g!map g!value ,classifier "adjacent"))
-                     (t (lookup-option g!map g!value ,classifier "not-adjacent")))))
-             (if g!user-value
-                 (process-user-value g!user-value ,dot-attr g!value
-                                     ,o!seq :element :edge)
-               (error "Unable to set edge function.  User value not set for ~s.~&"
-                      ,classifier)))))
-        ((string= "reachable" g!value)
-         (lambda (x)
-           (let ((g!user-value
-                   (case (round (fset:@ (fset:@ g!classifiers g!value)
-                                        (if (string= "to" g!class-with-node)
-                                            (nth 1 x)
-                                            (nth 0 x))))
-                     (0 (lookup-option g!map g!value ,classifier "origin"))
-                     (1 (lookup-option g!map g!value ,classifier "adjacent"))
-                     (2 (lookup-option g!map g!value ,classifier "reachable"))
-                     (t (lookup-option g!map g!value ,classifier "not-reachable")))))
-             (if g!user-value
-                 (process-user-value g!user-value ,dot-attr g!value
-                                     ,o!seq :element :edge)
-               (error "Unable to set edge function.  User value not set for ~s.~&"
-                      ,classifier)))))
-        ((fset:contains? (fset:set "distance" "levels" "periods" "phases")
-                         g!value)
-         (lambda (x)
-           (edge--process-matrix-value
-            (fset:@ (fset:@ g!classifiers g!value)
-                    (if (string= "to" g!class-with-node)
-                        (nth 1 x)
-                        (nth 0 x)))
-            ,dot-attr
-            g!value
-            ,o!seq)))
-        (t (error "Error: Unable to set edge function.~&"))))))
+;; Macros
 
-(lol:defmacro! <-dot-node (o!seq classifier dot-attr)
-  `(let* ((g!sequence ,g!seq)
-          (g!opt ,classifier)
-          (g!attribute ,dot-attr)
-          (g!cfg (archaeological-sequence-configuration ,g!seq))
-          (g!classifiers (archaeological-sequence-classifiers ,g!seq))
-          (g!value (when ,classifier (sequence-classifier g!cfg ,classifier)))
-          (map (make-node-lookup-map g!cfg)))
-     (if (or (not g!opt) (and g!opt (emptyp g!value))
-             (not (fset:domain-contains? g!classifiers g!value)))
-         (let ((g!y (process-user-value (lookup-option map g!attribute)
-                                      g!attribute g!opt g!sequence)))
-           (constantly (if (emptyp g!y) "" g!y)))
-       (cond
-        ((string= "units" g!value)
-         (lambda (x)
-           (let ((g!user-value
-                   (if (= 0 (round (fset:@ (fset:@ g!classifiers g!value) x)))
-                       (lookup-option map g!value g!opt "deposit")
-                       (lookup-option map g!value g!opt "interface"))))
-             (if (emptyp g!user-value)
-                 (error "Unable to set node function.  User value not set for ~s.~&"
-                        g!opt)
-                 (let ((g!user-value-parsed
-                         (parse-integer g!user-value :junk-allowed t)))
-                   (process-user-value
-                    (if g!user-value-parsed g!user-value-parsed g!user-value)
-                    g!attribute g!value g!sequence :element :node))))))
-        ((string= "adjacent" g!value)
-         (lambda (x)
-           (let ((g!user-value
-                   (case (round (fset:@ (fset:@ g!classifiers g!value) x))
-                     (0 (lookup-option map g!value g!opt "origin"))
-                     (1 (lookup-option map g!value g!opt "adjacent"))
-                     (t (lookup-option map g!value g!opt "not-adjacent")))))
-             (if (emptyp g!user-value)
-                 (error "Unable to set node function.  User value not set for ~s.~&"
-                        g!opt)
-                 (let ((g!user-value-parsed
-                         (parse-integer g!user-value :junk-allowed t)))
-                   (process-user-value
-                    (if g!user-value-parsed g!user-value-parsed g!user-value)
-                    g!attribute g!value g!sequence :element :node))))))
-        ((string= "reachable" g!value)
-         (lambda (x)
-           (let ((g!user-value
-                   (case (round (fset:@ (fset:@ g!classifiers g!value) x))
-                     (0 (lookup-option map g!value g!opt "origin"))
-                     (1 (lookup-option map g!value g!opt "adjacent"))
-                     (2 (lookup-option map g!value g!opt "reachable"))
-                     (t (lookup-option map g!value g!opt "not-reachable")))))
-             (if (emptyp g!user-value)
-                 (error "Unable to set node function.  User value not set for ~s.~&"
-                        g!opt)
-                 (let ((g!user-value-parsed
-                         (parse-integer g!user-value :junk-allowed t)))
-                   (process-user-value
-                    (if g!user-value-parsed g!user-value-parsed g!user-value)
-                    g!attribute g!value g!sequence :element :node))))))
-        ((fset:contains? (fset:set "distance" "levels" "periods" "phases")
-                         g!value)
-         (lambda (x)
-           (node--process-matrix-value (fset:@ (fset:@ g!classifiers g!value) x)
-                                       g!attribute g!value g!sequence)))
-        (t (error "Error: Unable to set node function.~&"))))))
+(defmacro <-dot (seq element dot-attr)
+  (to-dot-macro (seq element dot-attr)))
 
-;; Needs work!
-(defun process-user-value (value dot-attr option seq &key element)
-  (if (fset:contains? (fset:set "color" "fillcolor" "fontcolor")
-                      dot-attr)
-      (let* ((section (if (equal element :node)
-                          "Graphviz sequence node attributes"
-                        "Graphviz sequence edge attributes"))
-             (scheme (get-option (archaeological-sequence-configuration seq)
-                                 section
-                                 "colorscheme"))
-             (classifiers (archaeological-sequence-classifiers seq))
-             (range (unless (emptyp option)
-                      (round (1+ (- (fset:greatest (fset:range (fset:@ classifiers option)))
-                                    (fset:least (fset:range (fset:@ classifiers option)))))))))
-        (if (and option
-                 (not (emptyp scheme)))
-            (quotes-around (graphviz-color-string value scheme range))
-          ""))
-    (quotes-around value)))
-
-(defun edge--process-matrix-value (value attr option seq)
-  "Given a VALUE from a graph matrix, a Graphviz attribute, ATTR, an ini file
-OPTION, and an archaeological sequence, SEQ, return a properly formatted
-Graphviz dot value."
-  (let ((range (fset:range (fset:@ (archaeological-sequence-classifiers seq)
-                                   option))))
+(defun to-dot-macro (seq element dot-attr)
+  "Returns a function that takes a node or edge label and returns the behavior
+indicated in the user's configuration."
+  (let* ((cfg (archaeological-sequence-configuration seq))
+         (user-class (graphviz-classification cfg element dot-attr))
+         (graph (archaeological-sequence-graph seq)))
     (cond
-     ((string= attr "style")
-      (quotes-around (graphviz-edge-style value)))
-     ((fset:contains? (fset:set "color" "fontcolor")
-                      attr)
-      (quotes-around (graphviz-color-string value
-                                            (get-option (archaeological-sequence-configuration seq)
-                                                        "Graphviz sequence edge attributes"
-                                                        "colorscheme")
-                                            (1+ (- (fset:greatest range)
-                                                   (fset:least range))))))
-     ((string= attr "penwidth")
-      (let ((interval (- (get-option (archaeological-sequence-configuration seq)
-                                     "Graphviz sequence edge attributes"
-                                     "penwidth-max"
-                                     :type :number)
-                         (get-option (archaeological-sequence-configuration seq)
-                                     "Graphviz sequence edge attributes"
-                                     "penwidth-min"
-                                     :type :number)))
-            (base (get-option (archaeological-sequence-configuration seq)
-                              "Graphviz sequence edge attributes"
-                              "penwidth-min"
-                              :type :number)))
-        (quotes-around (+ base
-                          (* value
-                             (/ interval
-                                (1+ (- (fset:greatest range)
-                                       (fset:least range))))))))))))
-
-(defun node--process-matrix-value (value attr option seq)
-  "Given a VALUE from a graph matrix, a Graphviz attribute, ATTR, an ini file
-OPTION, and an archaeological sequence, SEQ, return a properly formatted
-Graphviz dot value."
-  (let ((range (fset:range (fset:@ (archaeological-sequence-classifiers seq)
-                                   option))))
-    (cond
-     ((string= attr "shape")
-      (quotes-around (graphviz-node-shape value)))
-     ((string= attr "style")
-      (quotes-around (graphviz-node-style value)))
-     ((fset:contains? (fset:set "color" "fillcolor" "fontcolor")
-                      attr)
-      (let ((scheme (get-option (archaeological-sequence-configuration seq)
-                                "Graphviz sequence node attributes"
-                                "colorscheme")))
-        (quotes-around (graphviz-color-string value
-                                              scheme
-                                              (1+ (- (fset:greatest range)
-                                                     (fset:least range)))))))
-     ((string= attr "penwidth")
-      (let ((interval (- (get-option (archaeological-sequence-configuration seq)
-                                     "Graphviz sequence node attributes"
-                                     "penwidth-max"
-                                     :type :number)
-                         (get-option (archaeological-sequence-configuration seq)
-                                     "Graphviz sequence node attributes"
-                                     "penwidth-min"
-                                     :type :number)))
-            (base (get-option (archaeological-sequence-configuration seq)
-                              "Graphviz sequence node attributes"
-                              "penwidth-min"
-                              :type :number)))
-        (quotes-around (+ base
-                          (* value
-                             (/ interval
-                                (1+ (- (fset:greatest range)
-                                       (fset:least range))))))))))))
-
-;; Needs work, no docstring
-(defun <-dot-graph (attribute)
-  (quotes-around attribute))
+      ((fset:contains? (fset:set "distance" "reachable" "adjacent") user-class)
+       (let ((from-node (reachable-from-node cfg))
+             (matrix (make-matrix graph user-class from-node))
+             (map (make-map cfg element dot-attr user-class)))
+         #'(lambda (x)
+             (get-from-map map (get-from-matrix matrix from-node x)))))
+      ((fset:contains?
+        (fset:set "levels" "units" "periods" "phases") user-class)
+       (let ((map (make-map cfg element dot-attr user-class))
+             (vector (make-vector graph user-class)))
+         #'(lambda (x)
+             ((get-from-map map (get-from-vector vector x)))))
+       (nil
+        (let ((user-val (lookup-option cfg dot-attr "sequence" element "")))
+          #'(constantly user-val)))
+       (t (error "Error: Unable to set ~a ~a.~&" element dot-attr)))))
 
 ;; From On Lisp, p. 92, a macro for testing macroexpansion
 
@@ -272,6 +63,10 @@ Graphviz dot value."
               (cdr form))
           (list form x)))
     x))
+
+;; Needs work, no docstring
+(defun <-dot-graph (attribute)
+  (quotes-around attribute))
 
 ;; passes test
 (defun quotes-around (string)
@@ -320,7 +115,7 @@ VERBOSE, then advertise the activity. Returns the possibly modified GRAPH."
 
 (defun check-cycles (graph)
   "Reports an error when cycles are present in GRAPH."
-  (and (graph:cycles graph) (error "Graph contains a cycle")))
+  (and (graph:cycles graph) (error "Error: Graph contains a cycle")))
 
 (defun assume-correlations (graph cfg &optional (verbose t))
   "Given the information in a configuration CFG, possibly merge and rename the
@@ -763,8 +558,6 @@ routines.  If FAST is nil, then uses CL matrix routines."
         g)
     graph))
 
-
-
 ;; graph structure functions
 
 (defun set-same-ranks (table)
@@ -798,78 +591,46 @@ the graph picture."
      table)
     ranks))
 
-
 ;; write the dot file for the sequence diagram
-
 (defun write-sequence-graph-to-dot-file (seq &optional (verbose t))
-  "Write a sequence graph to a Graphviz dot file, based on the information in the archaeological sequence, SEQ."
-  (let ((cfg (archaeological-sequence-configuration seq))
-        (graph (archaeological-sequence-graph seq))))
+  "Write a sequence graph to a Graphviz dot file, based on the information in
+the archaeological sequence, SEQ."
+  (let* ((cfg (archaeological-sequence-configuration seq))
+         (graph (archaeological-sequence-graph seq))
+         (out-file (output-file-name cfg "sequence-dot"))))
   (graph-dot:to-dot-file
-   graph (output-file-name cfg "sequence-dot")
+   graph out-file
    :ranks (graphviz-make-ranks cfg)
    :attributes (list
-                (cons :style (<-dot-graph
-                              (graphviz-sequence-graph-attribute cfg "style")))
-                (cons :dpi (<-dot-graph
-                            (graphviz-sequence-graph-attribute cfg "dpi")))
-                (cons :URL (<-dot-graph (if (include-url-p cfg)
-                                            (default-url cfg) "")))
-                (cons :margin (<-dot-graph
-                               (graphviz-sequence-graph-attribute cfg "margin")))
-                (cons :bgcolor (<-dot-graph
-                                (user-color
-                                 cfg "Graphviz sequence graph attributes"
-                                 "bgcolor")))
-                (cons :fontname (<-dot-graph
-                                 (graphviz-sequence-graph-attribute
-                                  cfg "fontname")))
-                (cons :fontsize (<-dot-graph
-                                 (graphviz-sequence-graph-attribute
-                                  cfg "fontsize")))
-                (cons :fontcolor (<-dot-graph
-                                  (user-color cfg
-                                              "Graphviz sequence graph attributes"
-                                              "fontcolor")))
-                (cons :splines (<-dot-graph
-                                (graphviz-sequence-graph-attribute cfg "splines")))
-                (cons :page (<-dot-graph
-                             (graphviz-sequence-graph-attribute cfg "page")))
-                (cons :size (<-dot-graph
-                             (graphviz-sequence-graph-attribute cfg "size")))
-                (cons :ratio (<-dot-graph
-                              (graphviz-sequence-graph-attribute cfg "ratio")))
-                (cons :label (<-dot-graph
-                              (graphviz-sequence-graph-attribute cfg "label")))
-                (cons :labelloc (<-dot-graph
-                                 (graphviz-sequence-graph-attribute
-                                  cfg "labelloc"))))
-   :edge-attrs (list (cons :style (<-dot-edge seq "edge-style-by" "style"))
-                     (cons :arrowhead (<-dot-edge seq nil "arrowhead"))
-                     (cons :color (<-dot-edge seq "edge-color-by" "color"))
-                     (cons :fontname (<-dot-edge seq nil "fontname"))
-                     (cons :fontsize (<-dot-edge seq nil "fontsize"))
-                     (cons :fontcolor
-                           (<-dot-edge seq "edge-fontcolor-by" "fontcolor"))
-                     (cons :penwidth (<-dot-edge seq "edge-penwidth-by" "penwidth"))
-                     ;; (cons :URL (lambda (x) (format-attribute
-                     ;;                    (if *url-include* (url-decode (fset:@ arc-urls x)) "")
-                     ;;                    :preserve-case t :quote t))))
-                     )
-   :node-attrs
-   (list (cons :shape (<-dot-node seq "node-shape-by" "shape"))
-         (cons :style (<-dot-node seq "node-style-by" "style"))
-         (cons :fontname (<-dot-node seq nil "fontname"))
-         (cons :fontsize (<-dot-node seq nil "fontsize"))
-         (cons :color (<-dot-node seq "node-color-by" "color"))
-         (cons :fillcolor (<-dot-node seq "node-fill-by" "fillcolor"))
-         (cons :fontcolor (<-dot-node seq nil "fontcolor"))
-         (cons :penwidth (<-dot-node seq "node-penwidth-by" "penwidth"))
-         ;; (cons :URL (lambda (x) (format-attribute
-         ;;                    (if *url-include*
-         ;;                        (url-decode (fset:@ node-urls x))
-         ;;                        "") :preserve-case t :quote t)))
-         ))
-  (when verbose (format t "Wrote ~a.~%"
-                        (probe-file (output-file-name cfg "sequence-dot"))))
+                (cons :style (graphviz-sequence-graph-attribute cfg "style"))
+                (cons :dpi (graphviz-sequence-graph-attribute cfg "dpi"))
+                (cons :margin (graphviz-sequence-graph-attribute cfg "margin"))
+                (cons :bgcolor (graphviz-sequence-graph-color cfg "bgcolor"))
+                (cons :fontname (graphviz-sequence-graph-attribute cfg "fontname"))
+                (cons :fontsize (graphviz-sequence-graph-attribute cfg "fontsize"))
+                (cons :fontcolor (graphviz-sequence-graph-color cfg "fontcolor") )
+                (cons :splines (graphviz-sequence-graph-attribute cfg "splines"))
+                (cons :page (graphviz-sequence-graph-attribute cfg "page"))
+                (cons :size (graphviz-sequence-graph-attribute cfg "size"))
+                (cons :ratio (graphviz-sequence-graph-attribute cfg "ratio"))
+                (cons :label (graphviz-sequence-graph-attribute cfg "label"))
+                (cons :labelloc (graphviz-sequence-graph-attribute cfg "labelloc")))
+   :edge-attrs (list (cons :style (<-dot seq "edge" "style"))
+                     (cons :arrowhead (<-dot seq "edge" "arrowhead"))
+                     (cons :color (<-dot seq "edge" "color"))
+                     (cons :fontname (<-dot seq "edge" "fontname"))
+                     (cons :fontsize (<-dot seq "edge" "fontsize"))
+                     (cons :fontcolor (<-dot seq "edge" "fontcolor") )
+                     (cons :penwidth (<-dot seq "edge" "penwidth"))
+                     (cons :URL (<-seq "edge" "url")))
+   :node-attrs (list (cons :shape (<-dot seq "node" "shape"))
+                     (cons :style (<-dot seq "node" "style"))
+                     (cons :fontname (<-dot seq "node" "fontname"))
+                     (cons :fontsize (<-dot seq "node" "fontsize"))
+                     (cons :color (<-dot seq "node" "color"))
+                     (cons :fillcolor (<-dot seq "node" "fillcolor"))
+                     (cons :fontcolor (<-dot seq "node" "fontcolor"))
+                     (cons :penwidth (<-dot seq "node" "penwidth"))
+                     (cons :URL (<-dot seq "node" "url"))))
+  (when verbose (format t "Wrote ~a.~%" out-file))
   (archaeological-sequence-graph seq))
