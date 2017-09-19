@@ -27,4 +27,5 @@
                (:file "src/color/hm-color")
                (:file "src/files/hm-file")
                (:file "src/elements/hm-elements")
+               (:file "src/data-structures/hm-data-structures")
                (:file "src/hm")))
