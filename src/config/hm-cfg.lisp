@@ -319,11 +319,18 @@ or nil if CFG contains a value not interpreted by py-configparser as a boolean."
   "Return the sequence graph attribute from the user's configuration, CFG."
   (get-option cfg "Graphviz sequence graph attributes" attribute))
 
+(defun graphviz-sequence-graph-color (cfg attribute)
+  "Return a graphviz color string for the sequence graph ATTRIBUTE from the
+  user's configuration, CFG."
+  (let ((name (graphviz-sequence-graph-attribute cfg attribute))
+        (scheme (graphviz-sequence-graph-attribute cfg "colorscheme")))
+    (graphviz-color-string name scheme)))
+
 (defun graphviz-node-classification (cfg attribute)
   "Return the value from the user's configuration, CFG, for the node ATTRIBUTE
 classification. ATTRIBUTE is a string, one of `fill', `shape', `color',
 `penwidth', `style', `polygon-distortion', `polygon-image',
-`polygon-orientation', `plygon-sides', or `polygon-skew'."
+`polygon-orientation', `polygon-sides', or `polygon-skew'."
   (let ((section "Graphviz sequence classification")
         (option (concatenate 'string "node-" attribute "-by")))
     (get-option cfg section option)))
@@ -335,6 +342,13 @@ classification. ATTRIBUTE is a string, one of `fill', `shape', `color',
   (let ((section "Graphviz sequence classification")
         (option (concatenate 'string "edge-" attribute "-by")))
     (get-option cfg section option)))
+
+(defun graphviz-classification (cfg element attribute)
+  "Return the user-value of the classification if it is set, nil otherwise."
+  (let ((user-val (if (string= element "node")
+                      (graphviz-node-classification cfg attribute)
+                      (graphviz-edge-classification cfg attribute))))
+    (if (emptyp user-val) nil user-val)))
 
 (defun reachable-limit (cfg)
   "Return the numeric value of `reachable-limit' from the user's configuration,
