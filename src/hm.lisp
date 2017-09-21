@@ -14,7 +14,7 @@
 ;; Macros
 
 (defmacro <-dot (seq element dot-attr)
-  (to-dot-macro (seq element dot-attr)))
+  `(to-dot-macro (,seq ,element ,dot-attr)))
 
 (defun to-dot-macro (seq element dot-attr)
   "Returns a function that takes a node or edge label and returns the behavior
@@ -23,22 +23,22 @@ indicated in the user's configuration."
          (user-class (graphviz-classification cfg element dot-attr))
          (graph (archaeological-sequence-graph seq)))
     (cond
-      ((fset:contains? (fset:set "distance" "reachable" "adjacent") user-class)
+      ((fset:contains? (matrix-classes) user-class)
        (let ((from-node (reachable-from-node cfg))
-             (matrix (make-matrix graph user-class from-node))
-             (map (make-map cfg element dot-attr user-class)))
+             (matrix (make-matrix cfg graph user-class))
+             (map (make-map seq element dot-attr user-class)))
          #'(lambda (x)
-             (get-from-map map (get-from-matrix matrix from-node x)))))
-      ((fset:contains?
-        (fset:set "levels" "units" "periods" "phases") user-class)
-       (let ((map (make-map cfg element dot-attr user-class))
+             (funcall map (get-from-matrix matrix from-node x)))))
+      ((fset:contains? (vector-classes) user-class)
+       (let ((map (make-map seq element dot-attr user-class))
              (vector (make-vector graph user-class)))
          #'(lambda (x)
              ((get-from-map map (get-from-vector vector x)))))
        (nil
         (let ((user-val (lookup-option cfg dot-attr "sequence" element "")))
-          #'(constantly user-val)))
-       (t (error "Error: Unable to set ~a ~a.~&" element dot-attr)))))
+          #'(lambda (user-val)
+              (constantly user-val))))
+       (t (error "Error: Unable to set ~a ~a.~&" element dot-attr))))))
 
 ;; From On Lisp, p. 92, a macro for testing macroexpansion
 
@@ -238,34 +238,6 @@ visualize the archaeological sequence with d3 and GraphViz."
                                 seq)))
           (if (archaeological-sequence-configuration seq) "yes" "no")
           (fset:size (archaeological-sequence-classifiers seq))))
-
-(defun create-distance-matrix (cfg graph)
-  "Returns a distance matrix of the directed graph, GRAPH, using the
-instructions in the user's configuration, CFG."
-  (graph-matrix:to-distance-matrix
-   graph (new-matrix (fast-matrix-p cfg))))
-
-(defun create-reachability-matrix (cfg graph)
-  "Returns a reachability matrix of the directed graph, GRAPH, using the
-  instructions in the user's configuration, CFG."
-  (let ((limit (reachable-limit cfg)))
-    (if (or (not limit)(< limit 2))
-        (graph-matrix:to-reachability-matrix
-         graph (new-matrix (fast-matrix-p cfg)))
-        (graph-matrix:to-reachability-matrix
-         graph (new-matrix (fast-matrix-p cfg)) :limit limit))))
-
-(defun create-adjacency-matrix (cfg graph)
-  "Returns an adjacency matrix of the directed graph, GRAPH, using the
-instructions in the user's configuration, CFG."
-  (graph-matrix:to-adjacency-matrix
-   graph (new-matrix (fast-matrix-p cfg))))
-
-(defun create-strong-component-matrix (cfg graph)
-  "Returns a strong-component-matrix of the directed graph, GRAPH, using
-  instructions in the user's configuration, CFG."
-  (graph-matrix:to-strong-component-matrix
-   graph (new-matrix (fast-matrix-p cfg))))
 
 (defun configure-archaeological-sequence (seq cfg &optional (verbose t))
   "Configures the archaeological sequence SEQ using the information in
@@ -618,14 +590,16 @@ the archaeological sequence, SEQ."
    :edge-attrs (list (cons :style (<-dot seq "edge" "style"))
                      (cons :arrowhead (<-dot seq "edge" "arrowhead"))
                      (cons :color (<-dot seq "edge" "color"))
-                     (cons :fontname (<-dot seq "edge" "fontname"))
+                     (cons :fontname
+                           (graphviz-sequence-edge-attribute cfg "fontname"))
                      (cons :fontsize (<-dot seq "edge" "fontsize"))
                      (cons :fontcolor (<-dot seq "edge" "fontcolor") )
                      (cons :penwidth (<-dot seq "edge" "penwidth"))
                      (cons :URL (<-seq "edge" "url")))
    :node-attrs (list (cons :shape (<-dot seq "node" "shape"))
                      (cons :style (<-dot seq "node" "style"))
-                     (cons :fontname (<-dot seq "node" "fontname"))
+                     (cons :fontname
+                           (graphviz-sequence-node-attribute cfg "fontname"))
                      (cons :fontsize (<-dot seq "node" "fontsize"))
                      (cons :color (<-dot seq "node" "color"))
                      (cons :fillcolor (<-dot seq "node" "fillcolor"))
