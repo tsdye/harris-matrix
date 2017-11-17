@@ -1,4 +1,5 @@
 ;;; hm-memo.lisp
+;; Memoize lookup tables used by hm
 
 ;; Copyright (C) Thomas Dye 2017
 
