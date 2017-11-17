@@ -6,6 +6,30 @@
 
 (in-package #:hm)
 
+(defun cet-pathname (name)
+  "Returns a path to the CET .csv file NAME."
+  (let ((source (asdf:system-source-directory :hm))
+        (full-name (uiop:merge-pathnames* "resources/cet/" name)))
+    (uiop:merge-pathnames* full-name source)))
+
+(defun svg-pathname (name)
+  "Returns a path to the SVG .csv file NAME."
+  (let ((source (asdf:system-source-directory :hm))
+        (full-name (uiop:merge-pathnames* "resources/svg/" name)))
+    (uiop:merge-pathnames* full-name source)))
+
+(defun brewer-pathname (name)
+  "Returns a path to the brewer file NAME."
+  (let ((source (asdf:system-source-directory :hm))
+        (full-name (uiop:merge-pathnames* "resources/brewer/" name)))
+    (uiop:merge-pathnames* full-name source)))
+
+(defun configuration-pathname (name)
+  "Returns a path to the configuration .ini file NAME."
+  (let ((source (asdf:system-source-directory :hm))
+        (full-name (uiop:merge-pathnames* "resources/configurations/" name)))
+    (uiop:merge-pathnames* full-name source)))
+
 (defun read-table (name header &optional (verbose t))
   "Checks that NAME is a file, then attempts to read it as
 comma-separated values.  HEADER indicates whether or not the first
