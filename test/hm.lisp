@@ -22,9 +22,21 @@
 (defvar *hm-test-path* nil
   "Variable for use in hm tests.")
 
+(defvar *hm-test-config-path* nil
+  "Variable for use in hm tests.")
+
 (defixture hm-test-path
-  (:setup (setf *hm-test-path* (asdf:system-source-directory :hm-test)))
+    (:setup
+     (setf *hm-test-path*
+           (uiop:merge-pathnames* "test/" (asdf:system-source-directory :hm-test))))
   (:teardown (setf *hm-test-path* nil)))
+
+(defixture hm-test-config-path
+    (:setup
+     (setf *hm-test-config-path*
+           (uiop:merge-pathnames* "test/assets/configurations/"
+                                  (asdf:system-source-directory :hm-test))))
+  (:teardown (setf *hm-test-config-path* nil)))
 
 (defixture transitive-graph
   (:setup (setf *transitive* (graph:populate (make-instance 'graph:digraph)
@@ -65,14 +77,10 @@
     (is (string= (hm::quotes-around "\"abc\"") goal))))
 
 (deftest graphviz-edge-style-test ()
-  (is (string= (hm::graphviz-edge-style 0) "solid"))
-  (is (string= (hm::graphviz-edge-style 1) "dashed"))
-  (is (string= (hm::graphviz-edge-style 2) "dotted"))
-  (is (string= (hm::graphviz-edge-style 3) "bold"))
-  (is (string= (hm::graphviz-edge-style 4) "solid"))
-  (is (string= (hm::graphviz-edge-style 5) "dashed"))
-  (is (string= (hm::graphviz-edge-style 6) "dotted"))
-  (is (string= (hm::graphviz-edge-style 7) "bold")))
+  (is (string= (funcall (hm::graphviz-edge-style) 0) "solid"))
+  (is (string= (funcall (hm::graphviz-edge-style) 1) "dashed"))
+  (is (string= (funcall (hm::graphviz-edge-style)  2) "dotted"))
+  (is (string= (funcall (hm::graphviz-edge-style)  3) "bold")))
 
 (deftest lookup-option-test ()
   (with-fixture default-config
@@ -118,9 +126,9 @@
 
 ;; test that configurations are written to file and read back in correctly
 (deftest read-write-configuration ()
-  (with-fixture hm-test-path
+  (with-fixture hm-test-config-path
     (let ((path-name
-            (uiop:merge-pathnames* "test/temp/test-config.ini" *hm-test-path*))
+            (uiop:merge-pathnames* "test-config.ini" *hm-test-config-path*))
           (config-from-file nil))
       (with-fixture default-config
         (write-configuration *cfg* path-name)
@@ -132,13 +140,13 @@
 
 ;; test that configurations written to two files are read back in correctly
 (deftest read-write-split-configuration ()
-  (with-fixtures (hm-test-path default-config)
+  (with-fixtures (hm-test-config-path default-config)
     (let ((general-path-name
-            (uiop:merge-pathnames* "test/temp/test-general-config.ini"
-                                   *hm-test-path*))
+            (uiop:merge-pathnames* "test-general-config.ini"
+                                   *hm-test-config-path*))
           (graphviz-path-name
-            (uiop:merge-pathnames* "test/temp/test-graphviz-config.ini"
-                                   *hm-test-path*))
+            (uiop:merge-pathnames* "test-graphviz-config.ini"
+                                   *hm-test-config-path*))
           (config-from-file nil))
       (write-general-configuration *cfg* general-path-name)
       (write-Graphviz-style-configuration *cfg* graphviz-path-name)
@@ -163,7 +171,7 @@
 ;; test set-input-file
 (deftest test-set-input-file ()
   (with-fixture default-config
-    (let* ((file-name-string "test/assets/contexts-eg.csv"))
+    (let* ((file-name-string "test/assets/configurations/contexts-eg.csv"))
       (set-input-file *cfg* "contexts" file-name-string t)
       (set-input-file *cfg* "observations" file-name-string nil)
       (is (string= (hm::get-option *cfg* "Input files" "contexts")
@@ -191,9 +199,7 @@
   (is (string= (hm::graphviz-color-string "white" "x11" 3) "/x11/white"))
   (is (string= (hm::graphviz-color-string "blue" "solarized") "#268bd2"))
   (is (string= (hm::graphviz-color-string "base03" "solarized") "#002b36"))
-  (with-expected-failures
-    (is (string= (hm::graphviz-color-string "whiter" "x11") "/x11/whiter"))
-    (is (string= (hm::graphviz-color-string "0" "x11") "/x11/0"))))
+  (is (string= (hm::graphviz-color-string 0 "cet-inferno" 256) "0.640 1.000 0.365")))
 
 (deftest test-graphviz-hsv-string ()
   (is (string= (hm::graphviz-hsv-string "white") "0.000 0.000 1.000"))
@@ -204,10 +210,27 @@
 
 (deftest test-graphviz-color-from-ramp ()
   (is (string= (hm::graphviz-color-from-ramp 0 "black" "white" 3)
-               "0.000 0.000 0.000")
-      (string= (hm::graphviz-color-from-ramp 1 "black" "white" 3)
-               "0.000 0.000 0.033")
-      (string= (hm::graphviz-color-from-ramp 2 "black" "white" 3)
-               "0.000 0.000 0.067")
-      (string= (hm::graphviz-color-from-ramp 3 "black" "white" 3)
+               "0.000 0.000 0.000"))
+  (is (string= (hm::graphviz-color-from-ramp 1 "black" "white" 3)
+               "0.000 0.000 0.333"))
+  (is (string= (hm::graphviz-color-from-ramp 2 "black" "white" 3)
+               "0.000 0.000 0.667"))
+  (is (string= (hm::graphviz-color-from-ramp 3 "black" "white" 3)
                "0.000 0.000 1.000")))
+
+(deftest test-cet-color ()
+  (is (string= (hm::cet-color "cet-inferno" 0 256) "0.640 1.000 0.365"))
+  (is (string= (hm::cet-color "cet-inferno" 255 256) "0.171 0.687 0.976"))
+  (is (string= (hm::cet-color "cet-inferno" 0 1) "0.943 0.780 0.910"))
+  (is (string= (hm::cet-color "cet-bgyw" 0 1) "0.310 0.590 0.612"))
+  (is (string= (hm::cet-color "cet-kbc" 0 1) "0.615 0.822 0.992"))
+  (is (string= (hm::cet-color "cet-blues" 0 1) "0.589 0.332 0.863"))
+  (is (string= (hm::cet-color "cet-bmw" 0 1) "0.784 0.890 0.996"))
+  (is (string= (hm::cet-color "cet-kgy" 0 1) "0.307 0.920 0.541"))
+  (is (string= (hm::cet-color "cet-gray" 0 1) "0.000 0.000 0.467"))
+  (is (string= (hm::cet-color "cet-dimgray" 0 1) "0.000 0.000 0.494"))
+  (is (string= (hm::cet-color "cet-fire" 0 1) "0.015 1.000 0.929"))
+  (is (string= (hm::cet-color "cet-kb" 0 1) "0.623 0.902 0.518"))
+  (is (string= (hm::cet-color "cet-kg" 0 1) "0.333 1.000 0.255"))
+  (is (string= (hm::cet-color "cet-kr" 0 1) "0.031 1.000 0.463"))
+  (is (string= (hm::cet-color "cet-rainbow" 0 1) "0.179 0.834 0.757")))
