@@ -22,6 +22,7 @@
                #:fare-memoization)
   :components ((:static-file "COPYING")
                (:file "src/package")
+               (:file "src/macros/hm-macros")
                (:file "src/config/hm-cfg")
                (:file "src/chronology/hm-chronology")
                (:file "src/color/hm-color")
