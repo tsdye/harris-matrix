@@ -252,15 +252,19 @@ specification is prefixed with an octothorp."
     map))
 
 (defun svg-name-p (name)
+  "Predicate for a valid svg color name."
   (fset:domain-contains? (svg-map) name))
 
 (defun graphviz-svg-hex-color (name)
+  "Return a Graphviz hex color string for a valid svg color name."
   (if (svg-name-p name) (graphviz-hex-color (fset:@ (svg-map) name))
       (error "Error: \"~a\" is not an svg color name.~% " name)))
 
 (defun svg-hex-color (name)
+  "Return a hex color string for a valid svg color name."
   (if (svg-name-p name) (fset:@ (svg-map) name)
       (error "Error: \"~a\" is not an svg color name.~% " name)))
 
-(defun svg-hsv-color (name)
+(defun graphviz-svg-hsv-color (name)
+  "Return a Graphviz hsv color string for a valid svg color name."
   (graphviz-hsv-string (hex-to-rgb (svg-hex-color name))))
