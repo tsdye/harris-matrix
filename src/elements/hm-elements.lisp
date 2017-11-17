@@ -16,10 +16,12 @@ dot edge style strings."
                  (fset:with 3 "bold"))))
     map))
 
-(defun graphviz-edge-style (index)
-  "Given an integer, INDEX, return a string with a graphviz dot edge style."
+(defun graphviz-edge-style ()
+  "Return a closure that expects an integer argument an returns a valid Graphviz
+edge style string."
   (let ((map (graphviz-edge-style-map)))
-    (fset:lookup map (mod index (fset:size map)))))
+    #'(lambda (index)
+        (fset:lookup map (mod index (fset:size map))))))
 
 (defun graphviz-node-style-map ()
   "Return an fset map where the keys are integers and the values are graphviz
@@ -37,10 +39,12 @@ dot node style strings."
                  (fset:with 9 "wedged"))))
     map))
 
-(defun graphviz-node-style (index)
-  "Given an integer, INDEX, return a string with a graphviz dot node style."
+(defun graphviz-node-style ()
+  "Return a closure that expects an integer argument and returns a valid
+Graphviz dot node style."
   (let ((map (graphviz-node-style-map)))
-    (fset:lookup map (mod index (fset:size map)))))
+    #'(lambda (index)
+        (fset:lookup map (mod index (fset:size map))))))
 
 (defun graphviz-node-shape-map ()
   "Returns an fset map where the keys are integers and the values are graphviz
@@ -88,10 +92,11 @@ dot node shape strings."
     map))
 
 (defun graphviz-node-shape (index)
-  "Given an integer, INDEX, return a string with a valid graphviz dot node shape
-string."
+  "Return a closure that expects an integer argument and returns a valid
+graphviz dot node shape string."
   (let ((map (graphviz-node-shape-map)))
-    (fset:@ map (mod index (fset:size map)))))
+    #'(lambda (index)
+        (fset:@ map (mod index (fset:size map))))))
 
 (defun graphviz-arrow-shape-map ()
   "Returns an fset map where the keys are integers and the values are graphviz
@@ -141,8 +146,9 @@ dot arrow type strings."
                  (fset:with 41 "ricurve") )))
     map))
 
-(defun graphviz-arrow-shape (index)
-  "Given an integer, INDEX, return a string with a valid graphviz dot arrow type
-string."
+(defun graphviz-arrow-shape ()
+  "Return a closure that expects an integer argument and returns a valid
+graphviz dot arrow type string."
   (let ((map (graphviz-arrow-shape-map)))
-    (fset:@ map (mod index (fset:size map)))))
+    #'(lambda (indes)
+        (fset:@ map (mod index (fset:size map))))))
