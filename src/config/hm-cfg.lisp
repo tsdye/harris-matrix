@@ -318,6 +318,18 @@ or nil if CFG contains a value not interpreted by py-configparser as a boolean."
   "Return the sequence graph attribute from the user's configuration, CFG."
   (get-option cfg "Graphviz sequence graph attributes" attribute))
 
+(defun graphviz-sequence-edge-attribute (cfg attribute)
+  "Returns a function that returns the sequence graph edge attribute from the
+user's configuration, CFG."
+  (let ((attr (get-option cfg "Graphviz sequence edge attributes" attribute)))
+    (constantly attr)))
+
+(defun graphviz-sequence-node-attribute (cfg attribute)
+  "Return a function that returns the sequence graph node attribute from the
+user's configuration, CFG."
+  (let ((attr (get-option cfg "Graphviz sequence node attributes" attribute)))
+    (constantly attr)))
+
 (defun graphviz-sequence-graph-color (cfg attribute)
   "Return a graphviz color string for the sequence graph ATTRIBUTE from the
   user's configuration, CFG."
