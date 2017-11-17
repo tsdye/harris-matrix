@@ -5,16 +5,15 @@
 ;; Licensed under the Gnu Public License Version 3 or later
 
 (in-package #:hm)
-(named-readtables:in-readtable lol:lol-syntax)
 
 ;; The inferior-shell package should enable hm.lisp to call a script
 ;; that compiles and displays the dot file output.
 ;; (require "inferior-shell")
 
-;; Macros
+(defun <-dot-graph (attribute)
+  "Format an attribute from the user's configuration for Graphviz."
+  (quotes-around attribute))
 
-(defmacro <-dot (seq element dot-attr)
-  `(to-dot-macro (,seq ,element ,dot-attr)))
 
 (defun to-dot-macro (seq element dot-attr)
   "Returns a function that takes a node or edge label and returns the behavior
@@ -33,40 +32,12 @@ indicated in the user's configuration."
        (let ((map (make-map seq element dot-attr user-class))
              (vector (make-vector graph user-class)))
          #'(lambda (x)
-             ((get-from-map map (get-from-vector vector x)))))
+             (get-from-map map (get-from-vector vector x))))
        (nil
         (let ((user-val (lookup-option cfg dot-attr "sequence" element "")))
-          #'(lambda (user-val)
-              (constantly user-val))))
-       (t (error "Error: Unable to set ~a ~a.~&" element dot-attr))))))
+          (constantly user-val))))
+       (t (error "Error: Unable to set ~a ~a.~&" element dot-attr)))))
 
-;; From On Lisp, p. 92, a macro for testing macroexpansion
-
-(defmacro mac (expr)
-  `(pprint (macroexpand-1 ',expr)))
-
-;; threading macro
-;; http://www.teknoids.net/content/immutable-persistent-data-structures-common-lisp
-
-(defmacro -> (x &optional
-                (form nil form-supplied-p)
-                &rest
-                more)
-  (if form-supplied-p
-      (if more
-          `(-> (-> ,x ,form)
-               ,@more)
-        (if (listp form)
-            `(,(car form)
-              ,x
-              ,@
-              (cdr form))
-          (list form x)))
-    x))
-
-;; Needs work, no docstring
-(defun <-dot-graph (attribute)
-  (quotes-around attribute))
 
 ;; passes test
 (defun quotes-around (string)
@@ -90,7 +61,7 @@ the possibly modified GRAPH."
                               (file-header-p cfg "contexts") verbose)))
     (dolist (node contexts)
       (graph:add-node ret (symbolicate (nth 0 node))))
-    (when verbose (format t "Added nodes to the sequence graph.~&"))
+    (when verbose (format t "Nodes added to the sequence graph.~&"))
     ret))
 
 (defun add-arcs (graph cfg &optional (verbose t))
@@ -102,13 +73,13 @@ VERBOSE, then advertise the activity. Returns the possibly modified GRAPH."
     (dolist (arc obs)
       (graph:add-edge ret (list (symbolicate (nth 0 arc))
                                 (symbolicate (nth 1 arc)))))
-    (when verbose (format t "Added arcs to the sequence graph.~&"))
+    (when verbose (format t "Arcs added to the sequence graph.~&"))
     ret))
 
 (defun make-new-sequence-graph (cfg &optional (verbose t))
   "Given a configuration CFG, make a new digraph instance and populate it with
   nodes and arcs from the files specified in the configuration."
-  (let ((new-graph (make-instance 'graph:digraph)))
+  (let ((new-graph (new-graph)))
     (setf new-graph (add-nodes new-graph cfg verbose))
     (setf new-graph (add-arcs new-graph cfg verbose))
     new-graph))
@@ -272,7 +243,7 @@ discrepancies and errors out if it finds one."
                            (fset:with
                             (archaeological-sequence-classifiers ret)
                             class (make-classifier class ret verbose))))))
-    (when verbose (format t "Configured archaeological sequence.~&"))
+    (when verbose (format t "Archaeological sequence configured.~&"))
     ret))
 
 (defun make-classifier (classifier-type seq &optional (verbose t))
@@ -340,8 +311,8 @@ empty graph. If VERBOSE, then advertise progress."
         (format t "Creating chronology graph.~&"))
       (progn
         (when verbose (format t "Chronology graph off.~&"))
-        (return-from create-chronology-graph (make-instance 'graph:digraph))))
-  (let* ((ret (make-instance 'graph:digraph))
+        (return-from create-chronology-graph (new-graph))))
+  (let* ((ret (new-graph))
          (distance-matrix
            (create-distance-matrix (archaeological-sequence-configuration seq)
                                    (archaeological-sequence-graph seq)))
