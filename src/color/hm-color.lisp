@@ -15,7 +15,7 @@
   be `x11', `svg', or `solarized'."
   (let ((named-colors (fset:set "x11" "svg" "solarized")))
     (unless (or (fset:contains? named-colors scheme)
-                (brewer-colorscheme-distinctions scheme t)
+                (brewer-colorscheme-distinctions scheme)
                 (cet-name-p scheme))
       (error "The string \"~a\" is an invalid color scheme.~%" scheme))
     (etypecase index
@@ -160,7 +160,7 @@ the number of distinctions in the color scheme."
                  (fset:with "ylorrd" 9))))
     map))
 
-(defun brewer-color-scale-distinctions (color-scale)
+(defun brewer-colorscheme-distinctions (color-scale)
   "Given a COLOR-SCALE name as a string, return as values the number
 of distinctions as an integer and a boolean indicating whether or not
 color-scale was found.  If MEMBER is non-nil, then return nil if
@@ -187,33 +187,30 @@ specification is prefixed with an octothorp."
                             "cet-fire" "cet-kb" "cet-kg" "cet-kr" "cet-rainbow")
                   name))
 
-(defun cet-pathname (name)
-  "Returns a path to the CET csv file NAME."
-  (let ((source (asdf:system-source-directory :hm)))
-    (uiop:merge-pathnames* name source)))
+
 
 (defun cet-map (name)
   "Return an fset map of the CET colormap, NAME, where the key is an integer in
 [0..255] and the value is a graphviz HSV color string."
   (let ((file-name
           (cond
-            ((string= name "cet-bgyw") "src/color/linear_bgyw_15-100_c67_n256.csv")
-            ((string= name "cet-kbc") "src/color/linear_blue_5-95_c73_n256.csv")
-            ((string= name "cet-blues") "src/color/linear_blue_95-50_c20_n256.csv")
-            ((string= name "cet-bmw") "src/color/linear_bmw_5-95_c86_n256.csv")
-            ((string= name "cet-inferno") "src/color/linear_bmy_10-95_c71_n256.csv")
-            ((string= name "cet-kgy") "src/color/linear_green_5-95_c69_n256.csv")
-            ((string= name "cet-gray") "src/color/linear_grey_0-100_c0_n256.csv")
-            ((string= name "cet-dimgray") "src/color/linear_grey_10-95_c0_n256.csv")
-            ((string= name "cet-fire") "src/color/linear_kryw_0-100_c71_n256.csv")
+            ((string= name "cet-bgyw") (cet-pathname "linear_bgyw_15-100_c67_n256.csv"))
+            ((string= name "cet-kbc") (cet-pathname "linear_blue_5-95_c73_n256.csv"))
+            ((string= name "cet-blues") (cet-pathname "linear_blue_95-50_c20_n256.csv"))
+            ((string= name "cet-bmw") (cet-pathname "linear_bmw_5-95_c86_n256.csv"))
+            ((string= name "cet-inferno") (cet-pathname "linear_bmy_10-95_c71_n256.csv"))
+            ((string= name "cet-kgy") (cet-pathname "linear_green_5-95_c69_n256.csv"))
+            ((string= name "cet-gray") (cet-pathname "linear_grey_0-100_c0_n256.csv"))
+            ((string= name "cet-dimgray") (cet-pathname "linear_grey_10-95_c0_n256.csv"))
+            ((string= name "cet-fire") (cet-pathname "linear_kryw_0-100_c71_n256.csv"))
             ((string= name "cet-kb")
-             "src/color/linear_ternary-blue_0-44_c57_n256.csv")
+             (cet-pathname "linear_ternary-blue_0-44_c57_n256.csv"))
             ((string= name "cet-kg")
-             "src/color/linear_ternary-green_0-46_c42_n256.csv")
+             (cet-pathname "linear_ternary-green_0-46_c42_n256.csv"))
             ((string= name "cet-kr")
-             "src/color/linear_ternary-red_0-50_c52_n256.csv")
+             (cet-pathname "linear_ternary-red_0-50_c52_n256.csv"))
             ((string= name "cet-rainbow")
-             "src/color/rainbow_bgyr_35-85_c72_n256.csv")
+             (cet-pathname "rainbow_bgyr_35-85_c72_n256.csv"))
             (t nil)))
         (csv-file)
         (counter 0)
@@ -221,7 +218,7 @@ specification is prefixed with an octothorp."
         (map (fset:empty-map)))
     (unless file-name
       (error "The string \"~a\" is an invalid CET map alias.~%" name))
-    (setf csv-file (read-table (cet-pathname file-name) nil nil))
+    (setf csv-file (read-table file-name nil nil))
     (dolist (row csv-file)
       (setf map
             (fset:with map counter
