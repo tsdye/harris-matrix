@@ -6,26 +6,169 @@
 
 (in-package #:hm)
 
-(defun make-map (cfg element dot-attr user-class)
+(defun matrix-classes ()
+  "hm classifications that require a graph matrix."
+  (fset:set "distance" "reachable" "adjacent"))
+
+(defun vector-classes ()
+  "hm classifications that require a vector."
+  (fset:set "levels" "units" "periods" "phases"))
+
+(defun color-attributes ()
+  "Graphviz attributes that expect a color string."
+  (fset:set "color" "fillcolor" "fontcolor"))
+
+(defun category-attributes ()
+  "Graphviz attributes that expect a category string."
+  (fset:set "style" "shape" "arrowhead"))
+
+(defun numeric-attributes ()
+  "Graphviz attributes that expect a numeric value."
+  (fset:set "fontsize" "penwidth"))
+
+(defun create-distance-matrix (cfg graph)
+  "Returns a distance matrix of the directed graph, GRAPH, using the
+instructions in the user's configuration, CFG."
+  (graph-matrix:to-distance-matrix
+   graph (new-matrix (fast-matrix-p cfg))))
+
+(defun create-reachability-matrix (cfg graph)
+  "Returns a reachability matrix of the directed graph, GRAPH, using the
+  instructions in the user's configuration, CFG."
+  (let ((limit (reachable-limit cfg)))
+    (if (or (not limit)(< limit 2))
+        (graph-matrix:to-reachability-matrix
+         graph (new-matrix (fast-matrix-p cfg)))
+        (graph-matrix:to-reachability-matrix
+         graph (new-matrix (fast-matrix-p cfg)) :limit limit))))
+
+(defun create-adjacency-matrix (cfg graph)
+  "Returns an adjacency matrix of the directed graph, GRAPH, using the
+instructions in the user's configuration, CFG."
+  (graph-matrix:to-adjacency-matrix
+   graph (new-matrix (fast-matrix-p cfg))))
+
+(defun create-strong-component-matrix (cfg graph)
+  "Returns a strong-component-matrix of the directed graph, GRAPH, using
+  instructions in the user's configuration, CFG."
+  (graph-matrix:to-strong-component-matrix
+   graph (new-matrix (fast-matrix-p cfg))))
+
+(defun make-map (seq element dot-attr user-class)
+  "Return a closure for the classification, USER-CLASS, that can be passed
+directly to graph-dot for the attribute, DOT-ATTR, of the graph ELEMENT. ELEMENT
+is one of `node', `edge'."
+  (let ((cfg (archaeological-sequence-configuration seq)))
+    (cond
+      ((string= user-class "distance") (make-distance-map seq element dot-attr))
+      ((string= user-class "adjacent") (make-adjacent-map cfg element dot-attr))
+      ((string= user-class "reachable") (make-reachable-map cfg element dot-attr))
+      ((string= user-class "units") (make-units-map cfg element dot-attr))
+      ((string= user-class "levels") (make-levels-map seq element dot-attr))
+      ((string= user-class "phases") (make-phases-map cfg element dot-attr))
+      ((string= user-class "periods") (make-periods-map cfg element dot-attr)))))
+
+(defun make-distance-map (seq element dot-attr)
+  "Return a closure for a distance classification for the attribute, DOT-ATTR,
+of the graph ELEMENT. ELEMENT is one of `node', `edge'."
+  (let* ((cfg (archaeological-sequence-configuration seq))
+         (graph (archaeological-sequence-graph seq))
+         (map (fset:empty-map))
+         (matrix (create-distance-matrix cfg graph)))
+    (cond
+      ((fset:contains? (color-attributes) dot-attr)
+       (let ((max-distance (max-value matrix))
+             ;; get the color scheme for the element from the configuration
+             (scheme ()))
+         #'(lambda (x)
+             (graphviz-color-string x scheme max-distance))))
+      ((fset:contains? (category-attributes) dot-attr)
+       ())
+      ((fset:contains? (numeric-attributes) dot-attr)
+       ()))))
+
+(defun max-value (matrix)
+  "Return the maximum value in a matrix."
+  (let ((rows (graph-matrix:matrix-n-rows matrix))
+        (cols (graph-matrix:matrix-n-cols matrix))
+        (max-val 0))
+    (loop :for i :below rows :do
+      (loop :for j :below cols :do
+        (let ((this-val (graph-matrix:matrix-ref matrix i j)))
+          (when (> this-val max-val))
+            (setf max-val this-val))))))
+
+(defun make-adjacent-map (cfg element dot-attr)
+  "Return an fset map for an adjacency classification, whose key is an integer
+and value is a string appropriate for the attribute, DOT-ATTR, of the graph
+ELEMENT. ELEMENT is one of `node', `edge'."
+  (let ((map (fset:empty-map)))
+    (setf map (fset:with map 0 ))
+    (setf map (fset:with map 1 ))
+    (setf map (fset:with map 2 ))
+    map))
+
+(defun make-reachable-map (cfg element dot-attr)
+  "Return an fset map for a reachability classification, whose key is an integer
+and value is a string appropriate for the attribute, DOT-ATTR, of the graph
+ELEMENT. ELEMENT is one of `node', `edge'."
+  (let ((map (fset:empty-map)))
+    (setf map (fset:with map 0 ))
+    (setf map (fset:with map 1 ))
+    (setf map (fset:with map 2 ))
+    map))
+
+(defun make-units-map (cfg element dot-attr)
+  "Return an fset map for a unit classification, whose key is an integer and
+value is a string appropriate for the attribute, DOT-ATTR, of the graph ELEMENT.
+ELEMENT is one of `node', `edge'."
+  (let ((map (fset:empty-map)))))
+
+(defun make-levels-map (seq element dot-attr)
+  "Return an fset map for a levels classification, whose key is an integer and
+value is a string appropriate for the attribute, DOT-ATTR, of the graph ELEMENT.
+ELEMENT is one of `node', `edge'."
+  (let ((map (fset:empty-map))
+        (cfg (archaeological-sequence-configuration seq))
+        (graph (archaeological-sequence-graph seq))
+        (max-levels))))
+
+(defun make-phases-map (cfg element dot-attr)
+  "Return an fset map for a phases classification, whose key is an integer and
+value is a string appropriate for the attribute, DOT-ATTR, of the graph ELEMENT.
+ELEMENT is one of `node', `edge'."
+  (let ((map (fset:empty-map)))))
+
+(defun make-periods-map (cfg element dot-attr)
+  "Return an fset map for a periods classification, whose key is an integer and
+value is a string appropriate for the attribute, DOT-ATTR, of the graph ELEMENT.
+ELEMENT is one of `node', `edge'."
+  (let ((map (fset:empty-map)))))
+
+(defun make-map-string (cfg string dot-attr)
+  (if (fset:contains? (color-attributes) dot-attr)
+      (graphviz-sequence-graph-color (cfg dot-attr))
+      (string)))
+
+(defun make-vector (cfg graph user-class)
+  (sleep 1))
+
+(defun make-matrix (cfg graph user-class)
+  "Return a graph-matrix matrix appropriate for USER-CLASS, given the user's
+  configuration, CFG, and a directed graph, GRAPH."
   (cond
-    ((fset:contains?
-      (fset:set "color" "fill" "fontcolor") dot-attr)
-     (make-color-map cfg element dot-attr))
-    ((fset:contains?
-      (fset:set "shape" "style" "polygon-image" "classify")
-      dot-attr)
-     (make-string-map cfg element dot-attr))
-    (t (make-integer-map cfg element dot-attr))))
+    ((string= "distance" user-class) (create-distance-matrix cfg graph))
+    ((string= "reachable" user-class) (create-reachability-matrix cfg graph))
+    ((string= "adjacent" user-class) (create-adjacency-matrix cfg graph))))
 
-(defun make-vector (cfg graph user-class))
+(defun get-from-map (map key)
+  (fset:lookup map key))
 
-(defun make-matrix (cfg graph user-class from-node))
+(defun get-from-vector (vector element)
+  (fset:lookup vector element))
 
-(defun get-from-map (map key))
-
-(defun get-from-vector (vector element))
-
-(defun get-from-matrix (matrix from to))
+(defun get-from-matrix (matrix from to)
+  (sleep 1))
 
 (defun tables-to-map (contexts other-table table-type)
   "Given a CONTEXTS table, an OTHER-TABLE, and a TABLE-TYPE in
