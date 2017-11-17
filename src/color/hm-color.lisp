@@ -242,11 +242,6 @@ specification is prefixed with an octothorp."
             (fset:@ map (+ (floor (/ (+ base increment) 2)) (* index increment)))))
     ret))
 
-(defun svg-pathname ()
-  "Returns a path to the CET csv file NAME."
-  (let ((source (asdf:system-source-directory :hm)))
-    (uiop:merge-pathnames* "src/color/svg.csv" source)))
-
 (defun svg-map ()
   "Returns an fset map where the keys are svg color names and the values are
   hexadecimal color strings."
