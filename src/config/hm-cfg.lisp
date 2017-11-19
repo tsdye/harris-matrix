@@ -26,6 +26,7 @@
     ("Input file headers" "events" "" "" "header" "" "" )
     ("Input file headers" "event-order" "" "" "header" "" "" )
     ("General configuration" "chronology-graph-draw" "chronology" "" "general" "" "off" )
+    ("General configuration" "project-directory" "" "" "general" "" "")
     ("General configuration" "url-include" "" "" "general" "" "off" )
     ("General configuration" "url-default" "" "" "general" "" "http://tsdye.github.io/harris-matrix/" )
     ("General configuration" "legend" "" "" "general" "" "off" )
@@ -279,6 +280,11 @@ or nil if CFG contains a value not interpreted by py-configparser as a boolean."
                     :type :boolean)
         nil)))
 
+(defun project-directory (cfg)
+  "Return a string with the user's project directory, or nil if the option is empty."
+  (let ((value (get-option cfg "General configuration" "project-directory")))
+    (if (emptyp value) nil value)))
+
 ;;API
 (defun input-file-name (cfg content)
   "Return the file name for CONTENT from the user's configuration, CFG. CONTENT
@@ -464,13 +470,16 @@ configuration."
   Graphviz requires that node-style-by be empty and the node style
   attribute be `filled'.  Returns nil if all is well, non-nil
   otherwise."
-  (not
-   (and (not (emptyp (get-option cfg "Graphviz sequence classification"
-                                 "node-fill-by")))
-        (emptyp (get-option cfg "Graphviz sequence classification"
-                            "node-style-by"))
-        (string= (get-option cfg "Graphviz sequence node attributes"
-                             "style") "filled"))))
+  (if (not (emptyp (get-option cfg "Graphviz sequence classification"
+                               "node-fill-by")))
+      (progn
+        (unless (and
+                 (emptyp (get-option cfg "Graphviz sequence classification"
+                                     "node-style-by"))
+                 (string= (get-option cfg "Graphviz sequence node attributes"
+                                      "style") "filled")))
+        t)
+      nil))
 
 (defun Graphviz-node-polygon-shape-problem? (cfg)
   "Given a configuration, CFG, return nil if the user is set up to
@@ -494,7 +503,7 @@ configuration."
   "Returns non-nil if an origin node is needed by, but is missing from,
 the configuration CFG, nil otherwise."
   (let ((options '("distance" "reachable" "adjacent")))
-    (and (emptyp (get-option cfg "General configuration" "reachable-from"))
+    (and (emptyp (get-option cfg "Reachability configuration" "reachable-from"))
          (or
           (member (get-option cfg "Graphviz sequence classification"
                               "node-fill-by") options)
@@ -506,7 +515,7 @@ the configuration CFG, nil otherwise."
 (defun chronology-graph-restrictions-ignored? (cfg)
   "Returns non-nil if the configuration CFG ignores chronology graph
 restrictions, nil otherwise."
-  (and (get-option cfg "Chronology graph" "draw" :type :boolean)
+  (and (get-option cfg "General configuration" "chronology-graph-draw" :type :boolean)
        (get-option cfg "General configuration"
                    "assume-correlations" :type :boolean)))
 
@@ -528,8 +537,10 @@ can't be found, nil otherwise."
   (let ((option-list (options cfg "Input files"))
         (missing))
     (dolist (option option-list)
-      (let ((file-name (get-option cfg "Input files" option)))
-        (when file-name (unless (probe-file file-name) (push file-name missing)))))
+      (let ((file-name (get-option cfg "Input files" option))
+            (dir (project-directory cfg)))
+        (when file-name (unless (probe-file (uiop:merge-pathnames* dir file-name))
+                          (push file-name missing)))))
     missing))
 
 (defun reset-option (cfg section-name option-name value)
@@ -587,20 +598,6 @@ If NAME exists and VERBOSE is non-nil, then asks about overwriting it."
       (unless (yes-or-no-p "Overwrite ~a?" name))
       (return-from set-dot-file))
     (set-option cfg "Output files" option name)))
-
-(defun read-configuration-from-files (verbose &rest file-names)
-  "Reads the initialization files FILE-NAMES and returns a configuration. Errors
-out if one or more initialization files were not read. Prints a status message."
-  (let ((config (make-default-or-empty-configuration (master-table))))
-    (dolist (file file-names)
-      (when (null (probe-file file))
-        (error "Error: unable to read file: ~s.~&" file)))
-    (when verbose
-      (format t "Read ~r initialization file~:p: ~{~a~^, ~}.~&"
-              (length file-names) file-names))
-    (dolist (file file-names)
-      (read-files config (list file)))
-    config))
 
 (defun show-configuration-options (cfg section-name)
   "Print the options in section SECTION-NAME of configuration CFG.
