@@ -25,6 +25,9 @@
 (defvar *hm-test-config-path* nil
   "Variable for use in hm tests.")
 
+(defvar *roskams-h-sequence* nil
+  "Variable for use in hm tests.")
+
 (defixture hm-test-path
     (:setup
      (setf *hm-test-path*
@@ -76,24 +79,36 @@
     (is (string= (hm::quotes-around "abc") goal))
     (is (string= (hm::quotes-around "\"abc\"") goal))))
 
+;;; hm-element tests
+
 (deftest graphviz-edge-style-test ()
   (is (string= (funcall (hm::graphviz-edge-style) 0) "solid"))
   (is (string= (funcall (hm::graphviz-edge-style) 1) "dashed"))
-  (is (string= (funcall (hm::graphviz-edge-style)  2) "dotted"))
-  (is (string= (funcall (hm::graphviz-edge-style)  3) "bold")))
+  (is (string= (funcall (hm::graphviz-edge-style) 2) "dotted"))
+  (is (string= (funcall (hm::graphviz-edge-style) 3) "bold"))
+  (is (string= (funcall (hm::graphviz-edge-style) 4) "solid")))
 
-(deftest lookup-option-test ()
-  (with-fixture default-config
-    (let ((master (hm:master-table))
-          (result t))
-      (dolist (row master)
-        (and result
-             (or
-              (string= (nth 6 row)
-                       (hm:lookup-option *cfg* (nth 1 row) (nth 2 row)
-                                         (nth 3 row) (nth 4 row) (nth 5 row)))
-              (setf result nil))))
-      (is result))))
+(deftest graphviz-node-style-test ()
+  (is (string= (funcall (hm::graphviz-node-style) 0) "solid"))
+  (is (string= (funcall (hm::graphviz-node-style) 1) "dashed"))
+  (is (string= (funcall (hm::graphviz-node-style) 2) "dotted"))
+  (is (string= (funcall (hm::graphviz-node-style) 3) "bold"))
+  (is (string= (funcall (hm::graphviz-node-style) 4) "rounded"))
+  (is (string= (funcall (hm::graphviz-node-style) 10) "solid")))
+
+(deftest graphviz-node-shape-test ()
+  (is (string= (funcall (hm::graphviz-node-shape) 0) "box"))
+  (is (string= (funcall (hm::graphviz-node-shape) 1) "polygon"))
+  (is (string= (funcall (hm::graphviz-node-shape) 2) "ellipse"))
+  (is (string= (funcall (hm::graphviz-node-shape) 3) "egg"))
+  (is (string= (funcall (hm::graphviz-node-shape) 4) "triangle"))
+  (is (string= (funcall (hm::graphviz-node-shape) 39) "box")))
+
+(deftest graphviz-arrow-shape-test ()
+  (is (string= (funcall (hm::graphviz-arrow-shape) 0) "none"))
+  (is (string= (funcall (hm::graphviz-arrow-shape) 1) "box"))
+  (is (string= (funcall (hm::graphviz-arrow-shape) 2) "lbox"))
+  (is (string= (funcall (hm::graphviz-arrow-shape) 42) "none")))
 
 (deftest correlated-node-test ()
   (with-fixture transitive-graph
@@ -106,6 +121,7 @@
                                  t)
             "A=B"))))
 
+;; graph tests
 (deftest node-index-test ()
   (with-fixture transitive-graph
     (let ((i (hm::make-node-index *transitive*)))
@@ -122,7 +138,7 @@
          (hm::transitive-reduction *transitive*)
          *intransitive*))))
 
-;;; Tests for exported functions
+;;; Tests for configurations
 
 ;; test that configurations are written to file and read back in correctly
 (deftest read-write-configuration ()
@@ -191,7 +207,21 @@
     (is (string= (hm::get-option *cfg* "Output files" "chronology-dot") "foo.dot"))
     (is (string= (hm::get-option *cfg* "Output files" "sequence-dot") "bar.dot"))))
 
-;; color functions
+(deftest lookup-option-test ()
+  (with-fixture default-config
+    (let ((master (hm:master-table))
+          (result t))
+      (dolist (row master)
+        (and result
+             (or
+              (string= (nth 6 row)
+                       (hm:lookup-option *cfg* (nth 1 row) (nth 2 row)
+                                         (nth 3 row) (nth 4 row) (nth 5 row)))
+              (setf result nil))))
+      (is result))))
+
+
+;;; Color functions
 
 (deftest test-graphviz-color-string ()
   (is (string= (hm::graphviz-color-string 1 "reds" 3) "/reds3/2"))
