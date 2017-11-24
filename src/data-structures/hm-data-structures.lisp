@@ -6,6 +6,15 @@
 
 (in-package #:hm)
 
+(defun classifiers ()
+  "hm classifier set."
+  (fset:set "node-fill-by" "node-shape-by" "node-color-by"
+            "node-penwidth-by" "node-style-by" "node-polygon-distortion-by"
+            "node-polygon-image-by" "node-polygon-orientation-by"
+            "node-polygon-sides-by" "node-polygon-skew-by"
+            "edge-color-by" "edge-fontcolor-by" "edge-penwidth-by"
+            "edge-style-by"))
+
 (defun matrix-classes ()
   "hm classifications that require a graph matrix."
   (fset:set "distance" "reachable" "adjacent"))
