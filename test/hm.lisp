@@ -25,8 +25,17 @@
 (defvar *hm-test-config-path* nil
   "Variable for use in hm tests.")
 
-(defvar *roskams-h-sequence* nil
+(defvar *roskams-h-structure* nil
   "Variable for use in hm tests.")
+
+(defixture roskams-h-structure
+  (:setup (setf *roskams-h-structure*
+                (hm:read-configuration-from-files
+                 nil
+                 (uiop:merge-pathnames*
+                  "test/assets/examples/roskams-h-structure/roskams-h.ini"
+                  (asdf:system-source-directory :hm-test)))))
+  (:teardown (setf *roskams-h-structure* nil)))
 
 (defixture hm-test-path
     (:setup
@@ -64,22 +73,16 @@
   (:setup (setf *cfg* (hm:empty-configuration)))
   (:teardown (setf *cfg* nil)))
 
-;;; Tests for internal functions
 
-(deftest fast-matrix-test ()
-  (with-fixture default-config
-    (is (hm:fast-matrix-p *cfg*))
-    (hm::set-option *cfg* "General configuration" "fast-matrix" "off")
-    (is (not (hm:fast-matrix-p *cfg*)))
-    (hm::set-option *cfg* "General configuration" "fast-matrix" "foo")
-    (is (not (hm:fast-matrix-p *cfg*)))))
+;;; Tests for utility functions, hm.lisp
 
 (deftest quotes-around-test ()
   (let ((goal "\"abc\""))
     (is (string= (hm::quotes-around "abc") goal))
     (is (string= (hm::quotes-around "\"abc\"") goal))))
 
-;;; hm-element tests
+
+;;; Elements, hm-elements.lisp tests
 
 (deftest graphviz-edge-style-test ()
   (is (string= (funcall (hm::graphviz-edge-style) 0) "solid"))
@@ -139,6 +142,16 @@
          *intransitive*))))
 
 ;;; Tests for configurations
+
+(deftest fast-matrix-test ()
+  (with-fixture default-config
+    (is (hm:fast-matrix-p *cfg*))
+    (hm::set-option *cfg* "General configuration" "fast-matrix" "off")
+    (is (not (hm:fast-matrix-p *cfg*)))
+    (hm::set-option *cfg* "General configuration" "fast-matrix" "foo")
+    (with-expected-failures
+      (is (not (hm:fast-matrix-p *cfg*))))))
+
 
 ;; test that configurations are written to file and read back in correctly
 (deftest read-write-configuration ()
@@ -264,3 +277,41 @@
   (is (string= (hm::cet-color "cet-kg" 0 1) "0.333 1.000 0.255"))
   (is (string= (hm::cet-color "cet-kr" 0 1) "0.031 1.000 0.463"))
   (is (string= (hm::cet-color "cet-rainbow" 0 1) "0.179 0.834 0.757")))
+
+;; Test for Roskam's h-structure example
+
+(deftest test-roskams-h-structure-config ()
+  (with-fixture roskams-h-structure
+    (is (not (configuration-errors? *roskams-h-structure*)))))
+
+(deftest test-roskams-h-structure-graph ()
+  (with-fixture roskams-h-structure
+    (is (typep (hm::make-new-sequence-graph *roskams-h-structure* nil)
+               'graph:digraph))))
+
+(deftest test-roskams-h-structure-configure-sequence ()
+  (with-fixture roskams-h-structure
+    (is (typep (hm:configure-archaeological-sequence
+                (hm::make-archaeological-sequence) *roskams-h-structure* nil)
+               'hm::archaeological-sequence))))
+
+(deftest test-roskams-h-structure-graph-nodes-edges ()
+  (with-fixture roskams-h-structure
+    (let ((g (hm::make-new-sequence-graph *roskams-h-structure* nil)))
+      (is (equal (graph:nodes g) '(|1| |2| |3| |4| |5|)))
+      (is (equal
+           (graph:edges g)
+           '((|1| |3|) (|1| |4|) (|1| |5|) (|2| |3|) (|2| |5|) (|3| |5|) (|4| |5|)))))))
+
+(deftest test-roskams-h-structure-missing-interfaces ()
+  (with-fixture roskams-h-structure
+    (hm::set-option *roskams-h-structure* "General configuration" "add-interfaces" "yes")
+    (let ((seq (hm::configure-archaeological-sequence
+                (hm::make-archaeological-sequence) *roskams-h-structure* nil)))
+      (is (equal (graph:nodes (hm::archaeological-sequence-graph seq))
+                 '(|1| |2| |3| |4| |5| |5-*surface*| |3-*surface*| |4-*surface*|)))
+      (is (equal (graph:edges (hm::archaeological-sequence-graph seq))
+                 '((|1| |3-*surface*|) (|1| |4-*surface*|) (|1| |5-*surface*|)
+                   (|2| |3-*surface*|) (|2| |5-*surface*|) (|3| |5-*surface*|)
+                   (|4| |5-*surface*|) (|5-*surface*| |5|) (|3-*surface*| |3|)
+                   (|4-*surface*| |4|)))))))
