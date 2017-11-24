@@ -92,21 +92,21 @@ VERBOSE, then advertise the activity. Returns the possibly modified GRAPH."
   "Given the information in a configuration CFG, possibly merge and rename the
   nodes of GRAPH. Check for cycles and error out if present, otherwise return
   the possibly modified GRAPH."
-  (when (assume-correlations-p cfg)
-    (let ((ret (graph:copy graph))
-          (input-file-name (input-file-name cfg "inferences"))
-          (file-header (file-header-p cfg "inferences"))
-          (inferences))
-      (if input-file-name
-          (setf inferences (read-table input-file-name file-header verbose))
-          (error "Error: No inference table specified."))
-      (dolist (part inferences)
-        (graph:merge-nodes ret (symbolicate (nth 1 part))
-                           (symbolicate (nth 0 part))
-                           :new (correlated-node (nth 0 part) (nth 1 part))))
-      (check-cycles ret)
-      ret))
-  graph)
+  (if (assume-correlations-p cfg)
+      (let ((ret (graph:copy graph))
+            (input-file-name (input-file-name cfg "inferences"))
+            (file-header (file-header-p cfg "inferences"))
+            (inferences))
+        (if input-file-name
+            (setf inferences (read-table input-file-name file-header verbose))
+            (error "Error: No inference table specified."))
+        (dolist (part inferences)
+          (graph:merge-nodes ret (symbolicate (nth 1 part))
+                             (symbolicate (nth 0 part))
+                             :new (correlated-node (nth 0 part) (nth 1 part))))
+        (check-cycles ret)
+        ret)
+      graph))
 
 (defun correlated-node (node-1 node-2 &optional (as-string nil))
   "Given two correlated node symbols, NODE-1 and NODE-2, return a new
