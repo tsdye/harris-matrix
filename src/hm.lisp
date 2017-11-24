@@ -92,25 +92,22 @@ VERBOSE, then advertise the activity. Returns the possibly modified GRAPH."
   "Given the information in a configuration CFG, possibly merge and rename the
   nodes of GRAPH. Check for cycles and error out if present, otherwise return
   the possibly modified GRAPH."
-  (let ((ret (graph:copy graph))
-        (make-assumption (get-option cfg "General configuration"
-                                     "assume-correlations" :type :boolean))
-        (input-file-name (get-option cfg "Input files" "inferences"))
-        (file-header-p (get-option cfg "Input file headers" "inferences"
-                                   :type boolean))
-        (inferences))
-    (when make-assumption
+  (when (assume-correlations-p cfg)
+    (let ((ret (graph:copy graph))
+          (input-file-name (input-file-name cfg "inferences"))
+          (file-header (file-header-p cfg "inferences"))
+          (inferences))
       (if input-file-name
-          (setf inferences (read-table input-file-name file-header-p verbose))
+          (setf inferences (read-table input-file-name file-header verbose))
           (error "Error: No inference table specified."))
       (dolist (part inferences)
         (graph:merge-nodes ret (symbolicate (nth 1 part))
                            (symbolicate (nth 0 part))
                            :new (correlated-node (nth 0 part) (nth 1 part))))
-      (check-cycles ret))
-    ret))
+      (check-cycles ret)
+      ret))
+  graph)
 
-;; passes test
 (defun correlated-node (node-1 node-2 &optional (as-string nil))
   "Given two correlated node symbols, NODE-1 and NODE-2, return a new
 symbol for the correlated nodes.  If AS-STRING is non-nil, return the
@@ -201,12 +198,20 @@ visualize the archaeological sequence with d3 and GraphViz."
 (defun print-archaeological-sequence (seq stream depth)
   (format stream
           "#<Seq ~a,~a; Chron ~a,~a; Config ~a; Class ~d>"
-          (length (graph:nodes (archaeological-sequence-graph seq)))
-          (length (graph:edges (archaeological-sequence-graph seq)))
-          (length (graph:nodes (archaeological-sequence-chronology-graph
-                                seq)))
-          (length (graph:edges (archaeological-sequence-chronology-graph
-                                seq)))
+          (if (archaeological-sequence-graph seq)
+              (length (graph:nodes (archaeological-sequence-graph seq)))
+              0)
+          (if (archaeological-sequence-graph seq)
+              (length (graph:edges (archaeological-sequence-graph seq)))
+              0)
+          (if (archaeological-sequence-chronology-graph seq)
+              (length (graph:nodes (archaeological-sequence-chronology-graph
+                                    seq)))
+              0)
+          (if (archaeological-sequence-chronology-graph seq)
+              (length (graph:edges (archaeological-sequence-chronology-graph
+                                    seq)))
+              0)
           (if (archaeological-sequence-configuration seq) "yes" "no")
           (fset:size (archaeological-sequence-classifiers seq))))
 
@@ -219,12 +224,7 @@ discrepancies and errors out if it finds one."
   (unless (typep cfg 'config) (error "Error: No configuration found."))
   (configuration-errors? cfg)
   (let ((ret (copy-structure seq))
-        (c (fset:set "node-fill-by" "node-shape-by" "node-color-by"
-                     "node-penwidth-by" "node-style-by" "node-polygon-distortion-by"
-                     "node-polygon-image-by" "node-polygon-orientation-by"
-                     "node-polygon-sides-by" "node-polygon-skew-by"
-                     "edge-color-by" "edge-fontcolor-by" "edge-penwidth-by"
-                     "edge-style-by")))
+        (c (classifiers)))
     (setf (archaeological-sequence-configuration ret) cfg)
     (setf (archaeological-sequence-graph ret) (make-new-sequence-graph cfg verbose))
     (setf (archaeological-sequence-graph ret)
@@ -235,7 +235,7 @@ discrepancies and errors out if it finds one."
     (setf (archaeological-sequence-chronology-graph ret)
           (create-chronology-graph ret verbose))
     (fset:do-set (classifier c)
-                 (let ((class (sequence-classifier cfg)))
+                 (let ((class (sequence-classifier cfg classifier)))
                    (unless (emptyp class)
                      (when verbose
                        (format t "Making classifier for ~a.~&" class))
@@ -254,7 +254,7 @@ CLASSIFIER-TYPE. CLASSIFIER-TYPE is one of `distance', `reachable', `adjacent',
 `periods', `phases', `units', or `levels'."
   (let ((cfg (archaeological-sequence-configuration seq))
         (graph (archaeological-sequence-graph seq)))
-    (when verbose (format t "Creating %a classification.~&" classifier-type))
+    (when verbose (format t "Creating ~a classification.~&" classifier-type))
     (cond
       ((string= classifier-type "units")
        (context-type-to-map (read-table (input-file-name cfg  "contexts")
