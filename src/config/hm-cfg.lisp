@@ -259,14 +259,17 @@
     ))
 
 ;;API
+(defun boolean-strings ()
+  (fset:set "1" "yes" "true" "on" "0" "no" "false" "off"))
+
 (defun fast-matrix-p (cfg)
   "Returns the boolean value for fast-matrix in the user's configuration, CFG,
 or nil if CFG contains a value not interpreted by py-configparser as a boolean."
   (let ((value (get-option cfg "General configuration" "fast-matrix")))
-    (if (member value '("1" "yes" "true" "on" "0" "no" "false" "off")
-                :test #'string=)
+    (if (fset:contains? (boolean-strings) value)
         (get-option cfg "General configuration" "fast-matrix" :type :boolean)
-        nil)))
+        (unless (emptyp value)
+          (error "Error: ~s is not valid for fast-matrix." value)))))
 
 ;;API
 (defun assume-correlations-p (cfg)
@@ -274,11 +277,11 @@ or nil if CFG contains a value not interpreted by py-configparser as a boolean."
   configuration, CFG, or nil if CFG contains a value not interpreted by
   py-configparser as a boolean."
   (let ((value (get-option cfg "General configuration" "assume-correlations")))
-    (if (member value '("1" "yes" "true" "on" "0" "no" "false" "off")
-                :test #'string=)
+    (if (fset:contains? (boolean-strings) value)
         (get-option cfg "General configuration" "assume-correlations"
                     :type :boolean)
-        nil)))
+        (unless (emptyp value)
+          (error "Error: ~s is not valid for assume-correlations." value)))))
 
 (defun project-directory (cfg)
   "Return a string with the user's project directory, or nil if the option is empty."
@@ -287,10 +290,13 @@ or nil if CFG contains a value not interpreted by py-configparser as a boolean."
 
 ;;API
 (defun input-file-name (cfg content)
-  "Return the file name for CONTENT from the user's configuration, CFG. CONTENT
-  is a string, one of `contexts', `observations', `inferences', `periods',
-  `phases', `events', or `event-order'."
-  (get-option cfg "Input files" content))
+  "Return the file path for CONTENT from the user's configuration, CFG, or nil
+  if the file does not exist. CONTENT is a string, one of `contexts',
+  `observations', `inferences', `periods', `phases', `events', or
+  `event-order'."
+  (probe-file (uiop:merge-pathnames*
+               (get-option cfg "Input files" content)
+               (get-option cfg "General configuration" "project-directory"))))
 
 ;;API
 (defun input-file-name-p (cfg content)
@@ -301,24 +307,35 @@ or nil if CFG contains a value not interpreted by py-configparser as a boolean."
   (not (emptyp (get-option cfg "Input files" content))))
 
 ;; API
+
 (defun file-header-p (cfg content)
   "Return the boolean value for CONTENT from the `Input file headers' section of
-  the user's configuration, CFG. CONTENT is a string, one of `contexts',
-  `observations', `inferences', `periods', `phases', `events', or
-  `event-order'."
-  (get-option cfg "Input file headers" content :type :boolean))
+  the user's configuration, CFG, or nil if the value is not a valid boolean
+  string. CONTENT is a string, one of `contexts', `observations', `inferences',
+  `periods', `phases', `events', or `event-order'."
+  (let ((value (get-option cfg "Input file headers" content)))
+    (if (fset:contains? (boolean-strings) value)
+        (get-option cfg "Input file headers" content :type :boolean)
+        (unless (emptyp value)
+          (error "Error: ~s is not valid for ~s file header." value content)))))
 
 ;; API
 (defun output-file-name (cfg content)
-  "Return the file name for CONTENT from the user's configuration, CFG. CONTENT
+  "Return the file path for CONTENT from the user's configuration, CFG. CONTENT
   is a string, one of `sequence-dot' or `chronology-dot'. CONTENT is a string,
   one of `contexts', `observations', `inferences', `periods', `phases',
   `events', or `event-order'."
-  (get-option cfg "Output files" content))
+   (uiop:merge-pathnames*
+    (get-option cfg "Output files" content)
+    (get-option cfg "General configuration" "project-directory")))
 
 (defun missing-interfaces-p (cfg)
   "Return the boolean value of `add-missing-interfaces'."
-  (get-option cfg "General configuration" "add-missing-interfaces" :type :boolean))
+  (let ((value (get-option cfg "General configuration" "add-interfaces")))
+    (if (fset:contains? (boolean-strings) value)
+        (get-option cfg "General configuration" "add-interfaces" :type :boolean)
+        (unless (emptyp value)
+          (error "Error: ~s is not valid for add-interfaces." value)))))
 
 (defun graphviz-sequence-graph-attribute (cfg attribute)
   "Return the sequence graph attribute from the user's configuration, CFG."
@@ -379,11 +396,19 @@ CFG."
 (defun chronology-graph-p (cfg)
   "Return a boolean value read from the user's configuration indicating whether
   or not to draw the chronology graph."
-  (get-option cfg "Chronology graph" "draw" :type :boolean))
+  (let ((value (get-option cfg "General configuration" "chronology-graph-draw")))
+    (if (fset:contains? (boolean-strings) value)
+        (get-option cfg "General configuration" "chronology-graph-draw" :type :boolean)
+        (unless (emptyp value)
+          (error "Error: ~s is not valid for chronology-graph-draw." value)))))
 
 (defun include-url-p (cfg)
   "Return a boolean value read from the user's configuration, CFG, indicating whether or not to include an URL in the output."
-  (get-option cfg "General configuration" "url-include" :type :boolean))
+  (let ((value (get-option cfg "General configuration" "url-include")))
+    (if (fset:contains? (boolean-strings) value)
+        (get-option cfg "General configuration" "url-include" :type :boolean)
+        (unless (emptyp value)
+          (error "Error: ~s is not valid for url-include." value)))))
 
 (defun default-url (cfg)
   "Return the default URL from the user's configuration, CFG, as a string"
