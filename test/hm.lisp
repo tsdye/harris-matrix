@@ -153,6 +153,13 @@
       (is (not (hm:fast-matrix-p *cfg*))))))
 
 
+(deftest test-lookup-graphviz-option ()
+  (with-fixture default-config
+    (is (string= "filled"
+                 (hm::lookup-graphviz-option *cfg* "node" "style" "sequence")))
+    (is (string= "solid"
+                 (hm::lookup-graphviz-option *cfg* "edge" "style" "sequence")))))
+
 ;; test that configurations are written to file and read back in correctly
 (deftest read-write-configuration ()
   (with-fixture hm-test-config-path
@@ -219,20 +226,6 @@
     (set-dot-file *cfg* "sequence-dot" "bar.dot" nil)
     (is (string= (hm::get-option *cfg* "Output files" "chronology-dot") "foo.dot"))
     (is (string= (hm::get-option *cfg* "Output files" "sequence-dot") "bar.dot"))))
-
-(deftest lookup-option-test ()
-  (with-fixture default-config
-    (let ((master (hm:master-table))
-          (result t))
-      (dolist (row master)
-        (and result
-             (or
-              (string= (nth 6 row)
-                       (hm:lookup-option *cfg* (nth 1 row) (nth 2 row)
-                                         (nth 3 row) (nth 4 row) (nth 5 row)))
-              (setf result nil))))
-      (is result))))
-
 
 ;;; Color functions
 
@@ -303,15 +296,15 @@
            (graph:edges g)
            '((|1| |3|) (|1| |4|) (|1| |5|) (|2| |3|) (|2| |5|) (|3| |5|) (|4| |5|)))))))
 
-(deftest test-roskams-h-structure-missing-interfaces ()
-  (with-fixture roskams-h-structure
-    (hm::set-option *roskams-h-structure* "General configuration" "add-interfaces" "yes")
-    (let ((seq (hm::configure-archaeological-sequence
-                (hm::make-archaeological-sequence) *roskams-h-structure* nil)))
-      (is (equal (graph:nodes (hm::archaeological-sequence-graph seq))
-                 '(|1| |2| |3| |4| |5| |5-*surface*| |3-*surface*| |4-*surface*|)))
-      (is (equal (graph:edges (hm::archaeological-sequence-graph seq))
-                 '((|1| |3-*surface*|) (|1| |4-*surface*|) (|1| |5-*surface*|)
-                   (|2| |3-*surface*|) (|2| |5-*surface*|) (|3| |5-*surface*|)
-                   (|4| |5-*surface*|) (|5-*surface*| |5|) (|3-*surface*| |3|)
-                   (|4-*surface*| |4|)))))))
+;; (deftest test-roskams-h-structure-missing-interfaces ()
+;;   (with-fixture roskams-h-structure
+;;     (hm::set-option *roskams-h-structure* "General configuration" "add-interfaces" "yes")
+;;     (let ((seq (hm::configure-archaeological-sequence
+;;                 (hm::make-archaeological-sequence) *roskams-h-structure* nil)))
+;;       (is (equal (graph:nodes (hm::archaeological-sequence-graph seq))
+;;                  '(|1| |2| |3| |4| |5| |5-*surface*| |3-*surface*| |4-*surface*|)))
+;;       (is (equal (graph:edges (hm::archaeological-sequence-graph seq))
+;;                  '((|1| |3-*surface*|) (|1| |4-*surface*|) (|1| |5-*surface*|)
+;;                    (|2| |3-*surface*|) (|2| |5-*surface*|) (|3| |5-*surface*|)
+;;                    (|4| |5-*surface*|) (|5-*surface*| |5|) (|3-*surface*| |3|)
+;;                    (|4-*surface*| |4|)))))))
