@@ -35,33 +35,48 @@
   "Graphviz attributes that expect a numeric value."
   (fset:set "fontsize" "penwidth"))
 
-(defun create-distance-matrix (cfg graph)
-  "Returns a distance matrix of the directed graph, GRAPH, using the
-instructions in the user's configuration, CFG."
-  (graph-matrix:to-distance-matrix
-   graph (new-matrix (fast-matrix-p cfg))))
+(defun create-distance-matrix (seq)
+  "Returns a distance matrix of the directed graph using the instructions in the
+configured sequence, SEQ."
+  (let ((graph (archaeological-sequence-graph seq))
+        (cfg (archaeological-sequence-configuration seq)))
+    (graph-matrix:to-distance-matrix graph (new-matrix (fast-matrix-p cfg)))))
 
-(defun create-reachability-matrix (cfg graph)
+(defun create-reachability-matrix (seq)
   "Returns a reachability matrix of the directed graph, GRAPH, using the
   instructions in the user's configuration, CFG."
-  (let ((limit (reachable-limit cfg)))
-    (if (or (not limit)(< limit 2))
+  (let ((limit (reachable-limit (archaeological-sequence-configuration seq)))
+        (graph (archaeological-sequence-graph seq))
+        (cfg (archaeological-sequence-configuration seq)))
+    (if (or (not limit) (< limit 2))
         (graph-matrix:to-reachability-matrix
          graph (new-matrix (fast-matrix-p cfg)))
         (graph-matrix:to-reachability-matrix
          graph (new-matrix (fast-matrix-p cfg)) :limit limit))))
 
-(defun create-adjacency-matrix (cfg graph)
+(defun create-adjacency-matrix (seq)
   "Returns an adjacency matrix of the directed graph, GRAPH, using the
 instructions in the user's configuration, CFG."
-  (graph-matrix:to-adjacency-matrix
-   graph (new-matrix (fast-matrix-p cfg))))
+  (let ((graph (archaeological-sequence-graph seq))
+          (cfg (archaeological-sequence-configuration seq)))
+    (graph-matrix:to-adjacency-matrix graph (new-matrix (fast-matrix-p cfg)))))
 
-(defun create-strong-component-matrix (cfg graph)
-  "Returns a strong-component-matrix of the directed graph, GRAPH, using
-  instructions in the user's configuration, CFG."
-  (graph-matrix:to-strong-component-matrix
-   graph (new-matrix (fast-matrix-p cfg))))
+;; (defun create-strong-component-matrix (seq)
+;;   "Returns a strong-component-matrix of the directed graph, GRAPH, using
+;;   instructions in the user's configuration, CFG."
+;;   (let ((graph (archaeological-sequence-graph seq))
+;;         (cfg (archaeological-sequence-configuration seq)))
+;;     (graph-matrix:to-strong-component-matrix
+;;      graph (new-matrix (fast-matrix-p cfg)))))
+
+(defun make-node-index (seq)
+  "Return an fset map of node to index."
+  (let ((graph (archaeological-sequence-graph seq))
+        (counter -1)
+        (node-index (fset:empty-map)))
+    (mapc (lambda (node)
+            (setf node-index (fset:with node-index node (incf counter))))
+          (graph:nodes graph))))
 
 (defun make-map (seq element dot-attr user-class)
   "Return a closure for the classification, USER-CLASS, that can be passed
@@ -82,19 +97,44 @@ is one of `node', `edge'."
 of the graph ELEMENT. ELEMENT is one of `node', `edge'."
   (let* ((cfg (archaeological-sequence-configuration seq))
          (graph (archaeological-sequence-graph seq))
-         (map (fset:empty-map))
-         (matrix (create-distance-matrix cfg graph)))
+         (matrix (create-distance-matrix cfg graph))
+         (node-index (make-node-index graph))
+         (from-node (reachable-from-node cfg)))
     (cond
       ((fset:contains? (color-attributes) dot-attr)
        (let ((max-distance (max-value matrix))
-             ;; get the color scheme for the element from the configuration
-             (scheme ()))
+             (scheme (lookup-graphviz-option cfg element dot-attr "sequence")))
          #'(lambda (x)
-             (graphviz-color-string x scheme max-distance))))
+             (let ((color (graph-matrix:matrix-ref
+                           matrix (fset:@ node-index from-node) (fset:@ node-index x))))
+               (graphviz-color-string color scheme max-distance)))))
       ((fset:contains? (category-attributes) dot-attr)
-       ())
+       (let ((map
+               (cond
+                 ((and (string= element "node") (string= dot-attr "style"))
+                  (graphviz-node-style-map))
+                 ((and (string= element "node") (string= dot-attr "shape"))
+                  (graphviz-node-shape-map))
+                 ((and (string= element "edge") (string= dot-attr "style"))
+                  (graphviz-edge-style-map))
+                 ((and (string= element "edge") (string= dot-attr "arrowhead"))
+                  (graphviz-arrow-shape-map)))))
+         #'(lambda (x)
+             (let ((index (graph-matrix:matrix-ref
+                           matrix (fset:@ node-index from-node) (fset:@ node-index x))))
+               (fset:@ map (mod index (fset:size map)))))))
       ((fset:contains? (numeric-attributes) dot-attr)
-       ()))))
+       (let ((min (if (string= dot-attr "penwidth"))
+                  (nth 0 (penwidth-min-max cfg element))
+                  (nth 0 ()))
+             (max (if (string= dot-attr "penwidth"))
+                  (nth 1 (penwidth-min-max cfg element))
+                  (nth 1 ()))
+             (interval (/ 1 (max-value matrix))))
+         #'(lambda (x)
+             (let ((index (graph-matrix:matrix-ref
+                           matrix (fset:@ node-index from-node) (fset:@ node-index x))))
+               (+ min (* (- max min) (* interval index)))))))))
 
 (defun max-value (matrix)
   "Return the maximum value in a matrix."
@@ -162,9 +202,11 @@ ELEMENT is one of `node', `edge'."
 (defun make-vector (cfg graph user-class)
   (sleep 1))
 
-(defun make-matrix (cfg graph user-class)
-  "Return a graph-matrix matrix appropriate for USER-CLASS, given the user's
-  configuration, CFG, and a directed graph, GRAPH."
+(defun make-matrix (seq user-class)
+  "Return a graph-matrix matrix appropriate for USER-CLASS, given the
+  information on the user's configuration and a directed graph from SEQ."
+  (let ((cfg (archaeological-sequence-configuration seq))
+        (graph (archaeological-sequence-graph seq))))
   (cond
     ((string= "distance" user-class) (create-distance-matrix cfg graph))
     ((string= "reachable" user-class) (create-reachability-matrix cfg graph))
