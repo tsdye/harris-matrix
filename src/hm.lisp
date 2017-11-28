@@ -16,26 +16,16 @@
 
 
 (defun to-dot-macro (seq element dot-attr graph-type)
-  "Returns a function that takes a node or edge label and returns the behavior
-indicated in the user's configuration."
+  "Returns an anonymous function that takes a node or edge label and returns the
+behavior indicated in the user's configuration."
   (let ((user-class (graphviz-classification seq element dot-attr)))
     (cond
-      ((fset:contains? (matrix-classes) user-class)
-       (let ((from-node (reachable-from-node (archaeological-sequence-configuration seq)))
-             (matrix (make-matrix seq user-class))
-             (map (make-map seq element dot-attr user-class)))
-         #'(lambda (x)
-             (funcall map (get-from-matrix matrix from-node x)))))
-      ((fset:contains? (vector-classes) user-class)
-       (let ((map (make-map seq element dot-attr user-class))
-             (vector (make-vector graph user-class))))
-       #'(lambda (x)
-           (get-from-map map (get-from-vector vector x))))
+      ((fset:contains? (fset:union matrix-classes vector-classes) user-class)
+       (make-map seq element dot-attr graph-type user-class))
       ((not user-class)
        (let ((user-val (lookup-graphviz-option cfg dot-attr element "sequence")))
          (constantly user-val)))
        (t (error "Error: Unable to set ~a ~a.~&" element dot-attr)))))
-
 
 ;; passes test
 (defun quotes-around (string)
@@ -132,16 +122,6 @@ specifies that correlations should be assumed true, nil otherwise."
     ranks))
 
 ;; passes test
-(defun make-node-index (graph)
-  "Returns an fset map where the key is a node of graph GRAPH and the
-value is an index into the matrix representation of GRAPH."
-  (let ((counter -1)
-        (node-index (fset:empty-map)))
-    (mapc
-     (lambda (node)
-       (setf node-index (fset:with node-index (incf counter) node)))
-          (graph:nodes graph))
-    node-index))
 
 (defun tables-to-map (contexts other-table table-type)
   "Given a CONTEXTS table, an OTHER-TABLE, and a TABLE-TYPE in
@@ -572,7 +552,7 @@ the archaeological sequence, SEQ."
                   (cons :fontname (graphviz-sequence-node-attribute cfg "fontname"))
                   (cons :fontsize (<-dot seq "node" "fontsize" "sequence"))
                   (cons :color (<-dot seq "node" "color" "sequence"))
-                  (cons :fillcolor (<-dot seq "node" "fillcolor" "sequence"))
+                  (cons :fillcolor (<-dot seq "node" "fill" "sequence"))
                   (cons :fontcolor (<-dot seq "node" "fontcolor" "sequence"))
                   (cons :penwidth (<-dot seq "node" "penwidth" "sequence"))
                   (cons :URL (<-dot seq "node" "url" "sequence"))))
