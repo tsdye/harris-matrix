@@ -28,6 +28,19 @@
 (defvar *roskams-h-structure* nil
   "Variable for use in hm tests.")
 
+(defvar *roskams-h-seq* nil
+  "Variable for use in hm tests.")
+
+(defixture roskams-h-seq
+  (:setup (setf *roskams-h-seq*
+                (hm::configure-archaeological-sequence
+                 (hm::make-archaeological-sequence)
+                 (hm:read-configuration-from-files
+                  nil (uiop:merge-pathnames*
+                       "test/assets/examples/roskams-h-structure/roskams-h.ini"
+                       (asdf:system-source-directory :hm-test)))
+                 nil))))
+
 (defixture roskams-h-structure
   (:setup (setf *roskams-h-structure*
                 (hm:read-configuration-from-files
@@ -143,7 +156,7 @@
 
 ;;; Tests for configurations
 
-(deftest fast-matrix-test ()
+(deftest test-lookup-fast-matrix ()
   (with-fixture default-config
     (is (hm:fast-matrix-p *cfg*))
     (hm::set-option *cfg* "General configuration" "fast-matrix" "off")
@@ -152,13 +165,35 @@
     (with-expected-failures
       (is (not (hm:fast-matrix-p *cfg*))))))
 
-
 (deftest test-lookup-graphviz-option ()
   (with-fixture default-config
     (is (string= "filled"
                  (hm::lookup-graphviz-option *cfg* "node" "style" "sequence")))
     (is (string= "solid"
-                 (hm::lookup-graphviz-option *cfg* "edge" "style" "sequence")))))
+                 (hm::lookup-graphviz-option *cfg* "edge" "style" "sequence")))
+    (is (string= "x11"
+                 (hm::lookup-graphviz-option *cfg* "edge" "colorscheme" "sequence")))
+    (is (string= "x11"
+                 (hm::lookup-graphviz-option *cfg* "node" "colorscheme" "sequence")))
+    (is (string= "1"
+                 (hm::lookup-graphviz-option *cfg* "node" "origin" "sequence"
+                                             "node-color-by" "reachable")))
+    (is (string= "2"
+                 (hm::lookup-graphviz-option *cfg* "node" "reachable" "sequence"
+                                             "node-color-by" "reachable")))
+    (is (string= "3"
+                 (hm::lookup-graphviz-option *cfg* "node" "not-reachable" "sequence"
+                                             "node-color-by" "reachable")))))
+
+(deftest test-graphviz-classification ()
+  (with-fixture roskams-h-seq
+    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "fill")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "color")))
+    (is (string= "units"
+                 (hm::graphviz-classification *roskams-h-seq* "node" "shape")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "style")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "penwidth")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "color")))))
 
 ;; test that configurations are written to file and read back in correctly
 (deftest read-write-configuration ()
