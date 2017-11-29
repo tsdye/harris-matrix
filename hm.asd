@@ -29,4 +29,5 @@
                (:file "src/files/hm-file")
                (:file "src/elements/hm-elements")
                (:file "src/data-structures/hm-data-structures")
+               (:file "src/memo/hm-memo")
                (:file "src/hm")))
