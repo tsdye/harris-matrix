@@ -7,13 +7,12 @@
 (in-package #:hm)
 
 (defun classifiers ()
-  "hm classifier set."
-  (fset:set "node-fill-by" "node-shape-by" "node-color-by"
-            "node-penwidth-by" "node-style-by" "node-polygon-distortion-by"
-            "node-polygon-image-by" "node-polygon-orientation-by"
-            "node-polygon-sides-by" "node-polygon-skew-by" "node-fontcolor-by"
-            "edge-color-by" "edge-fontcolor-by" "edge-penwidth-by"
-            "edge-style-by" "edge-arrowhead-by" "edge-fontsize-by"))
+  "Returns an fset set of the hm classifiers in the standard hm configuration."
+  (let ((opts (options (empty-configuration) "Graphviz sequence classification"))
+        (ret (fset:empty-set)))
+    (dolist (opt opts)
+      (setf ret (fset:with ret opt)))
+    ret))
 
 (defun matrix-classes ()
   "hm classifications that require a graph matrix."
@@ -99,7 +98,8 @@ is one of `node', `edge'."
 
 (defun make-reachable-map (seq element dot-attr graph-type user-class)
   "Return a closure for a reachability classification, USER-CLASS, for the
-attribute, DOT-ATTR, of the graph ELEMENT. ELEMENT is one of `node', `edge'."
+attribute, DOT-ATTR, of the graph element, ELEMENT. ELEMENT is one of `node',
+`edge'."
   (let* ((cfg (archaeological-sequence-configuration seq))
          (graph (archaeological-sequence-graph seq))
          (matrix (create-reachability-matrix seq))
