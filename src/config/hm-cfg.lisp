@@ -59,7 +59,6 @@
 '("Graphviz sequence classification" "edge-penwidth-by" "edge" "none" "sequence" "none" "none" "classification" "")
 '("Graphviz sequence classification" "edge-arrowhead-by" "edge" "none" "sequence" "none" "none" "classification" "")
 '("Graphviz sequence classification" "edge-style-by" "edge" "none" "sequence" "none" "none" "classification" "")
-'("Graphviz sequence classification" "edge-classify-by" "edge" "none" "sequence" "none" "none" "classification" "from")
 '("Graphviz sequence graph attributes" "colorscheme" "graph" "colorscheme" "sequence" "none" "none" "graph" "x11")
 '("Graphviz sequence graph attributes" "bgcolor" "graph" "bgcolor" "sequence" "none" "none" "graph" "white")
 '("Graphviz sequence graph attributes" "fontname" "graph" "fontname" "sequence" "none" "none" "graph" "Helvetica")
@@ -76,6 +75,7 @@
 '("Graphviz sequence graph attributes" "label-break" "graph" "label-break" "sequence" "none" "none" "graph" "")
 '("Graphviz sequence graph attributes" "fontsize-subscript" "graph" "fontsize-subscript" "sequence" "none" "none" "graph" "10")
 '("Graphviz sequence graph attributes" "splines" "graph" "splines" "sequence" "none" "none" "graph" "ortho")
+'("Graphviz sequence edge attributes" "edge-classify-by" "edge" "none" "sequence" "none" "none" "edge" "from")
 '("Graphviz sequence edge attributes" "colorscheme" "edge" "colorscheme" "sequence" "none" "none" "edge" "x11")
 '("Graphviz sequence edge attributes" "style" "edge" "style" "sequence" "none" "none" "edge" "solid")
 '("Graphviz sequence edge attributes" "color" "edge" "color" "sequence" "none" "none" "edge" "black")
@@ -94,7 +94,7 @@
 '("Graphviz sequence node attributes" "color" "node" "color" "sequence" "none" "none" "node" "black")
 '("Graphviz sequence node attributes" "fontsize" "node" "fontsize" "sequence" "none" "none" "node" "14.0")
 '("Graphviz sequence node attributes" "fontsize-min" "node" "fontsize-min" "sequence" "none" "none" "node" "14.0")
-'("Graphviz sequence node attributes" "fonstize-max" "node" "fontsize-max" "sequence" "none" "none" "node" "14.0")
+'("Graphviz sequence node attributes" "fontsize-max" "node" "fontsize-max" "sequence" "none" "none" "node" "14.0")
 '("Graphviz sequence node attributes" "fontcolor" "node" "fontcolor" "sequence" "none" "none" "node" "black")
 '("Graphviz sequence node attributes" "fillcolor" "node" "fillcolor" "sequence" "none" "none" "node" "white")
 '("Graphviz sequence node attributes" "fontname" "node" "fontname" "sequence" "none" "none" "node" "Helvetica")
@@ -327,7 +327,7 @@ or nil if CFG contains a value not interpreted by py-configparser as a boolean."
 ;;API
 (defun assume-correlations-p (cfg)
   "Returns the boolean value for assume-correlations in the user's
-  configuration, CFG, or nil if CFG contains a value not interpreted by
+  configuration, CFG, or an error if CFG contains a value not interpreted by
   py-configparser as a boolean."
   (let ((value (get-option cfg "General configuration" "assume-correlations")))
     (if (fset:contains? (boolean-strings) value)
@@ -341,25 +341,12 @@ or nil if CFG contains a value not interpreted by py-configparser as a boolean."
   (let ((value (get-option cfg "General configuration" "project-directory")))
     (if (emptyp value) nil value)))
 
-;;API
-(defun input-file-name (cfg content)
-  "Return the file path for CONTENT from the user's configuration, CFG, or nil
-  if the file does not exist. CONTENT is a string, one of `contexts',
-  `observations', `inferences', `periods', `phases', `events', or
-  `event-order'."
-  (probe-file (uiop:merge-pathnames*
-               (get-option cfg "Input files" content)
-               (get-option cfg "General configuration" "project-directory"))))
-
-;;API
 (defun input-file-name-p (cfg content)
   "Return a boolean indicating whether or not the user's configuration, CFG,
   includes a file name for CONTENT. CONTENT is a string, one of `contexts',
   `observations', `inferences', `periods', `phases', `events', or
   `event-order'."
   (not (emptyp (get-option cfg "Input files" content))))
-
-;; API
 
 (defun file-header-p (cfg content)
   "Return the boolean value for CONTENT from the `Input file headers' section of
@@ -371,16 +358,6 @@ or nil if CFG contains a value not interpreted by py-configparser as a boolean."
         (get-option cfg "Input file headers" content :type :boolean)
         (unless (emptyp value)
           (error "Error: ~s is not valid for ~s file header." value content)))))
-
-;; API
-(defun output-file-name (cfg content)
-  "Return the file path for CONTENT from the user's configuration, CFG. CONTENT
-  is a string, one of `sequence-dot' or `chronology-dot'. CONTENT is a string,
-  one of `contexts', `observations', `inferences', `periods', `phases',
-  `events', or `event-order'."
-   (uiop:merge-pathnames*
-    (get-option cfg "Output files" content)
-    (get-option cfg "General configuration" "project-directory")))
 
 (defun missing-interfaces-p (cfg)
   "Return the boolean value of `add-missing-interfaces'."
@@ -395,7 +372,7 @@ or nil if CFG contains a value not interpreted by py-configparser as a boolean."
   (get-option cfg "Graphviz sequence graph attributes" attribute))
 
 (defun graphviz-sequence-edge-attribute (cfg attribute)
-  "Returns a function that returns the sequence graph edge attribute from the
+  "Return a function that returns the sequence graph edge attribute from the
 user's configuration, CFG."
   (let ((attr (get-option cfg "Graphviz sequence edge attributes" attribute)))
     (constantly attr)))
@@ -413,29 +390,12 @@ user's configuration, CFG."
         (scheme (graphviz-sequence-graph-attribute cfg "colorscheme")))
     (graphviz-color-string name scheme)))
 
-(defun graphviz-node-classification (cfg attribute)
-  "Return the value from the user's configuration, CFG, for the node ATTRIBUTE
-classification. ATTRIBUTE is a string, one of `fillcolor', `shape', `color',
-`penwidth', `style', `polygon-distortion', `polygon-image',
-`polygon-orientation', `polygon-sides', or `polygon-skew'."
-  (let ((section "Graphviz sequence classification")
-        (option (concatenate 'string "node-" attribute "-by")))
-    (get-option cfg section option)))
-
-(defun graphviz-edge-classification (cfg attribute)
-  "Return the value from the user's configuration, CFG, for the edge ATTRIBUTE
-  classification. ATTRIBUTE is a string, one of `color', `fontcolor',
-  `penwidth', `style', `fontsize', or `arrowhead'."
-  (let ((section "Graphviz sequence classification")
-        (option (concatenate 'string "edge-" attribute "-by")))
-    (get-option cfg section option)))
-
 (defun graphviz-classification (seq element attribute)
   "Return the user-value of the classification if it is set, nil otherwise."
   (let* ((cfg (archaeological-sequence-configuration seq))
-         (user-val (if (string= element "node")
-                       (graphviz-node-classification cfg attribute)
-                       (graphviz-edge-classification cfg attribute))))
+         (section "Graphviz sequence classification")
+         (option (concatenate 'string element "-" attribute "-by"))
+         (user-val (get-option cfg section option)))
     (if (emptyp user-val) nil user-val)))
 
 (defun reachable-limit (cfg)
@@ -445,7 +405,7 @@ CFG."
 
 (defun reachable-from-node (cfg)
   "Returns a symbol from the user's configuration, CFG."
-  (symbolicate (get-option cfg "General configuration" "reachable-from")))
+  (symbolicate (get-option cfg "Reachability configuration" "reachable-from")))
 
 (defun chronology-graph-p (cfg)
   "Return a boolean value read from the user's configuration indicating whether
@@ -689,7 +649,7 @@ settings."
 
 (defun set-input-file (cfg option file-name header)
   "If OPTION is recognized, then FILE-NAME and HEADER are registered with the
-configuration, CFG."
+configuration, CFG.  HEADER is interpreted as a boolean."
   (let ((option-list (options cfg "Input files")))
     (assert (member option option-list :test #'equal)
             (option) "Error: \"~a\" is not one of ~a"
