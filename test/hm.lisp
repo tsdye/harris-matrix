@@ -156,7 +156,26 @@
 
 ;;; Tests for configurations
 
+(deftest test-penwidths ()
+  "Test that edge and node penwidth min and max return the correct strings."
+  (with-fixture default-config
+    (let ((res "1.0"))
+      (is (equal (hm::penwidth-min *cfg* :node) res))
+      (is (equal (hm::penwidth-min *cfg* :edge) res))
+      (is (equal (hm::penwidth-max *cfg* :node) res))
+      (is (equal (hm::penwidth-max *cfg* :edge) res)))))
+
+(deftest test-fontsizes ()
+  "Test that edge and node fontsize min and max return correct strings."
+  (with-fixture default-config
+    (let ((res "14.0"))
+      (is (equal (hm::fontsize-min *cfg* :node) res))
+      (is (equal (hm::fontsize-min *cfg* :edge) res))
+      (is (equal (hm::fontsize-max *cfg* :node) res))
+      (is (equal (hm::fontsize-max *cfg* :edge) res)))))
+
 (deftest test-lookup-fast-matrix ()
+  "Test setting and getting the FAST-MATRIX option."
   (with-fixture default-config
     (is (hm:fast-matrix-p *cfg*))
     (hm::set-option *cfg* "General configuration" "fast-matrix" "off")
@@ -165,38 +184,145 @@
     (with-expected-failures
       (is (not (hm:fast-matrix-p *cfg*))))))
 
+(deftest test-assume-correlations-p ()
+  "Test that the default configuration returns nil, that setting the option to `yes' returns non-nil, and that setting the option to `foo' returns an error."
+  (with-fixture default-config
+    (is (not (hm::assume-correlations-p *cfg*)))
+    (hm::set-option *cfg* "General configuration" "assume-correlations" "yes")
+    (is (hm::assume-correlations-p *cfg*))
+    (hm::set-option *cfg* "General configuration" "assume-correlations" "foo")
+    (with-expected-failures
+      (is (not (hm::assume-correlations-p *cfg*))))))
+
+(deftest test-project-directory ()
+  "Test that PROJECT-DIRECTORY returns nil when called on the default configuration."
+  (with-fixture default-config
+    (is (not (hm::project-directory *cfg*)))))
+
+(deftest test-input-file-name-p ()
+  "Test that INPUT-FILE-NAME-P returns nil for all input files given the default
+  configuration."
+  (with-fixture default-config
+    (is (not (hm:input-file-name-p *cfg* :contexts)))
+    (is (not (hm:input-file-name-p *cfg* :observations)))
+    (is (not (hm:input-file-name-p *cfg* :inferences)))
+    (is (not (hm:input-file-name-p *cfg* :periods)))
+    (is (not (hm:input-file-name-p *cfg* :phases)))
+    (is (not (hm:input-file-name-p *cfg* :events)))
+    (is (not (hm:input-file-name-p *cfg* :event-order)))))
+
+(deftest test-file-header-p ()
+  "Test that FILE-HEADER-P returns nil for all input files given the default
+  configuration."
+  (with-fixture default-config
+    (is (not (hm:file-header-p *cfg* :contexts)))
+    (is (not (hm:file-header-p *cfg* :observations)))
+    (is (not (hm:file-header-p *cfg* :inferences)))
+    (is (not (hm:file-header-p *cfg* :periods)))
+    (is (not (hm:file-header-p *cfg* :phases)))
+    (is (not (hm:file-header-p *cfg* :events)))
+    (is (not (hm:file-header-p *cfg* :event-order)))))
+
+(deftest test-missing-interfaces-p ()
+  "Test that MISSING-INTERFACES-P returns nil for the default configuration."
+  (with-fixture default-config
+    (is (not (hm::missing-interfaces-p *cfg*)))))
+
+(deftest test-graphviz-sequence-graph-attribute ()
+  "Test that GRAPHVIZ-SEQUENCE-GRAPH-ATTRIBUTE returns correct values from the default configuration."
+  (with-fixture default-config
+    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :splines) "ortho"))
+    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :fontsize-subscript) "10"))
+    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :label-break) ""))
+    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :margin) "0.5,0.5"))
+    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :dpi) "96"))
+    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :page) "7,5"))
+    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :ratio) "auto"))
+    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :size) "6,4!"))
+    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :style) "filled"))
+    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :labelloc) "t"))
+    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :label) "Sequence Diagram"))
+    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :fontcolor) "black"))
+    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :fontsize) "14.0"))
+    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :fontname) "Helvetica"))
+    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :bgcolor) "white"))
+    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :colorscheme) "x11"))))
+
+(deftest test-graphviz-sequence-edge-attribute ()
+  "Test GRAPHVIZ-SEQUENCE-EDGE-ATTRIBUTE returns correct values from the default configuration."
+  (with-fixture default-config
+    (is (equal
+         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :penwidth-max)) "1.0"))
+    (is (equal
+         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :penwidth-min)) "1.0"))
+    (is (equal
+         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :penwidth)) "1.0"))
+    (is (equal
+         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :arrowhead)) "normal"))
+    (is (equal
+         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :fontcolor)) "black"))
+    (is (equal
+         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :fontsize-max)) "14.0"))
+    (is (equal
+         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :fontsize-min)) "14.0"))
+    (is (equal
+         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :fontsize)) "14.0"))
+    (is (equal
+         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :fontname)) "Helvetica"))
+    (is (equal
+         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :color)) "black"))
+    (is (equal
+         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :style)) "solid"))
+    (is (equal
+         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :colorscheme)) "x11"))
+    (is (equal
+         (funcall
+          (hm::graphviz-sequence-edge-attribute *cfg* :edge-classify-by)) "from"))))
+
 (deftest test-lookup-graphviz-option ()
   (with-fixture default-config
-    (is (string= "filled"
+    (is (equal "filled"
                  (hm::lookup-graphviz-option *cfg* "node" "style" "sequence")))
-    (is (string= "solid"
+    (is (equal "solid"
                  (hm::lookup-graphviz-option *cfg* "edge" "style" "sequence")))
-    (is (string= "x11"
+    (is (equal "x11"
                  (hm::lookup-graphviz-option *cfg* "edge" "colorscheme" "sequence")))
-    (is (string= "x11"
+    (is (equal "x11"
                  (hm::lookup-graphviz-option *cfg* "node" "colorscheme" "sequence")))
-    (is (string= "1"
+    (is (equal "1"
                  (hm::lookup-graphviz-option *cfg* "node" "origin" "sequence"
                                              "node-color-by" "reachable")))
-    (is (string= "2"
+    (is (equal "2"
                  (hm::lookup-graphviz-option *cfg* "node" "reachable" "sequence"
                                              "node-color-by" "reachable")))
-    (is (string= "3"
+    (is (equal "3"
                  (hm::lookup-graphviz-option *cfg* "node" "not-reachable" "sequence"
                                              "node-color-by" "reachable")))))
 
 (deftest test-graphviz-classification ()
+  "Test that classifications are read from a user configuration read from disk."
   (with-fixture roskams-h-seq
-    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "fill")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "polygon-skew")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "polygon-sides")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "polygon-orientation")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "polygon-image")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "polygon-distortion")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "style")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "penwidth")))
     (is (not (hm::graphviz-classification *roskams-h-seq* "node" "color")))
     (is (string= "units"
                  (hm::graphviz-classification *roskams-h-seq* "node" "shape")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "fontcolor")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "fill")))
     (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "style")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "arrowhead")))
     (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "penwidth")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "fontsize")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "fontcolor")))
     (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "color")))))
 
-;; test that configurations are written to file and read back in correctly
 (deftest read-write-configuration ()
+  "Test that configurations are written to file and read back in correctly"
   (with-fixture hm-test-config-path
     (let ((path-name
             (uiop:merge-pathnames* "test-config.ini" *hm-test-config-path*))
@@ -209,8 +335,8 @@
         (is (equal (get-all-configuration-options *cfg*)
                    (get-all-configuration-options config-from-file)))))))
 
-;; test that configurations written to two files are read back in correctly
 (deftest read-write-split-configuration ()
+  "Test that configurations written to two files are read back in correctly."
   (with-fixtures (hm-test-config-path default-config)
     (let ((general-path-name
             (uiop:merge-pathnames* "test-general-config.ini"
@@ -229,8 +355,9 @@
       (is (equal (get-all-configuration-options *cfg*)
                  (get-all-configuration-options config-from-file))))))
 
-;; test reset-option
 (deftest test-reset-option ()
+  "Test that GET-ALL-CONFIGURATION-OPTIONS works and that RESET-OPTION changes
+the configuration."
   (let ((default-config (hm:default-configuration)))
     (with-fixture default-config
       (is (equal (get-all-configuration-options *cfg*)
@@ -239,8 +366,9 @@
       (is (not (equal (get-all-configuration-options *cfg*)
                       (get-all-configuration-options default-config)))))))
 
-;; test set-input-file
 (deftest test-set-input-file ()
+  "Test whether SET-INPUT-FILE function correctly sets options in sections Input
+files and Input file headers."
   (with-fixture default-config
     (let* ((file-name-string "test/assets/configurations/contexts-eg.csv"))
       (set-input-file *cfg* "contexts" file-name-string t)
@@ -250,12 +378,11 @@
       (is (string= (hm::get-option *cfg* "Input files" "observations")
                    file-name-string))
       (is (hm::get-option *cfg* "Input file headers" "contexts" :type :boolean))
-      (is (not
-           (hm::get-option *cfg* "Input file headers" "observations"
+      (is (not (hm::get-option *cfg* "Input file headers" "observations"
                            :type :boolean))))))
 
-;; test set-dot-file
 (deftest test-set-dot-file ()
+  "Test that TEST_SET_DOT_FILE works."
   (with-fixture default-config
     (set-dot-file *cfg* "chronology-dot" "foo.dot" nil)
     (set-dot-file *cfg* "sequence-dot" "bar.dot" nil)
@@ -290,6 +417,7 @@
                "0.000 0.000 1.000")))
 
 (deftest test-cet-color ()
+  "Test that CET-COLOR works with all the cet palettes."
   (is (string= (hm::cet-color "cet-inferno" 0 256) "0.640 1.000 0.365"))
   (is (string= (hm::cet-color "cet-inferno" 255 256) "0.171 0.687 0.976"))
   (is (string= (hm::cet-color "cet-inferno" 0 1) "0.943 0.780 0.910"))
