@@ -130,9 +130,19 @@ not, return a path to the default project directory."
 
 (defun output-file-name (cfg content)
   "Return the file path for CONTENT from the user's configuration, CFG. CONTENT
-  is a string, one of `sequence-dot' or `chronology-dot'. CONTENT is a string,
-  one of `contexts', `observations', `inferences', `periods', `phases',
-  `events', or `event-order'."
+  is a string, one of `sequence-dot' or `chronology-dot'."
   (uiop:merge-pathnames*
    (get-option cfg "Output files" content)
-   (get-option cfg "General configuration" "project-directory")))
+   (project-directory cfg)))
+
+(defun unable-to-find-input-files? (cfg)
+  "Returns non-nil if input files specified in the configuration CFG
+can't be found, nil otherwise."
+  (let ((option-list (options cfg "Input files"))
+        (missing))
+    (dolist (option option-list)
+      (let ((file-name (get-option cfg "Input files" option))
+            (dir (project-directory cfg)))
+        (when file-name (unless (probe-file (uiop:merge-pathnames* dir file-name))
+                          (push file-name missing)))))
+    missing))
