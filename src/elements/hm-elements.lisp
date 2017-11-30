@@ -17,7 +17,7 @@ dot edge style strings."
     map))
 
 (defun graphviz-edge-style ()
-  "Return a closure that expects an integer argument an returns a valid Graphviz
+  "Return a closure that expects an integer argument and returns a valid Graphviz
 edge style string."
   (let ((map (graphviz-edge-style-map)))
     #'(lambda (index)
