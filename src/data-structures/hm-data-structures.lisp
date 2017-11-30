@@ -85,16 +85,16 @@ directly to graph-dot for the attribute, DOT-ATTR, of the graph ELEMENT. ELEMENT
 is one of `node', `edge'."
   (let ((cfg (archaeological-sequence-configuration seq)))
     (cond
-      ((string= user-class "distance")
+      ((equal user-class "distance")
        (make-distance-map seq element dot-attr graph-type))
-      ((string= user-class "adjacent")
+      ((equal user-class "adjacent")
        (make-adjacent-map cfg element dot-attr graph-type user-class))
-      ((string= user-class "reachable")
+      ((equal user-class "reachable")
        (make-reachable-map cfg element dot-attr graph-type user-class))
-      ((string= user-class "units") (make-units-map cfg element dot-attr))
-      ((string= user-class "levels") (make-levels-map seq element dot-attr))
-      ((string= user-class "phases") (make-phases-map cfg element dot-attr))
-      ((string= user-class "periods") (make-periods-map cfg element dot-attr)))))
+      ((equal user-class "units") (make-units-map cfg element dot-attr))
+      ((equal user-class "levels") (make-levels-map seq element dot-attr))
+      ((equal user-class "phases") (make-phases-map cfg element dot-attr))
+      ((equal user-class "periods") (make-periods-map cfg element dot-attr)))))
 
 (defun make-reachable-map (seq element dot-attr graph-type user-class)
   "Return a closure for a reachability classification, USER-CLASS, for the
@@ -103,9 +103,12 @@ attribute, DOT-ATTR, of the graph element, ELEMENT. ELEMENT is one of `node',
   (let* ((cfg (archaeological-sequence-configuration seq))
          (graph (archaeological-sequence-graph seq))
          (matrix (create-reachability-matrix seq))
-         (node-index (make-node-index graph))
          (from-node (reachable-from-node cfg))
          (cls (concatenate 'string element "-" dot-attr "-by"))
+         (node-index (make-node-index graph))
+         (node-p (equal element "node"))
+         (edge-node
+           (get-option cfg "Graphviz sequence edge attributes" "edge-classify-by"))
          (origin (lookup-graphviz-option
                   cfg element "origin" graph-type cls user-class))
          (reachable (lookup-graphviz-option
@@ -119,7 +122,10 @@ attribute, DOT-ATTR, of the graph element, ELEMENT. ELEMENT is one of `node',
          #'(lambda (x)
              (let* ((color (graph-matrix:matrix-ref
                             matrix (fset:@ node-index from-node)
-                            (fset:@ node-index x))))
+                            (if node-p (fset:@ node-index x)
+                                (if (equal edge-node "from")
+                                    (fset:@ node-index (nth 0 x))
+                                    (fset:@ node-index (nth 1 x)))))))
                (graphviz-color-string (case color
                                         (0 origin)
                                         (1 reachable)
@@ -129,7 +135,10 @@ attribute, DOT-ATTR, of the graph element, ELEMENT. ELEMENT is one of `node',
        #'(lambda (x)
            (let ((index (graph-matrix:matrix-ref
                          matrix (fset:@ node-index from-node)
-                         (fset:@ node-index x))))
+                         (if node-p (fset:@ node-index x)
+                             (if (equal edge-node "from")
+                                 (fset:@ node-index (nth 0 x))
+                                 (fset:@ node-index (nth 1 x)))))))
              (case index
                (0 origin)
                (1 reachable)
@@ -145,6 +154,9 @@ attribute, DOT-ATTR, of the graph ELEMENT. ELEMENT is one of `node', `edge'."
          (node-index (make-node-index graph))
          (from-node (reachable-from-node cfg))
          (cls (concatenate 'string element "-" dot-attr "-by"))
+         (node-p (equal element "node"))
+         (edge-node
+           (get-option cfg "Graphviz sequence edge attributes" "edge-classify-by"))
          (origin (lookup-graphviz-option
                   cfg element "origin" graph-type
                   cls user-class))
@@ -159,7 +171,10 @@ attribute, DOT-ATTR, of the graph ELEMENT. ELEMENT is one of `node', `edge'."
          #'(lambda (x)
              (let* ((color (graph-matrix:matrix-ref
                             matrix (fset:@ node-index from-node)
-                            (fset:@ node-index x))))
+                            (if node-p (fset:@ node-index x)
+                                (if (equal edge-node "from")
+                                    (fset:@ node-index (nth 0 x))
+                                    (fset:@ node-index (nth 1 x)))))))
                (graphviz-color-string (case color
                                         (0 origin)
                                         (1 adjacent)
@@ -169,7 +184,10 @@ attribute, DOT-ATTR, of the graph ELEMENT. ELEMENT is one of `node', `edge'."
        #'(lambda (x)
            (let ((index (graph-matrix:matrix-ref
                          matrix (fset:@ node-index from-node)
-                         (fset:@ node-index x))))
+                         (if node-p (fset:@ node-index x)
+                                (if (equal edge-node "from")
+                                    (fset:@ node-index (nth 0 x))
+                                    (fset:@ node-index (nth 1 x)))))))
              (case index
                (0 origin)
                (1 adjacent)
@@ -194,6 +212,9 @@ of the graph ELEMENT. ELEMENT is one of `node', `edge'."
          (graph (archaeological-sequence-graph seq))
          (matrix (create-distance-matrix seq))
          (node-index (make-node-index graph))
+         (node-p (equal element "node"))
+         (edge-node
+           (get-option cfg "Graphviz sequence edge attributes" "edge-classify-by"))
          (from-node (reachable-from-node cfg)))
     (cond
       ((fset:contains? (color-attributes) dot-attr)
@@ -209,7 +230,10 @@ of the graph ELEMENT. ELEMENT is one of `node', `edge'."
          #'(lambda (x)
              (let ((index (graph-matrix:matrix-ref
                            matrix (fset:@ node-index from-node)
-                           (fset:@ node-index x))))
+                           (if node-p (fset:@ node-index x)
+                                (if (equal edge-node "from")
+                                    (fset:@ node-index (nth 0 x))
+                                    (fset:@ node-index (nth 1 x)))))))
                (fset:@ map (mod index (fset:size map)))))))
       ((fset:contains? (numeric-attributes) dot-attr)
        (let ((min (if (string= dot-attr "penwidth")
@@ -222,7 +246,10 @@ of the graph ELEMENT. ELEMENT is one of `node', `edge'."
          #'(lambda (x)
              (let ((index (graph-matrix:matrix-ref
                            matrix (fset:@ node-index from-node)
-                           (fset:@ node-index x))))
+                           (if node-p (fset:@ node-index x)
+                                (if (equal edge-node "from")
+                                    (fset:@ node-index (nth 0 x))
+                                    (fset:@ node-index (nth 1 x)))))))
                (+ min (* (- max min) (* interval index)))))))
       (t (error "Error: Unable to make distance map.")))))
 
