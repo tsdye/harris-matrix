@@ -346,7 +346,8 @@ or nil if CFG contains a value not interpreted by py-configparser as a boolean."
   includes a file name for CONTENT. CONTENT is a string, one of `contexts',
   `observations', `inferences', `periods', `phases', `events', or
   `event-order'."
-  (not (emptyp (get-option cfg "Input files" content))))
+  (let ((val (get-option cfg "Input files" content)))
+    (if (emptyp val) nil val)))
 
 (defun file-header-p (cfg content)
   "Return the boolean value for CONTENT from the `Input file headers' section of
@@ -400,12 +401,16 @@ user's configuration, CFG."
 
 (defun reachable-limit (cfg)
   "Return the numeric value of `reachable-limit' from the user's configuration,
-CFG."
-  (get-option cfg "Reachability configuration" "reachable-limit" :type :number))
+CFG, or nil if the option is not set."
+  (let ((val (get-option cfg "Reachability configuration" "reachable-limit")))
+    (if (emptyp val) nil
+        (get-option cfg "Reachability configuration" "reachable-limit" :type :number))))
 
 (defun reachable-from-node (cfg)
-  "Returns a symbol from the user's configuration, CFG."
-  (symbolicate (get-option cfg "Reachability configuration" "reachable-from")))
+  "Returns a symbol from the user's configuration, CFG, or nil if the option is
+not set."
+  (let ((val (get-option cfg "Reachability configuration" "reachable-from")))
+    (if (emptyp val) nil (symbolicate val))))
 
 (defun chronology-graph-p (cfg)
   "Return a boolean value read from the user's configuration indicating whether
@@ -428,20 +433,11 @@ CFG."
   "Return the default URL from the user's configuration, CFG, as a string"
   (get-option cfg "General configuration" "url-default"))
 
-(defun user-color (cfg section option)
-  "Given a user's configuration, CFG, a configuration file SECTION and OPTION,
-  return a valid Graphviz color string, or the empty string if the user's CFG
-  does not indicate a valid color string."
-  (let ((color (get-option cfg section option))
-        (scheme (get-option cfg section "colorscheme")))
-    (if (and (not (emptyp color)) (not (emptyp scheme)))
-        (graphviz-color-string color scheme) "")))
-
 (defun sequence-classifier (cfg option)
-  "Get the sequence classification, OPTION, from the user's configuration, CFG."
-  (get-option cfg "Graphviz sequence classification" option))
-
-;; API
+  "Get the sequence classification, OPTION, from the user's configuration, CFG,
+or nil if the option is not set."
+  (let ((val (get-option cfg "Graphviz sequence classification" option)))
+    (if (emptyp val) nil val)))
 
 (defun default-configuration ()
   "Convenience function returns the default configuration."
@@ -466,15 +462,6 @@ configuration."
           (add-section cfg section))
         (set-option cfg section option (if empty "" default))))
     cfg))
-
-(defun make-lookup-table (master)
-  (let ((map (fset:empty-map)))
-    (dolist (row master)
-      (let ((key (fset:empty-set)))
-        (dolist (column '(1 2 3 4 5))
-          (setq key (fset:with key (nth column row))))
-        (setq map (fset:with map key (nth 0 row)))))
-    map))
 
 (defun make-lookup-map (master)
   "Return an fset map whose key is the set (element dot-attr graph-type
@@ -508,28 +495,6 @@ configuration section and option."
   (get-option cfg (section-name element dot-attr graph-type classification graph-attr)
               (option-name element dot-attr graph-type classification graph-attr)))
 
-(defun lookup-option (cfg option graph-type graph-element domain
-                      &optional (classification ""))
-  "Returns the value of OPTION from the user configuration CFG associated with a
-  key specified by GRAPH-TYPE, GRAPH-ELEMENT, DOMAIN, and CLASSIFICATION.
-  GRAPH-TYPE is one of `sequence' `chronology', `legend', or `'. GRAPH-ELEMENT
-  is one of `edge', `node', `graph', or `'. DOMAIN is one of `output', `input',
-  `header', `general', `classification', `graph', `edge', `node', `reachable',
-  `adjacent', `units', or `'. CLASSIFICATION is one of `node-color-by',
-  `node-fill-by', `node-shape-by', `node-style-by',
-  `node-polygon-distortion-by', `node-polygon-image-by',
-  `node-polygon-orientation-by', `node-polygon-sides-by',
-  `node-polygon-skew-by', `node-penwidth-by', `edge-penwidth-by',
-  `edge-color-by', `edge-style-by', `edge-fontcolor-by', or `'."
-  (let ((lookup-table (make-lookup-table (master-table)))
-        (key (fset:empty-set))
-        (param-list (list option graph-type graph-element domain classification))
-        (section))
-    (dolist (param param-list)
-      (setq key (fset:with key param)))
-    (setq section (fset:lookup lookup-table key))
-    (get-option cfg section option)))
-
 (defun Graphviz-section-p (section)
   "Given a section name string, SECTION, return true if the section
   contains options for Graphviz configuration.  Function depends on
@@ -541,40 +506,29 @@ configuration section and option."
   Graphviz requires that node-style-by be empty and the node style
   attribute be `filled'.  Returns nil if all is well, non-nil
   otherwise."
-  (if (not (emptyp (get-option cfg "Graphviz sequence classification"
-                               "node-fill-by")))
-      (progn
-        (unless (and
-                 (emptyp (get-option cfg "Graphviz sequence classification"
-                                     "node-style-by"))
-                 (string= (get-option cfg "Graphviz sequence node attributes"
-                                      "style") "filled")))
-        t)
-      nil))
+  (when (sequence-classifier cfg :node-fill-by)
+    (not (and (not (sequence-classifier cfg :node-style-by))
+              (equal (get-option cfg "Graphviz sequence node attributes"
+                                 "style") "filled")))))
 
 (defun Graphviz-node-polygon-shape-problem? (cfg)
   "Given a configuration, CFG, return nil if the user is set up to
   classify by manipulations of polygon node shape, non-nil otherwise"
-  (and (not (or (emptyp (get-option cfg "Graphviz sequence classification"
-                                    "node-polygon-distortion-by"))
-                (emptyp (get-option cfg "Graphviz sequence classification"
-                                    "node-polygon-image-by"))
-                (emptyp (get-option cfg "Graphviz sequence classification"
-                                    "node-polygon-orientation-by"))
-                (emptyp (get-option cfg "Graphviz sequence classification"
-                                    "node-polygon-sides-by"))
-                (emptyp (get-option cfg "Graphviz sequence classification"
-                                    "node-polygon-skew-by"))))
-       (emptyp (get-option cfg "Graphviz sequence classification"
-                           "node-shape-by"))
-       (string= (get-option cfg "Graphviz sequence node attributes"
-                            "shape") "polygon")))
+  (and (not (or (not (sequence-classifier cfg :node-polygon-distortion-by))
+                (not (sequence-classifier cfg :node-polygon-image-by))
+                (not (sequence-classifier cfg :node-polygon-orientation-by))
+                (not (sequence-classifier cfg :node-polygon-sides-by))
+                (not (sequence-classifier cfg :node-polygon-skew-by))))
+       (not (sequence-classifier cfg :node-shape-by))
+       (equal (get-option cfg "Graphviz sequence node attributes"
+                          "shape") "polygon")))
 
+;; Needs work, not exhaustive
 (defun origin-node-missing? (cfg)
   "Returns non-nil if an origin node is needed by, but is missing from,
 the configuration CFG, nil otherwise."
   (let ((options '("distance" "reachable" "adjacent")))
-    (and (emptyp (get-option cfg "Reachability configuration" "reachable-from"))
+    (and (not (reachable-from-node cfg))
          (or
           (member (get-option cfg "Graphviz sequence classification"
                               "node-fill-by") options)
@@ -586,33 +540,7 @@ the configuration CFG, nil otherwise."
 (defun chronology-graph-restrictions-ignored? (cfg)
   "Returns non-nil if the configuration CFG ignores chronology graph
 restrictions, nil otherwise."
-  (and (get-option cfg "General configuration" "chronology-graph-draw" :type :boolean)
-       (get-option cfg "General configuration"
-                   "assume-correlations" :type :boolean)))
-
-(defun missing-contexts? (cfg)
-  "Returns non-nil if contexts are missing from the configuration CFG,
-nil otherwise."
-  (let ((option (get-option cfg "Input files" "contexts")))
-    (alexandria:emptyp option)))
-
-(defun missing-observations? (cfg)
-  "Returns non-nil if observations are missing from the configuration
-CFG, nil otherwise."
-  (let ((option (get-option cfg "Input files" "observations")))
-    (alexandria:emptyp option)))
-
-(defun unable-to-find-input-files? (cfg)
-  "Returns non-nil if input files specified in the configuration CFG
-can't be found, nil otherwise."
-  (let ((option-list (options cfg "Input files"))
-        (missing))
-    (dolist (option option-list)
-      (let ((file-name (get-option cfg "Input files" option))
-            (dir (project-directory cfg)))
-        (when file-name (unless (probe-file (uiop:merge-pathnames* dir file-name))
-                          (push file-name missing)))))
-    missing))
+  (and (chronology-graph-p cfg) (assume-correlations-p cfg)))
 
 (defun reset-option (cfg section-name option-name value)
   "Ensure option names are not inadvertently created when setting an
@@ -634,9 +562,9 @@ files, missing configuration values, and contradictory configuration
 settings."
   (let ((missing-files (unable-to-find-input-files? cfg)))
     (when missing-files (error "Error: Unable to find ~a" missing-files)))
-  (when (missing-contexts? cfg)
+  (unless (input-file-name-p cfg :contexts)
     (error "Error: Contexts file not specified."))
-  (when (missing-observations? cfg)
+  (unless (input-file-name-p cfg :observations)
     (error "Error: Observations file not specified."))
   (when (chronology-graph-restrictions-ignored? cfg)
     (error "Error: Cannot draw chronology graph when correlations assumed true."))
