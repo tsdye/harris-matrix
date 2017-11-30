@@ -98,33 +98,33 @@
 ;;; Elements, hm-elements.lisp tests
 
 (deftest graphviz-edge-style-test ()
-  (is (string= (funcall (hm::graphviz-edge-style) 0) "solid"))
-  (is (string= (funcall (hm::graphviz-edge-style) 1) "dashed"))
-  (is (string= (funcall (hm::graphviz-edge-style) 2) "dotted"))
-  (is (string= (funcall (hm::graphviz-edge-style) 3) "bold"))
-  (is (string= (funcall (hm::graphviz-edge-style) 4) "solid")))
+  (is (equal (funcall (hm::graphviz-edge-style) 0) "solid"))
+  (is (equal (funcall (hm::graphviz-edge-style) 1) "dashed"))
+  (is (equal (funcall (hm::graphviz-edge-style) 2) "dotted"))
+  (is (equal (funcall (hm::graphviz-edge-style) 3) "bold"))
+  (is (equal (funcall (hm::graphviz-edge-style) 4) "solid")))
 
 (deftest graphviz-node-style-test ()
-  (is (string= (funcall (hm::graphviz-node-style) 0) "solid"))
-  (is (string= (funcall (hm::graphviz-node-style) 1) "dashed"))
-  (is (string= (funcall (hm::graphviz-node-style) 2) "dotted"))
-  (is (string= (funcall (hm::graphviz-node-style) 3) "bold"))
-  (is (string= (funcall (hm::graphviz-node-style) 4) "rounded"))
-  (is (string= (funcall (hm::graphviz-node-style) 10) "solid")))
+  (is (equal (funcall (hm::graphviz-node-style) 0) "solid"))
+  (is (equal (funcall (hm::graphviz-node-style) 1) "dashed"))
+  (is (equal (funcall (hm::graphviz-node-style) 2) "dotted"))
+  (is (equal (funcall (hm::graphviz-node-style) 3) "bold"))
+  (is (equal (funcall (hm::graphviz-node-style) 4) "rounded"))
+  (is (equal (funcall (hm::graphviz-node-style) 10) "solid")))
 
 (deftest graphviz-node-shape-test ()
-  (is (string= (funcall (hm::graphviz-node-shape) 0) "box"))
-  (is (string= (funcall (hm::graphviz-node-shape) 1) "polygon"))
-  (is (string= (funcall (hm::graphviz-node-shape) 2) "ellipse"))
-  (is (string= (funcall (hm::graphviz-node-shape) 3) "egg"))
-  (is (string= (funcall (hm::graphviz-node-shape) 4) "triangle"))
-  (is (string= (funcall (hm::graphviz-node-shape) 39) "box")))
+  (is (equal (funcall (hm::graphviz-node-shape) 0) "box"))
+  (is (equal (funcall (hm::graphviz-node-shape) 1) "polygon"))
+  (is (equal (funcall (hm::graphviz-node-shape) 2) "ellipse"))
+  (is (equal (funcall (hm::graphviz-node-shape) 3) "egg"))
+  (is (equal (funcall (hm::graphviz-node-shape) 4) "triangle"))
+  (is (equal (funcall (hm::graphviz-node-shape) 39) "box")))
 
 (deftest graphviz-arrow-shape-test ()
-  (is (string= (funcall (hm::graphviz-arrow-shape) 0) "none"))
-  (is (string= (funcall (hm::graphviz-arrow-shape) 1) "box"))
-  (is (string= (funcall (hm::graphviz-arrow-shape) 2) "lbox"))
-  (is (string= (funcall (hm::graphviz-arrow-shape) 42) "none")))
+  (is (equal (funcall (hm::graphviz-arrow-shape) 0) "none"))
+  (is (equal (funcall (hm::graphviz-arrow-shape) 1) "box"))
+  (is (equal (funcall (hm::graphviz-arrow-shape) 2) "lbox"))
+  (is (equal (funcall (hm::graphviz-arrow-shape) 42) "none")))
 
 (deftest correlated-node-test ()
   (with-fixture transitive-graph
@@ -279,7 +279,145 @@
          (funcall
           (hm::graphviz-sequence-edge-attribute *cfg* :edge-classify-by)) "from"))))
 
+(deftest test-graphviz-sequence-node-attribute ()
+  "Test GRAPHVIZ-SEQUENCE-NODE-ATTRIBUTE returns correct values from the default configuration."
+  (with-fixture default-config
+    (is (equal
+         (funcall (hm::graphviz-sequence-node-attribute *cfg* :penwidth-max))
+         "1.0"))
+    (is (equal
+         (funcall (hm::graphviz-sequence-node-attribute *cfg* :penwidth-min))
+         "1.0"))
+    (is (equal
+         (funcall (hm::graphviz-sequence-node-attribute *cfg* :penwidth))
+         "1.0"))
+    (is (equal
+         (funcall (hm::graphviz-sequence-node-attribute *cfg* :polygon-skew))
+         "0.0"))
+    (is (equal
+         (funcall (hm::graphviz-sequence-node-attribute *cfg* :polygon-sides))
+         "4"))
+    (is (equal
+         (funcall (hm::graphviz-sequence-node-attribute *cfg* :polygon-orientation))
+         "0"))
+    (is (equal
+         (funcall (hm::graphviz-sequence-node-attribute *cfg* :polygon-image))
+         ""))
+    (is (equal
+         (funcall (hm::graphviz-sequence-node-attribute *cfg* :polygon-distortion))
+         "0.0"))
+    (is (equal
+         (funcall (hm::graphviz-sequence-node-attribute *cfg* :fontcolor))
+         "black"))
+    (is (equal
+         (funcall (hm::graphviz-sequence-node-attribute *cfg* :fontsize-max))
+         "14.0"))
+    (is (equal
+         (funcall (hm::graphviz-sequence-node-attribute *cfg* :fontsize-min))
+         "14.0"))
+    (is (equal
+         (funcall (hm::graphviz-sequence-node-attribute *cfg* :fontsize))
+         "14.0"))
+    (is (equal
+         (funcall (hm::graphviz-sequence-node-attribute *cfg* :fontname))
+         "Helvetica"))
+    (is (equal
+         (funcall (hm::graphviz-sequence-node-attribute *cfg* :color))
+         "black"))
+    (is (equal
+         (funcall (hm::graphviz-sequence-node-attribute *cfg* :style))
+         "filled"))
+    (is (equal
+         (funcall (hm::graphviz-sequence-node-attribute *cfg* :colorscheme))
+         "x11"))
+    (is (equal
+         (funcall
+          (hm::graphviz-sequence-node-attribute *cfg* :shape))
+         "box"))))
+
+(deftest test-graphviz-sequence-graph-color ()
+  (with-fixture default-config
+    (is (equal "/x11/black" (hm::graphviz-sequence-graph-color *cfg* :fontcolor)))
+    (is (equal "/x11/white" (hm::graphviz-sequence-graph-color *cfg* :bgcolor)))))
+
+(deftest test-graphviz-classification ()
+  "Test that classifications are read from a user configuration read from disk."
+  (with-fixture roskams-h-seq
+    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "polygon-skew")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "polygon-sides")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "polygon-orientation")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "polygon-image")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "polygon-distortion")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "style")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "penwidth")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "color")))
+    (is (equal "units" (hm::graphviz-classification *roskams-h-seq* "node" "shape")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "fontcolor")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "fill")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "style")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "arrowhead")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "penwidth")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "fontsize")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "fontcolor")))
+    (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "color")))))
+
+(deftest test-reachable-limit ()
+  "Test that REACHABLE-LIMIT is not set in the default configuration."
+  (with-fixture default-config
+    (is (not (hm::reachable-limit *cfg*)))))
+
+(deftest test-reachable-from-node ()
+  "Test that REACHABLE-FROM-NODE is not set in the default configuration."
+  (with-fixture default-config
+    (is (not (hm::reachable-from-node *cfg*)))))
+
+(deftest test-chronology-graph-p ()
+  "Test that CHRONOLOGY-GRAPH-P returns nil given the default configuration, and
+that it errors out when set to an invalid value."
+  (with-fixture default-config
+    (is (not (hm::chronology-graph-p *cfg*)))
+    (set-option *cfg* "General configuration" "chronology-graph-draw" "foo")
+    (with-expected-failures
+      (is (hm::chronology-graph-p *cfg*)))))
+
+(deftest test-include-url-p ()
+  "Test that INCLUDE-URL-P returns nil given the default configuration, and
+that it errors out when set to an invalid value."
+  (with-fixture default-config
+    (is (not (hm::include-url-p *cfg*)))
+    (set-option *cfg* "General configuration" "url-include" "foo")
+    (with-expected-failures
+      (is (hm::include-url-p *cfg*)))))
+
+(deftest test-default-url ()
+  "Test that DEFAULT-URL returns the value given in the default configuration."
+  (with-fixture default-config
+    (is (equal (hm::default-url *cfg*) "http://tsdye.github.io/harris-matrix/"))))
+
+(deftest test-sequence-classifier ()
+  "Test that SEQUENCE-CLASSIFIER returns the values given in the default
+  configuration."
+  (with-fixture default-config
+    (is (not (hm::sequence-classifier *cfg* :edge-style-by)))
+    (is (not (hm::sequence-classifier *cfg* :edge-arrowhead-by)))
+    (is (not (hm::sequence-classifier *cfg* :edge-penwidth-by)))
+    (is (not (hm::sequence-classifier *cfg* :edge-fontsize-by)))
+    (is (not (hm::sequence-classifier *cfg* :edge-fontcolor-by)))
+    (is (not (hm::sequence-classifier *cfg* :edge-color-by)))
+    (is (not (hm::sequence-classifier *cfg* :node-polygon-skew-by)))
+    (is (not (hm::sequence-classifier *cfg* :node-polygon-sides-by)))
+    (is (not (hm::sequence-classifier *cfg* :node-polygon-orientation-by)))
+    (is (not (hm::sequence-classifier *cfg* :node-polygon-image-by)))
+    (is (not (hm::sequence-classifier *cfg* :node-polygon-distortion-by)))
+    (is (not (hm::sequence-classifier *cfg* :node-style-by)))
+    (is (not (hm::sequence-classifier *cfg* :node-penwidth-by)))
+    (is (not (hm::sequence-classifier *cfg* :node-color-by)))
+    (is (equal "units" (hm::sequence-classifier *cfg* :node-shape-by)))
+    (is (not (hm::sequence-classifier *cfg* :node-fontcolor-by)))
+    (is (not (hm::sequence-classifier *cfg* :node-fill-by)))))
+
 (deftest test-lookup-graphviz-option ()
+  "Test that LOOKUP-GRAPHVIZ-OPTION returns values from the default configuration."
   (with-fixture default-config
     (is (equal "filled"
                  (hm::lookup-graphviz-option *cfg* "node" "style" "sequence")))
@@ -299,27 +437,84 @@
                  (hm::lookup-graphviz-option *cfg* "node" "not-reachable" "sequence"
                                              "node-color-by" "reachable")))))
 
-(deftest test-graphviz-classification ()
-  "Test that classifications are read from a user configuration read from disk."
-  (with-fixture roskams-h-seq
-    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "polygon-skew")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "polygon-sides")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "polygon-orientation")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "polygon-image")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "polygon-distortion")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "style")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "penwidth")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "color")))
-    (is (string= "units"
-                 (hm::graphviz-classification *roskams-h-seq* "node" "shape")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "fontcolor")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "fill")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "style")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "arrowhead")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "penwidth")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "fontsize")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "fontcolor")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "color")))))
+(deftest test-reset-option ()
+  "Test that GET-ALL-CONFIGURATION-OPTIONS works and that RESET-OPTION changes
+the configuration."
+  (let ((default-config (hm:default-configuration)))
+    (with-fixture default-config
+      (is (equal (get-all-configuration-options *cfg*)
+                 (get-all-configuration-options default-config)))
+      (reset-option default-config "General configuration" "legend" "on")
+      (is (not (equal (get-all-configuration-options *cfg*)
+                      (get-all-configuration-options default-config)))))))
+
+(deftest test-set-input-file ()
+  "Test whether SET-INPUT-FILE function correctly sets options in sections Input
+files and Input file headers."
+  (with-fixture default-config
+    (let* ((file-name-string "test/assets/configurations/contexts-eg.csv"))
+      (set-input-file *cfg* "contexts" file-name-string t)
+      (set-input-file *cfg* "observations" file-name-string nil)
+      (is (equal (hm::input-file-name-p *cfg* :contexts) file-name-string))
+      (is (equal (hm::input-file-name-p *cfg* :observations) file-name-string))
+      (is (hm::get-option *cfg* "Input file headers" "contexts" :type :boolean))
+      (is (not (hm::get-option *cfg* "Input file headers" "observations"
+                           :type :boolean))))))
+
+(deftest test-set-dot-file ()
+  "Test that TEST_SET_DOT_FILE works."
+  (with-fixture default-config
+    (set-dot-file *cfg* "chronology-dot" "foo.dot" nil)
+    (set-dot-file *cfg* "sequence-dot" "bar.dot" nil)
+    (is (equal (hm::get-option *cfg* "Output files" "chronology-dot") "foo.dot"))
+    (is (equal (hm::get-option *cfg* "Output files" "sequence-dot") "bar.dot"))))
+
+;;; Color functions
+
+(deftest test-graphviz-color-string ()
+  (is (equal (hm::graphviz-color-string 1 "reds" 3) "/reds3/2"))
+  (is (equal (hm::graphviz-color-string "white" "x11") "/x11/white"))
+  (is (equal (hm::graphviz-color-string "white" "x11" 3) "/x11/white"))
+  (is (equal (hm::graphviz-color-string "blue" "solarized") "#268bd2"))
+  (is (equal (hm::graphviz-color-string "base03" "solarized") "#002b36"))
+  (is (equal (hm::graphviz-color-string 0 "cet-inferno" 256) "0.640 1.000 0.365")))
+
+(deftest test-graphviz-hsv-string ()
+  (is (equal (hm::graphviz-hsv-string "white") "0.000 0.000 1.000"))
+  (is (equal (hm::graphviz-hsv-string "black") "0.000 0.000 0.000"))
+  (is (equal (hm::graphviz-hsv-string "red") "0.000 1.000 1.000"))
+  (is (equal (hm::graphviz-hsv-string "turquoise") "0.483 0.714 0.878"))
+  (is (equal (hm::graphviz-hsv-string "sienna") "0.054 0.719 0.627")))
+
+(deftest test-graphviz-color-from-ramp ()
+  (is (equal (hm::graphviz-color-from-ramp 0 "black" "white" 3)
+               "0.000 0.000 0.000"))
+  (is (equal (hm::graphviz-color-from-ramp 1 "black" "white" 3)
+               "0.000 0.000 0.333"))
+  (is (equal (hm::graphviz-color-from-ramp 2 "black" "white" 3)
+               "0.000 0.000 0.667"))
+  (is (equal (hm::graphviz-color-from-ramp 3 "black" "white" 3)
+               "0.000 0.000 1.000")))
+
+(deftest test-cet-color ()
+  "Test that CET-COLOR works with all the cet palettes."
+  (is (equal (hm::cet-color "cet-inferno" 0 256) "0.640 1.000 0.365"))
+  (is (equal (hm::cet-color "cet-inferno" 255 256) "0.171 0.687 0.976"))
+  (is (equal (hm::cet-color "cet-inferno" 0 1) "0.943 0.780 0.910"))
+  (is (equal (hm::cet-color "cet-bgyw" 0 1) "0.310 0.590 0.612"))
+  (is (equal (hm::cet-color "cet-kbc" 0 1) "0.615 0.822 0.992"))
+  (is (equal (hm::cet-color "cet-blues" 0 1) "0.589 0.332 0.863"))
+  (is (equal (hm::cet-color "cet-bmw" 0 1) "0.784 0.890 0.996"))
+  (is (equal (hm::cet-color "cet-kgy" 0 1) "0.307 0.920 0.541"))
+  (is (equal (hm::cet-color "cet-gray" 0 1) "0.000 0.000 0.467"))
+  (is (equal (hm::cet-color "cet-dimgray" 0 1) "0.000 0.000 0.494"))
+  (is (equal (hm::cet-color "cet-fire" 0 1) "0.015 1.000 0.929"))
+  (is (equal (hm::cet-color "cet-kb" 0 1) "0.623 0.902 0.518"))
+  (is (equal (hm::cet-color "cet-kg" 0 1) "0.333 1.000 0.255"))
+  (is (equal (hm::cet-color "cet-kr" 0 1) "0.031 1.000 0.463"))
+  (is (equal (hm::cet-color "cet-rainbow" 0 1) "0.179 0.834 0.757")))
+
+;; File functions
 
 (deftest read-write-configuration ()
   "Test that configurations are written to file and read back in correctly"
@@ -354,85 +549,6 @@
                  (get-configuration-sections config-from-file)))
       (is (equal (get-all-configuration-options *cfg*)
                  (get-all-configuration-options config-from-file))))))
-
-(deftest test-reset-option ()
-  "Test that GET-ALL-CONFIGURATION-OPTIONS works and that RESET-OPTION changes
-the configuration."
-  (let ((default-config (hm:default-configuration)))
-    (with-fixture default-config
-      (is (equal (get-all-configuration-options *cfg*)
-                 (get-all-configuration-options default-config)))
-      (reset-option default-config "General configuration" "legend" "on")
-      (is (not (equal (get-all-configuration-options *cfg*)
-                      (get-all-configuration-options default-config)))))))
-
-(deftest test-set-input-file ()
-  "Test whether SET-INPUT-FILE function correctly sets options in sections Input
-files and Input file headers."
-  (with-fixture default-config
-    (let* ((file-name-string "test/assets/configurations/contexts-eg.csv"))
-      (set-input-file *cfg* "contexts" file-name-string t)
-      (set-input-file *cfg* "observations" file-name-string nil)
-      (is (string= (hm::get-option *cfg* "Input files" "contexts")
-                   file-name-string))
-      (is (string= (hm::get-option *cfg* "Input files" "observations")
-                   file-name-string))
-      (is (hm::get-option *cfg* "Input file headers" "contexts" :type :boolean))
-      (is (not (hm::get-option *cfg* "Input file headers" "observations"
-                           :type :boolean))))))
-
-(deftest test-set-dot-file ()
-  "Test that TEST_SET_DOT_FILE works."
-  (with-fixture default-config
-    (set-dot-file *cfg* "chronology-dot" "foo.dot" nil)
-    (set-dot-file *cfg* "sequence-dot" "bar.dot" nil)
-    (is (string= (hm::get-option *cfg* "Output files" "chronology-dot") "foo.dot"))
-    (is (string= (hm::get-option *cfg* "Output files" "sequence-dot") "bar.dot"))))
-
-;;; Color functions
-
-(deftest test-graphviz-color-string ()
-  (is (string= (hm::graphviz-color-string 1 "reds" 3) "/reds3/2"))
-  (is (string= (hm::graphviz-color-string "white" "x11") "/x11/white"))
-  (is (string= (hm::graphviz-color-string "white" "x11" 3) "/x11/white"))
-  (is (string= (hm::graphviz-color-string "blue" "solarized") "#268bd2"))
-  (is (string= (hm::graphviz-color-string "base03" "solarized") "#002b36"))
-  (is (string= (hm::graphviz-color-string 0 "cet-inferno" 256) "0.640 1.000 0.365")))
-
-(deftest test-graphviz-hsv-string ()
-  (is (string= (hm::graphviz-hsv-string "white") "0.000 0.000 1.000"))
-  (is (string= (hm::graphviz-hsv-string "black") "0.000 0.000 0.000"))
-  (is (string= (hm::graphviz-hsv-string "red") "0.000 1.000 1.000"))
-  (is (string= (hm::graphviz-hsv-string "turquoise") "0.483 0.714 0.878"))
-  (is (string= (hm::graphviz-hsv-string "sienna") "0.054 0.719 0.627")))
-
-(deftest test-graphviz-color-from-ramp ()
-  (is (string= (hm::graphviz-color-from-ramp 0 "black" "white" 3)
-               "0.000 0.000 0.000"))
-  (is (string= (hm::graphviz-color-from-ramp 1 "black" "white" 3)
-               "0.000 0.000 0.333"))
-  (is (string= (hm::graphviz-color-from-ramp 2 "black" "white" 3)
-               "0.000 0.000 0.667"))
-  (is (string= (hm::graphviz-color-from-ramp 3 "black" "white" 3)
-               "0.000 0.000 1.000")))
-
-(deftest test-cet-color ()
-  "Test that CET-COLOR works with all the cet palettes."
-  (is (string= (hm::cet-color "cet-inferno" 0 256) "0.640 1.000 0.365"))
-  (is (string= (hm::cet-color "cet-inferno" 255 256) "0.171 0.687 0.976"))
-  (is (string= (hm::cet-color "cet-inferno" 0 1) "0.943 0.780 0.910"))
-  (is (string= (hm::cet-color "cet-bgyw" 0 1) "0.310 0.590 0.612"))
-  (is (string= (hm::cet-color "cet-kbc" 0 1) "0.615 0.822 0.992"))
-  (is (string= (hm::cet-color "cet-blues" 0 1) "0.589 0.332 0.863"))
-  (is (string= (hm::cet-color "cet-bmw" 0 1) "0.784 0.890 0.996"))
-  (is (string= (hm::cet-color "cet-kgy" 0 1) "0.307 0.920 0.541"))
-  (is (string= (hm::cet-color "cet-gray" 0 1) "0.000 0.000 0.467"))
-  (is (string= (hm::cet-color "cet-dimgray" 0 1) "0.000 0.000 0.494"))
-  (is (string= (hm::cet-color "cet-fire" 0 1) "0.015 1.000 0.929"))
-  (is (string= (hm::cet-color "cet-kb" 0 1) "0.623 0.902 0.518"))
-  (is (string= (hm::cet-color "cet-kg" 0 1) "0.333 1.000 0.255"))
-  (is (string= (hm::cet-color "cet-kr" 0 1) "0.031 1.000 0.463"))
-  (is (string= (hm::cet-color "cet-rainbow" 0 1) "0.179 0.834 0.757")))
 
 ;; Test for Roskam's h-structure example
 
