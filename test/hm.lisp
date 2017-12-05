@@ -31,6 +31,21 @@
 (defvar *roskams-h-seq* nil
   "Variable for use in hm tests.")
 
+(defvar *roskams-h-class* nil
+  "Variable for use in hm tests.")
+
+(defixture roskams-h-class
+  (:setup (setf *roskams-h-class*
+                (hm::configure-archaeological-sequence
+                 (hm::make-archaeological-sequence)
+                 (hm:read-configuration-from-files
+                  nil
+                  (uiop:merge-pathnames*
+                   "test/assets/examples/roskams-h-classified/roskams-h-classified.ini"
+                       (asdf:system-source-directory :hm-test)))
+                 nil)))
+  (:teardown (setf *roskams-h-class* nil)))
+
 (defixture roskams-h-seq
   (:setup (setf *roskams-h-seq*
                 (hm::configure-archaeological-sequence
@@ -39,7 +54,8 @@
                   nil (uiop:merge-pathnames*
                        "test/assets/examples/roskams-h-structure/roskams-h.ini"
                        (asdf:system-source-directory :hm-test)))
-                 nil))))
+                 nil)))
+  (:teardown (setf *roskams-h-seq* nil)))
 
 (defixture roskams-h-structure
   (:setup (setf *roskams-h-structure*
@@ -140,7 +156,7 @@
 ;; graph tests
 (deftest node-index-test ()
   (with-fixture transitive-graph
-    (let ((i (hm::make-node-index *transitive*)))
+    (let ((i (hm::map-index-to-node *transitive*)))
       (is (eq (first (graph:nodes *transitive*))
               (fset:lookup i 0)))
       (is (eq (second (graph:nodes *transitive*))
@@ -159,7 +175,7 @@
 (deftest test-penwidths ()
   "Test that edge and node penwidth min and max return the correct strings."
   (with-fixture default-config
-    (let ((res "1.0"))
+    (let ((res 1.0))
       (is (equal (hm::penwidth-min *cfg* :node) res))
       (is (equal (hm::penwidth-min *cfg* :edge) res))
       (is (equal (hm::penwidth-max *cfg* :node) res))
@@ -168,7 +184,7 @@
 (deftest test-fontsizes ()
   "Test that edge and node fontsize min and max return correct strings."
   (with-fixture default-config
-    (let ((res "14.0"))
+    (let ((res 14.0))
       (is (equal (hm::fontsize-min *cfg* :node) res))
       (is (equal (hm::fontsize-min *cfg* :edge) res))
       (is (equal (hm::fontsize-max *cfg* :node) res))
@@ -229,7 +245,8 @@
     (is (not (hm::missing-interfaces-p *cfg*)))))
 
 (deftest test-graphviz-sequence-graph-attribute ()
-  "Test that GRAPHVIZ-SEQUENCE-GRAPH-ATTRIBUTE returns correct values from the default configuration."
+  "Test that GRAPHVIZ-SEQUENCE-GRAPH-ATTRIBUTE returns correct values from the
+default configuration."
   (with-fixture default-config
     (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :splines) "ortho"))
     (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :fontsize-subscript) "10"))
@@ -249,91 +266,106 @@
     (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :colorscheme) "x11"))))
 
 (deftest test-graphviz-sequence-edge-attribute ()
-  "Test GRAPHVIZ-SEQUENCE-EDGE-ATTRIBUTE returns correct values from the default configuration."
+  "Test GRAPHVIZ-SEQUENCE-EDGE-ATTRIBUTE returns correct values from the default
+configuration."
   (with-fixture default-config
     (is (equal
-         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :penwidth-max)) "1.0"))
+         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :penwidth-max))
+         (hm::quotes-around "1.0")))
     (is (equal
-         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :penwidth-min)) "1.0"))
+         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :penwidth-min))
+         (hm::quotes-around "1.0")))
     (is (equal
-         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :penwidth)) "1.0"))
+         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :penwidth))
+         (hm::quotes-around "1.0")))
     (is (equal
-         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :arrowhead)) "normal"))
+         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :arrowhead))
+         (hm::quotes-around "normal")))
     (is (equal
-         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :fontcolor)) "black"))
+         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :fontcolor))
+         (hm::quotes-around "black")))
     (is (equal
-         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :fontsize-max)) "14.0"))
+         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :fontsize-max))
+         (hm::quotes-around "14.0")))
     (is (equal
-         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :fontsize-min)) "14.0"))
+         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :fontsize-min))
+         (hm::quotes-around "14.0")))
     (is (equal
-         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :fontsize)) "14.0"))
+         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :fontsize))
+         (hm::quotes-around "14.0")))
     (is (equal
-         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :fontname)) "Helvetica"))
+         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :fontname))
+         (hm::quotes-around "Helvetica")))
     (is (equal
-         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :color)) "black"))
+         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :color))
+         (hm::quotes-around "black")))
     (is (equal
-         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :style)) "solid"))
+         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :style))
+         (hm::quotes-around "solid")))
     (is (equal
-         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :colorscheme)) "x11"))
+         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :colorscheme))
+         (hm::quotes-around "x11")))
     (is (equal
          (funcall
-          (hm::graphviz-sequence-edge-attribute *cfg* :edge-classify-by)) "from"))))
+          (hm::graphviz-sequence-edge-attribute *cfg* :edge-classify-by))
+         (hm::quotes-around "from")))))
 
 (deftest test-graphviz-sequence-node-attribute ()
-  "Test GRAPHVIZ-SEQUENCE-NODE-ATTRIBUTE returns correct values from the default configuration."
+  "Test GRAPHVIZ-SEQUENCE-NODE-ATTRIBUTE returns correct values from the default
+configuration."
   (with-fixture default-config
     (is (equal
          (funcall (hm::graphviz-sequence-node-attribute *cfg* :penwidth-max))
-         "1.0"))
+         (hm::quotes-around "1.0")))
     (is (equal
          (funcall (hm::graphviz-sequence-node-attribute *cfg* :penwidth-min))
-         "1.0"))
+         (hm::quotes-around "1.0")))
     (is (equal
          (funcall (hm::graphviz-sequence-node-attribute *cfg* :penwidth))
-         "1.0"))
+         (hm::quotes-around "1.0")))
     (is (equal
          (funcall (hm::graphviz-sequence-node-attribute *cfg* :polygon-skew))
-         "0.0"))
+         (hm::quotes-around "0.0")))
     (is (equal
          (funcall (hm::graphviz-sequence-node-attribute *cfg* :polygon-sides))
-         "4"))
+         (hm::quotes-around "4")))
     (is (equal
          (funcall (hm::graphviz-sequence-node-attribute *cfg* :polygon-orientation))
-         "0"))
+         (hm::quotes-around "0.0")))
     (is (equal
          (funcall (hm::graphviz-sequence-node-attribute *cfg* :polygon-image))
-         ""))
+         (hm::quotes-around "")))
     (is (equal
          (funcall (hm::graphviz-sequence-node-attribute *cfg* :polygon-distortion))
-         "0.0"))
+         (hm::quotes-around "0.0")))
     (is (equal
          (funcall (hm::graphviz-sequence-node-attribute *cfg* :fontcolor))
-         "black"))
+         (hm::quotes-around "black")))
     (is (equal
          (funcall (hm::graphviz-sequence-node-attribute *cfg* :fontsize-max))
-         "14.0"))
+         (hm::quotes-around "14.0")))
     (is (equal
          (funcall (hm::graphviz-sequence-node-attribute *cfg* :fontsize-min))
-         "14.0"))
+         (hm::quotes-around "14.0")))
     (is (equal
          (funcall (hm::graphviz-sequence-node-attribute *cfg* :fontsize))
-         "14.0"))
+         (hm::quotes-around "14.0")))
     (is (equal
          (funcall (hm::graphviz-sequence-node-attribute *cfg* :fontname))
-         "Helvetica"))
+         (hm::quotes-around "Helvetica")))
     (is (equal
          (funcall (hm::graphviz-sequence-node-attribute *cfg* :color))
-         "black"))
+         (hm::quotes-around "black")))
     (is (equal
          (funcall (hm::graphviz-sequence-node-attribute *cfg* :style))
-         "filled"))
+         (hm::quotes-around "filled")))
     (is (equal
          (funcall (hm::graphviz-sequence-node-attribute *cfg* :colorscheme))
-         "x11"))
+         (hm::quotes-around "x11")))
     (is (equal
          (funcall
           (hm::graphviz-sequence-node-attribute *cfg* :shape))
-         "box"))))
+         (hm::quotes-around "box")))))
 
 (deftest test-graphviz-sequence-graph-color ()
   (with-fixture default-config
@@ -343,23 +375,23 @@
 (deftest test-graphviz-classification ()
   "Test that classifications are read from a user configuration read from disk."
   (with-fixture roskams-h-seq
-    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "polygon-skew")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "polygon-sides")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "polygon-orientation")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "polygon-image")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "polygon-distortion")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "style")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "penwidth")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "color")))
-    (is (equal "units" (hm::graphviz-classification *roskams-h-seq* "node" "shape")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "fontcolor")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "node" "fill")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "style")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "arrowhead")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "penwidth")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "fontsize")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "fontcolor")))
-    (is (not (hm::graphviz-classification *roskams-h-seq* "edge" "color")))))
+    (is (not (hm::graphviz-classification *roskams-h-seq* :node :polygon-skew)))
+    (is (not (hm::graphviz-classification *roskams-h-seq* :node :polygon-sides)))
+    (is (not (hm::graphviz-classification *roskams-h-seq* :node :polygon-orientation)))
+    (is (not (hm::graphviz-classification *roskams-h-seq* :node :polygon-image)))
+    (is (not (hm::graphviz-classification *roskams-h-seq* :node :polygon-distortion)))
+    (is (not (hm::graphviz-classification *roskams-h-seq* :node :style)))
+    (is (not (hm::graphviz-classification *roskams-h-seq* :node :penwidth)))
+    (is (not (hm::graphviz-classification *roskams-h-seq* :node :color)))
+    (is (eq :units (hm::graphviz-classification *roskams-h-seq* :node :shape)))
+    (is (not (hm::graphviz-classification *roskams-h-seq* :node :fontcolor)))
+    (is (not (hm::graphviz-classification *roskams-h-seq* :node :fillcolor)))
+    (is (not (hm::graphviz-classification *roskams-h-seq* :edge :style)))
+    (is (not (hm::graphviz-classification *roskams-h-seq* :edge :arrowhead)))
+    (is (not (hm::graphviz-classification *roskams-h-seq* :edge :penwidth)))
+    (is (not (hm::graphviz-classification *roskams-h-seq* :edge :fontsize)))
+    (is (not (hm::graphviz-classification *roskams-h-seq* :edge :fontcolor)))
+    (is (not (hm::graphviz-classification *roskams-h-seq* :edge :color)))))
 
 (deftest test-reachable-limit ()
   "Test that REACHABLE-LIMIT is not set in the default configuration."
@@ -412,30 +444,30 @@ that it errors out when set to an invalid value."
     (is (not (hm::sequence-classifier *cfg* :node-style-by)))
     (is (not (hm::sequence-classifier *cfg* :node-penwidth-by)))
     (is (not (hm::sequence-classifier *cfg* :node-color-by)))
-    (is (equal "units" (hm::sequence-classifier *cfg* :node-shape-by)))
+    (is (eq :units (hm::sequence-classifier *cfg* :node-shape-by)))
     (is (not (hm::sequence-classifier *cfg* :node-fontcolor-by)))
-    (is (not (hm::sequence-classifier *cfg* :node-fill-by)))))
+    (is (not (hm::sequence-classifier *cfg* :node-fillcolor-by)))))
 
 (deftest test-lookup-graphviz-option ()
   "Test that LOOKUP-GRAPHVIZ-OPTION returns values from the default configuration."
   (with-fixture default-config
     (is (equal "filled"
-                 (hm::lookup-graphviz-option *cfg* "node" "style" "sequence")))
+               (hm::lookup-graphviz-option *cfg* :node :style :sequence)))
     (is (equal "solid"
-                 (hm::lookup-graphviz-option *cfg* "edge" "style" "sequence")))
+               (hm::lookup-graphviz-option *cfg* :edge :style :sequence)))
     (is (equal "x11"
-                 (hm::lookup-graphviz-option *cfg* "edge" "colorscheme" "sequence")))
+               (hm::lookup-graphviz-option *cfg* :edge :colorscheme :sequence)))
     (is (equal "x11"
-                 (hm::lookup-graphviz-option *cfg* "node" "colorscheme" "sequence")))
+               (hm::lookup-graphviz-option *cfg* :node :colorscheme :sequence)))
     (is (equal "1"
-                 (hm::lookup-graphviz-option *cfg* "node" "origin" "sequence"
-                                             "node-color-by" "reachable")))
+               (hm::lookup-graphviz-option *cfg* :node :origin :sequence
+                                           :node-color-by :reachable)))
     (is (equal "2"
-                 (hm::lookup-graphviz-option *cfg* "node" "reachable" "sequence"
-                                             "node-color-by" "reachable")))
+               (hm::lookup-graphviz-option *cfg* :node :reachable :sequence
+                                                       :node-color-by :reachable)))
     (is (equal "3"
-                 (hm::lookup-graphviz-option *cfg* "node" "not-reachable" "sequence"
-                                             "node-color-by" "reachable")))))
+               (hm::lookup-graphviz-option *cfg* :node :not-reachable :sequence
+                                           :node-color-by :reachable)))))
 
 (deftest test-reset-option ()
   "Test that GET-ALL-CONFIGURATION-OPTIONS works and that RESET-OPTION changes
@@ -550,6 +582,9 @@ files and Input file headers."
       (is (equal (get-all-configuration-options *cfg*)
                  (get-all-configuration-options config-from-file))))))
 
+;; Data structure tests
+
+
 ;; Test for Roskam's h-structure example
 
 (deftest test-roskams-h-structure-config ()
@@ -575,15 +610,65 @@ files and Input file headers."
            (graph:edges g)
            '((|1| |3|) (|1| |4|) (|1| |5|) (|2| |3|) (|2| |5|) (|3| |5|) (|4| |5|)))))))
 
-;; (deftest test-roskams-h-structure-missing-interfaces ()
-;;   (with-fixture roskams-h-structure
-;;     (hm::set-option *roskams-h-structure* "General configuration" "add-interfaces" "yes")
-;;     (let ((seq (hm::configure-archaeological-sequence
-;;                 (hm::make-archaeological-sequence) *roskams-h-structure* nil)))
-;;       (is (equal (graph:nodes (hm::archaeological-sequence-graph seq))
-;;                  '(|1| |2| |3| |4| |5| |5-*surface*| |3-*surface*| |4-*surface*|)))
-;;       (is (equal (graph:edges (hm::archaeological-sequence-graph seq))
-;;                  '((|1| |3-*surface*|) (|1| |4-*surface*|) (|1| |5-*surface*|)
-;;                    (|2| |3-*surface*|) (|2| |5-*surface*|) (|3| |5-*surface*|)
-;;                    (|4| |5-*surface*|) (|5-*surface*| |5|) (|3-*surface*| |3|)
-;;                    (|4-*surface*| |4|)))))))
+
+;; Tests using Roskams H sequence
+
+(deftest test-to-dot-macro ()
+  "Run TO-DOT-MACRO against roskams-h-seq to test anonymous functions."
+  (with-fixture roskams-h-seq
+    (is (equal (hm::quotes-around "solid")
+               (funcall
+                (hm::to-dot-macro *roskams-h-seq* :edge :style :sequence))))
+    (is (equal (hm::quotes-around "normal")
+               (funcall
+                (hm::to-dot-macro *roskams-h-seq* :edge :arrowhead :sequence))))
+    (is (equal (hm::quotes-around "14.0")
+               (funcall
+                (hm::to-dot-macro *roskams-h-seq* :edge :fontsize :sequence))))
+    (is (equal (hm::quotes-around "/x11/black")
+               (funcall
+                (hm::to-dot-macro *roskams-h-seq* :edge :fontcolor :sequence))))
+    (is (equal (hm::quotes-around "/x11/black")
+               (funcall
+                (hm::to-dot-macro *roskams-h-seq* :edge :color :sequence))))
+    (is (equal (hm::quotes-around "1.0")
+               (funcall
+                (hm::to-dot-macro *roskams-h-seq* :edge :penwidth :sequence))))
+    (is (equal (hm::quotes-around "box")
+               (funcall
+                (hm::to-dot-macro *roskams-h-seq* :node :shape :sequence)
+                (hm::symbolicate "1"))))
+    (is (equal (hm::quotes-around "box")
+               (funcall
+                (hm::to-dot-macro *roskams-h-seq* :node :shape :sequence)
+                (hm::symbolicate "2"))))
+    (is (equal (hm::quotes-around "filled")
+               (funcall
+                (hm::to-dot-macro *roskams-h-seq* :node :style :sequence))))
+    (is (equal (hm::quotes-around "/x11/black")
+               (funcall
+                (hm::to-dot-macro *roskams-h-seq* :node :color :sequence))))
+    (is (equal (hm::quotes-around "/x11/white")
+               (funcall
+                (hm::to-dot-macro *roskams-h-seq* :node :fillcolor :sequence))))
+    (is (equal (hm::quotes-around "/x11/black")
+               (funcall
+                (hm::to-dot-macro *roskams-h-seq* :node :fontcolor :sequence))))
+    (is (equal (hm::quotes-around "1.0")
+               (funcall
+                (hm::to-dot-macro *roskams-h-seq* :node :penwidth :sequence))))))
+
+(deftest test-write-dot-file ()
+  (with-fixture roskams-h-seq
+    (hm::write-sequence-graph-to-dot-file *roskams-h-seq* nil)
+    (is (probe-file
+         (hm::output-file-name
+          (hm::archaeological-sequence-configuration *roskams-h-seq*) "sequence-dot")))))
+
+(deftest test-write-dot-with-classifications ()
+  (with-fixture roskams-h-class
+    (hm::write-sequence-graph-to-dot-file *roskams-h-class* nil)
+    (is (probe-file
+         (hm::output-file-name
+          (hm::archaeological-sequence-configuration *roskams-h-class*)
+          "sequence-dot")))))
