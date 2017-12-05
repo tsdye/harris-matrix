@@ -110,10 +110,10 @@ out if one or more initialization files were not read. Prints a status message."
                                        :stream stream))
                levels))))
 
-(defun get-project-directory (cfg &optional verbose)
+(defun get-project-directory (cfg)
   "Check if the user's project directory exists, if so, return a path to it. If
 not, return a path to the default project directory."
-  (let ((user (prob-file (project-directory cfg))))
+  (let ((user (probe-file (project-directory cfg))))
     (or user
         (uiop:merge-pathnames* "resources/default-project/"
                                (asdf:system-source-directory :hm)))))
@@ -123,17 +123,15 @@ not, return a path to the default project directory."
   if the file does not exist. CONTENT is a string, one of `contexts',
   `observations', `inferences', `periods', `phases', `events', or
   `event-order'."
-  (probe-file (uiop:merge-pathnames*
-               (get-option cfg "Input files" content)
-               (get-option cfg "General configuration" "project-directory"))))
+  (probe-file (uiop:merge-pathnames* (get-option cfg "Input files" content)
+                                     (project-directory cfg))))
 
 
 (defun output-file-name (cfg content)
   "Return the file path for CONTENT from the user's configuration, CFG. CONTENT
   is a string, one of `sequence-dot' or `chronology-dot'."
-  (uiop:merge-pathnames*
-   (get-option cfg "Output files" content)
-   (project-directory cfg)))
+  (uiop:merge-pathnames* (get-option cfg "Output files" content)
+                         (project-directory cfg)))
 
 (defun unable-to-find-input-files? (cfg)
   "Returns non-nil if input files specified in the configuration CFG
