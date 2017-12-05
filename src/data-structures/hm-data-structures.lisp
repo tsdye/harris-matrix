@@ -7,7 +7,8 @@
 (in-package #:hm)
 
 (defun classifiers ()
-  "Returns an fset set of the hm classifiers in the standard hm configuration."
+  "Returns an fset set of strings that are the hm classifiers in the standard hm
+configuration."
   (let ((opts (options (empty-configuration) "Graphviz sequence classification"))
         (ret (fset:empty-set)))
     (dolist (opt opts)
@@ -16,23 +17,24 @@
 
 (defun matrix-classes ()
   "hm classifications that require a graph matrix."
-  (fset:set "distance" "reachable" "adjacent"))
+  (fset:set :distance :reachable :adjacent))
 
 (defun vector-classes ()
   "hm classifications that require a vector."
-  (fset:set "levels" "units" "periods" "phases"))
+  (fset:set :levels :units :periods :phases))
 
 (defun color-attributes ()
   "Graphviz attributes that expect a color string."
-  (fset:set "color" "fillcolor" "fontcolor"))
+  (fset:set :color :fillcolor :fontcolor))
 
 (defun category-attributes ()
   "Graphviz attributes that expect a category string."
-  (fset:set "style" "shape" "arrowhead"))
+  (fset:set :style :shape :arrowhead :polygon-sides :polygon-image))
 
 (defun numeric-attributes ()
   "Graphviz attributes that expect a numeric value."
-  (fset:set "fontsize" "penwidth"))
+  (fset:set :fontsize :penwidth :polygon-skew :polygon-orientation
+            :polygon-distortion))
 
 (defun create-distance-matrix (seq)
   "Returns a distance matrix of the directed graph using the instructions in the
@@ -68,6 +70,155 @@ instructions in the user's configuration, CFG."
 ;;     (graph-matrix:to-strong-component-matrix
 ;;      graph (new-matrix (fast-matrix-p cfg)))))
 
+(defun max-value (matrix)
+  "Return the maximum value in a matrix."
+  (let ((rows (graph-matrix:matrix-n-rows matrix))
+        (cols (graph-matrix:matrix-n-cols matrix))
+        (max-val 0))
+    (loop :for i :below rows :do
+      (loop :for j :below cols :do
+        (let ((this-val (graph-matrix:matrix-ref matrix i j)))
+          (when (and (not (graph-matrix:infinitep this-val matrix))
+                     (> this-val max-val))
+            (setf max-val this-val)))))
+    max-val))
+
+(defun tables-to-map (contexts other-table table-type)
+  "Given a CONTEXTS table, an OTHER-TABLE, and a TABLE-TYPE in
+`periods' or `phases', return an fset map where the key is the context
+and the value is either the period or phase of the context."
+  (let ((ht (fset:empty-map))
+        (ret (fset:empty-map))
+        (n (cond
+            ((equal table-type "periods") 3)
+            ((equal table-type "phases") 4)
+            (t (error "Error: unrecognized table type")))))
+    (mapcar #'(lambda (x)
+                (setf ht (fset:with ht (nth 0 x) (nth 2 x))))
+            other-table)
+    (mapcar #'(lambda (x)
+                (setf ret
+                      (fset:with ret (symbolicate (nth 0 x))
+                                 (read-from-string (fset:@ ht (nth n x))))))
+            contexts)
+    ret))
+
+(defun alist-to-map (alist)
+  "Given an assoc-list, ALIST, return the corresponding fset map."
+  (let ((ret (fset:empty-map)))
+    (mapc #'(lambda (pair)
+              (setq ret (fset:with ret (car pair) (cdr pair))))
+          alist)
+    ret))
+
+(defun context-type-to-map (contexts)
+  "Given a context table, CONTEXTS, return an fset map where the key is the
+  context and the value is the keyword :deposit if the unit-type is `deposit' or
+  :interface if the unit-type is `interface'."
+  (let ((ret (fset:empty-map)))
+    (mapcar #'(lambda (x)
+                (setf ret
+                      (fset:with ret (symbolicate (nth 0 x))
+                                 (cond
+                                   ((equal (nth 1 x) "deposit") :deposit)
+                                   ((equal (nth 1 x) "interface") :interface)
+                                   (t (error "Error: ~s is not a context type."
+                                             (nth 1 x)))))))
+            contexts)
+    ret))
+
+(defun make-classifier (classifier-type seq &optional (verbose t))
+  "Given a keyword indicating CLASSIFIER-TYPE and an archaeological sequence SEQ
+return an fset map where the key is a symbol for a node in the directed graph of
+the archaeological sequence and whose value is a number or keyword depending on
+CLASSIFIER-TYPE. CLASSIFIER-TYPE is one of: :distance, in which case the value
+is a non-negative integer; :reachable, in which case value is one
+of :origin, :reachable, or :not-reachable; :adjacent, in which case value is
+one of :origin, :adjacent, or :not-adjacent; :periods, in which case value is
+an integer; :phases, in which case value is an integer; :units, in which case
+value is one of :deposit or :interface; or :levels, in which case value is a
+non-negative integer."
+  (let ((cfg (archaeological-sequence-configuration seq))
+        (graph (archaeological-sequence-graph seq)))
+    (when verbose (format t "Creating ~a classification.~&" classifier-type))
+    (cond
+      ((eq classifier-type :units)
+       (context-type-to-map (read-table (input-file-name cfg  "contexts")
+                                        (file-header-p cfg  "contexts")
+                                        verbose)))
+      ((eq classifier-type :distance)
+       (let* ((m (create-distance-matrix seq))
+              (i (graph:nodes graph))
+              (o (reachable-from-node cfg))
+              (unreachable (+ 1 (truncate (max-value m))))
+              (map (fset:empty-map)))
+         (dolist (key i)
+           (let ((new-val (truncate (graph-matrix:distance-from-to graph m o key))))
+             (if (graph-matrix:infinitep new-val m)
+                 (setf map (fset:with map key unreachable))
+                 (setf map (fset:with map key new-val)))))
+         map))
+      ((eq classifier-type :reachable)
+       (let ((m (create-reachability-matrix seq))
+             (o (reachable-from-node cfg))
+             (map (fset:empty-map)))
+         (dolist (x (graph:nodes graph))
+           (if (eq x o)
+               (setf map (fset:with map x :origin))
+               (if (graph-matrix:reachablep graph m o x)
+                   (setf map (fset:with map x :reachable))
+                   (setf map (fset:with map x :not-reachable)))))
+         map))
+      ((eq classifier-type :adjacent)
+       (let ((m (create-adjacency-matrix seq))
+             (i (map-node-to-index graph))
+             (o (reachable-from-node cfg))
+             (map (fset:empty-map)))
+         (fset:do-map (key index i)
+           (if (eq key o)
+               (setf map (fset:with map key :origin))
+               (setf map
+                     (fset:with map key
+                                (case (truncate
+                                       (graph-matrix:matrix-ref m (fset:@ i o) index))
+                                  (0 :not-adjacent)
+                                  (1 :adjacent)
+                                  (otherwise :not-adjacent))))))
+         map))
+      ((member classifier-type '(:periods :phases) :test 'eq)
+       (tables-to-map (read-table (input-file-name cfg "contexts")
+                                  (file-header-p cfg "contexts")
+                                  verbose)
+                      (read-table (input-file-name cfg classifier-type)
+                                  (file-header-p cfg classifier-type)
+                                  verbose)
+                      classifier-type))
+      ((eq classifier-type :levels)
+       (alist-to-map (graph:levels graph :alist 't)))
+      (t (error "The classifier '~a' is not known." classifier-type)))))
+
+(defun map-node-to-index (graph)
+  "Returns an fset map where the key is a node of graph GRAPH and the
+value is an index into the matrix representation of GRAPH."
+  (let ((counter -1)
+        (node-index (fset:empty-map)))
+    (mapc
+     (lambda (node)
+       (setf node-index (fset:with node-index node (incf counter))))
+     (graph:nodes graph))
+    node-index))
+
+(defun map-index-to-node (graph)
+  "Returns an fset map where the key is a node of graph GRAPH and the
+value is an index into the matrix representation of GRAPH."
+  (let ((counter -1)
+        (node-index (fset:empty-map)))
+    (mapc
+     (lambda (node)
+       (setf node-index (fset:with node-index (incf counter) node)))
+     (graph:nodes graph))
+    node-index))
+
 (defun make-node-index (graph)
   "Returns an fset map where the key is a node of graph GRAPH and the
 value is an index into the matrix representation of GRAPH."
@@ -83,221 +234,320 @@ value is an index into the matrix representation of GRAPH."
   "Return a closure for the classification, USER-CLASS, that can be passed
 directly to graph-dot for the attribute, DOT-ATTR, of the graph ELEMENT. ELEMENT
 is one of `node', `edge'."
-  (let ((cfg (archaeological-sequence-configuration seq)))
-    (cond
-      ((equal user-class "distance")
-       (make-distance-map seq element dot-attr graph-type))
-      ((equal user-class "adjacent")
-       (make-adjacent-map cfg element dot-attr graph-type user-class))
-      ((equal user-class "reachable")
-       (make-reachable-map cfg element dot-attr graph-type user-class))
-      ((equal user-class "units") (make-units-map cfg element dot-attr))
-      ((equal user-class "levels") (make-levels-map seq element dot-attr))
-      ((equal user-class "phases") (make-phases-map cfg element dot-attr))
-      ((equal user-class "periods") (make-periods-map cfg element dot-attr)))))
+  (cond
+    ((eq user-class :distance)
+     (make-distance-map seq element dot-attr graph-type user-class))
+    ((eq user-class :adjacent)
+     (make-adjacent-map seq element dot-attr graph-type user-class))
+    ((eq user-class :reachable)
+     (make-reachable-map seq element dot-attr graph-type user-class))
+    ((eq user-class :units)
+     (make-units-map seq element dot-attr user-class))
+    ((eq user-class :levels)
+     (make-levels-map seq element dot-attr graph-type user-class))
+    ((eq user-class :phases) (make-phases-map seq element dot-attr user-class))
+    ((eq user-class :periods) (make-periods-map seq element dot-attr user-class))))
+
+(defun concatenate-classifier (element dot-attr)
+  "Given two keywords, return a string that describes an hm classifier."
+  (concatenate 'string (string-downcase element) "-"
+               (string-downcase dot-attr) "-by"))
 
 (defun make-reachable-map (seq element dot-attr graph-type user-class)
   "Return a closure for a reachability classification, USER-CLASS, for the
 attribute, DOT-ATTR, of the graph element, ELEMENT. ELEMENT is one of `node',
 `edge'."
-  (let* ((cfg (archaeological-sequence-configuration seq))
-         (graph (archaeological-sequence-graph seq))
-         (matrix (create-reachability-matrix seq))
-         (from-node (reachable-from-node cfg))
-         (cls (concatenate 'string element "-" dot-attr "-by"))
-         (node-index (make-node-index graph))
-         (node-p (equal element "node"))
-         (edge-node
-           (get-option cfg "Graphviz sequence edge attributes" "edge-classify-by"))
+  (let* ((map (make-classifier :reachable seq))
+         (cfg (archaeological-sequence-configuration seq))
+         (cls (classification-to-keyword (concatenate-classifier element dot-attr)))
+         (node-p (eq element :node))
+         (edge-node (edge-classify-by seq))
          (origin (lookup-graphviz-option
-                  cfg element "origin" graph-type cls user-class))
+                  cfg element :origin graph-type cls user-class))
          (reachable (lookup-graphviz-option
-                    cfg element "reachable" graph-type cls user-class))
+                     cfg element :reachable graph-type cls user-class))
          (not-reachable (lookup-graphviz-option
-                        cfg element "not-reachable" graph-type cls user-class)))
+                         cfg element :not-reachable graph-type cls user-class)))
     (cond
       ((fset:contains? (color-attributes) dot-attr)
        (let ((scheme (lookup-graphviz-option
-                      cfg element "colorscheme" graph-type user-class user-class)))
+                      cfg element :colorscheme graph-type cls user-class)))
          #'(lambda (x)
-             (let* ((color (graph-matrix:matrix-ref
-                            matrix (fset:@ node-index from-node)
-                            (if node-p (fset:@ node-index x)
-                                (if (equal edge-node "from")
-                                    (fset:@ node-index (nth 0 x))
-                                    (fset:@ node-index (nth 1 x)))))))
-               (graphviz-color-string (case color
-                                        (0 origin)
-                                        (1 reachable)
-                                        (otherwise not-reachable))
-                                      scheme 3)))))
+             (let* ((color (if node-p (fset:@ map x)
+                               (if (equal edge-node "from")
+                                   (fset:@ map (nth 0 x))
+                                   (fset:@ map (nth 1 x))))))
+               (quotes-around
+                (graphviz-color-string (case color
+                                         (:origin origin)
+                                         (:reachable reachable)
+                                         (:not-reachable not-reachable)
+                                         (otherwise
+                                          (error "Error: Unable to make reachable map.")))
+                                                     scheme 3))))))
       ((fset:contains? (fset:union (category-attributes) (numeric-attributes)) dot-attr)
        #'(lambda (x)
-           (let ((index (graph-matrix:matrix-ref
-                         matrix (fset:@ node-index from-node)
-                         (if node-p (fset:@ node-index x)
-                             (if (equal edge-node "from")
-                                 (fset:@ node-index (nth 0 x))
-                                 (fset:@ node-index (nth 1 x)))))))
+           (let ((index (if node-p (fset:@ map x)
+                            (if (equal edge-node "from")
+                                (fset:@ map (nth 0 x))
+                                (fset:@ map (nth 1 x))))))
              (case index
-               (0 origin)
-               (1 reachable)
-               (otherwise not-reachable)))))
+               (:origin origin)
+               (:reachable reachable)
+               (:not-reachable not-reachable)
+               (otherwise (error "Error: Unable to make reachable map."))))))
       (t (error "Error: Unable to make reachable map.")))))
 
 (defun make-adjacent-map (seq element dot-attr graph-type user-class)
   "Return a closure for an adjacency classification, USER-CLASS, for the
 attribute, DOT-ATTR, of the graph ELEMENT. ELEMENT is one of `node', `edge'."
-  (let* ((cfg (archaeological-sequence-configuration seq))
-         (graph (archaeological-sequence-graph seq))
-         (matrix (create-adjacency-matrix seq))
-         (node-index (make-node-index graph))
-         (from-node (reachable-from-node cfg))
-         (cls (concatenate 'string element "-" dot-attr "-by"))
-         (node-p (equal element "node"))
-         (edge-node
-           (get-option cfg "Graphviz sequence edge attributes" "edge-classify-by"))
+  (let* ((map (make-classifier :adjacent seq))
+         (cfg (archaeological-sequence-configuration seq))
+         (cls (concatenate-classifier element dot-attr))
+         (node-p (eq element :node))
+         (edge-node (edge-classify-by seq))
          (origin (lookup-graphviz-option
-                  cfg element "origin" graph-type
+                  cfg element :origin graph-type
                   cls user-class))
          (adjacent (lookup-graphviz-option
-                    cfg element "adjacent" graph-type cls user-class))
+                    cfg element :adjacent graph-type cls user-class))
          (not-adjacent (lookup-graphviz-option
-                        cfg element "not-adjacent" graph-type cls user-class)))
+                        cfg element :not-adjacent graph-type cls user-class)))
     (cond
       ((fset:contains? (color-attributes) dot-attr)
        (let ((scheme (lookup-graphviz-option
-                      cfg element "colorscheme" graph-type cls user-class)))
+                      cfg element :colorscheme graph-type cls user-class)))
          #'(lambda (x)
-             (let* ((color (graph-matrix:matrix-ref
-                            matrix (fset:@ node-index from-node)
-                            (if node-p (fset:@ node-index x)
-                                (if (equal edge-node "from")
-                                    (fset:@ node-index (nth 0 x))
-                                    (fset:@ node-index (nth 1 x)))))))
-               (graphviz-color-string (case color
-                                        (0 origin)
-                                        (1 adjacent)
-                                        (otherwise not-adjacent))
-                                      scheme 3)))))
+             (let* ((color (if node-p (fset:@ map x)
+                               (if (equal edge-node "from")
+                                   (fset:@ map (nth 0 x))
+                                   (fset:@ map (nth 1 x))))))
+               (quotes-around
+                (graphviz-color-string
+                 (case color
+                   (:origin origin)
+                   (:adjacent adjacent)
+                   (:not-adjacent not-adjacent)
+                   (otherwise (error "Error: Unable to make adjacency map.~&")))
+                 scheme 3))))))
       ((fset:contains? (fset:union (category-attributes) (numeric-attributes)) dot-attr)
        #'(lambda (x)
-           (let ((index (graph-matrix:matrix-ref
-                         matrix (fset:@ node-index from-node)
-                         (if node-p (fset:@ node-index x)
-                                (if (equal edge-node "from")
-                                    (fset:@ node-index (nth 0 x))
-                                    (fset:@ node-index (nth 1 x)))))))
+           (let ((index (if node-p (fset:@ map x)
+                            (if (equal edge-node "from")
+                                (fset:@ map (nth 0 x))
+                                (fset:@ map (nth 1 x))))))
              (case index
-               (0 origin)
-               (1 adjacent)
-               (otherwise not-adjacent)))))
+               (:origin (quotes-around origin))
+               (:adjacent (quotes-around adjacent))
+               (:not-adjacent (quotes-around not-adjacent))
+               (otherwise (error "Error: Unable to make adjacency map."))))))
       (t (error "Error: Unable to make adjacency map.")))))
 
-(defun category-attribute-map (element dot-attr)
+(defun category-attribute-map (cfg element dot-attr)
   (cond
-    ((and (string= element "node") (string= dot-attr "style"))
+    ((and (eq element :node) (eq dot-attr :style))
      (graphviz-node-style-map))
-    ((and (string= element "node") (string= dot-attr "shape"))
+    ((and (eq element :node) (eq dot-attr :shape))
      (graphviz-node-shape-map))
-    ((and (string= element "edge") (string= dot-attr "style"))
+    ((and (eq element :edge) (eq dot-attr :style))
      (graphviz-edge-style-map))
-    ((and (string= element "edge") (string= dot-attr "arrowhead"))
-     (graphviz-arrow-shape-map))))
+    ((and (eq element :edge) (eq dot-attr :arrowhead))
+     (graphviz-arrow-shape-map))
+    ((and (eq element :node) (eq dot-attr :polygon-sides))
+     (graphviz-polygon-sides-map cfg))))
 
-(defun make-distance-map (seq element dot-attr graph-type)
+(defun numeric-attribute-min (cfg element dot-attr)
+  "Return the minimum value of DOT-ATTR for the ELEMENT from the user's
+configuration, CFG."
+  (case dot-attr
+    (:penwidth (penwidth-min cfg element))
+    (:fontsize (fontsize-min cfg element))
+    (:polygon-skew (polygon-skew-min cfg))
+    (:polygon-orientation (polygon-orientation-min cfg))
+    (:polygon-distortion (polygon-distortion-min cfg))))
+
+(defun numeric-attribute-max (cfg element dot-attr)
+  "Return the minimum value of DOT-ATTR for the ELEMENT from the user's
+configuration, CFG."
+  (case dot-attr
+    (:penwidth (penwidth-max cfg element))
+    (:fontsize (fontsize-max cfg element))
+    (:polygon-skew (polygon-skew-max cfg))
+    (:polygon-orientation (polygon-orientation-max cfg))
+    (:polygon-distortion (polygon-distortion-max cfg))))
+
+(defun make-distance-map (seq element dot-attr graph-type user-class)
   "Return a closure for a distance classification for the attribute, DOT-ATTR,
 of the graph ELEMENT. ELEMENT is one of `node', `edge'."
   (let* ((cfg (archaeological-sequence-configuration seq))
-         (graph (archaeological-sequence-graph seq))
-         (matrix (create-distance-matrix seq))
-         (node-index (make-node-index graph))
-         (node-p (equal element "node"))
-         (edge-node
-           (get-option cfg "Graphviz sequence edge attributes" "edge-classify-by"))
-         (from-node (reachable-from-node cfg)))
+         (map (make-classifier :distance seq))
+         (node-p (eq element :node))
+         (edge-node (edge-classify-by seq)))
     (cond
       ((fset:contains? (color-attributes) dot-attr)
-       (let ((max-distance (max-value matrix))
-             (scheme (lookup-graphviz-option cfg element "colorscheme" graph-type)))
+       (let ((colors (1+ (fset:greatest (fset:range map))))
+             (scheme (lookup-graphviz-option cfg element :colorscheme
+                                             graph-type :none user-class)))
          #'(lambda (x)
-             (let ((color (graph-matrix:matrix-ref
-                           matrix (fset:@ node-index from-node)
-                           (fset:@ node-index x))))
-               (graphviz-color-string color scheme (+ 1 max-distance))))))
+             (let ((color (if node-p (fset:@ map x)
+                              (if (eq edge-node :from)
+                                  (fset:@ map (nth 0 x))
+                                  (fset:@ map (nth 1 x))))))
+               (quotes-around
+                (graphviz-color-string color scheme colors))))))
       ((fset:contains? (category-attributes) dot-attr)
-       (let ((map (category-attribute-map element dot-attr)))
+       (let ((categories (category-attribute-map cfg element dot-attr)))
          #'(lambda (x)
-             (let ((index (graph-matrix:matrix-ref
-                           matrix (fset:@ node-index from-node)
-                           (if node-p (fset:@ node-index x)
-                                (if (equal edge-node "from")
-                                    (fset:@ node-index (nth 0 x))
-                                    (fset:@ node-index (nth 1 x)))))))
-               (fset:@ map (mod index (fset:size map)))))))
+             (let ((index (if node-p (fset:@ map x)
+                              (if (equal edge-node "from")
+                                  (fset:@ map (nth 0 x))
+                                  (fset:@ map (nth 1 x))))))
+               (quotes-around
+                (fset:@ categories (mod index (fset:size categories))))))))
       ((fset:contains? (numeric-attributes) dot-attr)
-       (let ((min (if (string= dot-attr "penwidth")
-                      (penwidth-min cfg element)
-                      (fontsize-min cfg element)))
-             (max (if (string= dot-attr "penwidth")
-                      (penwidth-max cfg element)
-                      (fontsize-max cfg element)))
-             (interval (/ 1 (max-value matrix))))
+       (let ((min (numeric-attribute-min cfg element dot-attr))
+             (max (numeric-attribute-max cfg element dot-attr))
+             (interval (/ 1 (fset:greatest (fset:range map)))))
          #'(lambda (x)
-             (let ((index (graph-matrix:matrix-ref
-                           matrix (fset:@ node-index from-node)
-                           (if node-p (fset:@ node-index x)
-                                (if (equal edge-node "from")
-                                    (fset:@ node-index (nth 0 x))
-                                    (fset:@ node-index (nth 1 x)))))))
-               (+ min (* (- max min) (* interval index)))))))
+             (let ((index (if node-p (fset:@ map x)
+                              (if (equal edge-node "from")
+                                  (fset:@ map (nth 0 x))
+                                  (fset:@ map (nth 1 x))))))
+               (quotes-around (write-to-string
+                               (+ min (* (- max min) (* interval index)))))))))
       (t (error "Error: Unable to make distance map.")))))
 
-(defun max-value (matrix)
-  "Return the maximum value in a matrix."
-  (let ((rows (graph-matrix:matrix-n-rows matrix))
-        (cols (graph-matrix:matrix-n-cols matrix))
-        (max-val 0))
-    (loop :for i :below rows :do
-      (loop :for j :below cols :do
-        (let ((this-val (graph-matrix:matrix-ref matrix i j)))
-          (when (> this-val max-val))
-            (setf max-val this-val))))))
-
-(defun make-units-map (cfg element dot-attr)
+(defun make-units-map (seq element dot-attr user-class)
   "Return an fset map for a unit classification, whose key is an integer and
 value is a string appropriate for the attribute, DOT-ATTR, of the graph ELEMENT.
 ELEMENT is one of `node', `edge'."
-  (let ((map (fset:empty-map)))))
+  (let* ((map (make-classifier :units seq nil))
+         (cfg (archaeological-sequence-configuration seq))
+         (cls (classification-to-keyword (concatenate-classifier element dot-attr)))
+         (node-p (eq element :node))
+         (edge-node (edge-classify-by seq))
+         (deposit (lookup-graphviz-option
+                   cfg element :deposit :sequence cls user-class))
+         (interface (lookup-graphviz-option
+                     cfg element :interface :sequence cls user-class)))
+    (cond
+      ((fset:contains? (color-attributes) dot-attr)
+       (let ((scheme (lookup-graphviz-option
+                      (archaeological-sequence-configuration seq)
+                      element :colorscheme :sequence cls user-class)))
+         #'(lambda (x)
+             (let ((index (if node-p (fset:@ map x)
+                              (if (equal edge-node "from")
+                                  (fset:@ map (nth 0 x))
+                                  (fset:@ map (nth 1 x))))))
+               (quotes-around (graphviz-color-string
+                               (if (eq index :deposit) deposit interface) scheme 2))))))
+      ((fset:contains? (fset:union (category-attributes) (numeric-attributes)) dot-attr)
+       #'(lambda (x)
+           (let ((index (if node-p (fset:@ map x)
+                            (if (equal edge-node "from")
+                                (fset:@ map (nth 0 x))
+                                (fset:@ map (nth 1 x))))))
+             (if (eq index :deposit) (quotes-around deposit)
+                 (quotes-around interface)))))
+      (t (error "Error: Unable to make units map.")))))
 
-(defun make-levels-map (seq element dot-attr)
+(defun make-levels-map (seq element dot-attr graph-type user-class)
   "Return an fset map for a levels classification, whose key is an integer and
 value is a string appropriate for the attribute, DOT-ATTR, of the graph ELEMENT.
 ELEMENT is one of `node', `edge'."
-  (let ((map (fset:empty-map))
-        (cfg (archaeological-sequence-configuration seq))
-        (graph (archaeological-sequence-graph seq))
-        (max-levels))))
+  (let* ((cfg (archaeological-sequence-configuration seq))
+         (map (make-classifier :levels seq))
+         ;; (cls (concatenate 'string element "-" dot-attr "-by"))
+         (edge-node (edge-classify-by seq))
+         (node-p (eq element :node)))
+    (cond
+      ((fset:contains? (color-attributes) dot-attr)
+       (let ((colors (1+ (fset:greatest (fset:range map))))
+             (scheme (lookup-graphviz-option cfg element :colorscheme
+                                             graph-type :none user-class)))
+         #'(lambda (x)
+             (let ((color (if node-p (fset:@ map x)
+                              (if (equal edge-node "from")
+                                  (fset:@ map (nth 0 x))
+                                  (fset:@ map (nth 1 x))))))
+               (quotes-around (graphviz-color-string color scheme colors))))))
+      ((fset:contains? (category-attributes) dot-attr)
+       (let ((categories (category-attribute-map cfg element dot-attr)))
+         #'(lambda (x)
+             (let ((index (if node-p (fset:@ map x)
+                              (if (equal edge-node "from")
+                                  (fset:@ map (nth 0 x))
+                                  (fset:@ map (nth 1 x))))))
+               (quotes-around
+                (fset:@ categories (mod index (fset:size categories))))))))
+      ((fset:contains? (numeric-attributes) dot-attr)
+       (let ((min (numeric-attribute-min element dot-attr))
+             (max (numeric-attribute-max element dot-attr))
+             (interval (/ 1 (fset:greatest (fset:range map)))))
+         #'(lambda (x)
+             (let ((index (if node-p (fset:@ map x)
+                              (if (equal edge-node "from")
+                                  (fset:@ map (nth 0 x))
+                                  (fset:@ map (nth 1 x))))))
+               (quotes-around (write-to-string
+                               (+ min (* (- max min) (* interval index)))))))))
+      (t (error "Error: Unable to make levels map.")))))
 
-(defun make-phases-map (cfg element dot-attr)
+(defun make-phases-map (seq element dot-attr user-class)
   "Return an fset map for a phases classification, whose key is an integer and
 value is a string appropriate for the attribute, DOT-ATTR, of the graph ELEMENT.
 ELEMENT is one of `node', `edge'."
-  (let ((map (fset:empty-map)))))
+  (let ((map (make-classifier :phases seq))
+        (cls (classification-to-keyword (concatenate-classifier element dot-attr)))
+        (node-p (equal element :node))
+        (edge-node (edge-classify-by seq)))
+    (cond
+      ((fset:contains? (color-attributes) dot-attr)
+       (let ((scheme (lookup-graphviz-option
+                      (archaeological-sequence-configuration seq)
+                      element :colorscheme :sequence cls user-class)))
+         #'(lambda (x)
+             (let ((index (if node-p (fset:@ map x)
+                              (if (equal edge-node "from")
+                                  (fset:@ map (nth 0 x))
+                                  (fset:@ map (nth 1 x))))))
+               (graphviz-color-string index scheme)))))
+      ((fset:contains? (fset:union (category-attributes) (numeric-attributes)) dot-attr)
+       #'(lambda (x)
+            (if node-p (fset:@ map x)
+                (if (equal edge-node "from")
+                    (fset:@ map (nth 0 x))
+                    (fset:@ map (nth 1 x))))))
+      (t (error "Error: Unable to make units map.")))))
 
-(defun make-periods-map (cfg element dot-attr)
+(defun make-periods-map (seq element dot-attr user-class)
   "Return an fset map for a periods classification, whose key is an integer and
 value is a string appropriate for the attribute, DOT-ATTR, of the graph ELEMENT.
 ELEMENT is one of `node', `edge'."
-  (let ((map (fset:empty-map)))))
+  (let* ((map (make-classifier "periods" seq))
+         (cls (classifier-to-keyword (concatenate-classifier element dot-attr)))
+         (node-p (equal element "node"))
+         (edge-node (edge-classify-by seq)))
+    (cond
+      ((fset:contains? (color-attributes) dot-attr)
+       (let ((scheme (lookup-graphviz-option
+                      (archaeological-sequence-configuration seq)
+                      element "colorscheme" "sequence" cls user-class)))
+         #'(lambda (x)
+             (let ((index (if node-p (fset:@ map x)
+                              (if (equal edge-node "from")
+                                  (fset:@ map (nth 0 x))
+                                  (fset:@ map (nth 1 x))))))
+               (graphviz-color-string index scheme)))))
+      ((fset:contains? (fset:union (category-attributes) (numeric-attributes)) dot-attr)
+       #'(lambda (x)
+           (if node-p (fset:@ map x)
+               (if (equal edge-node "from")
+                   (fset:@ map (nth 0 x))
+                   (fset:@ map (nth 1 x))))))
+      (t (error "Error: Unable to make units map.")))))
 
-(defun make-map-string (cfg string dot-attr)
-  (if (fset:contains? (color-attributes) dot-attr)
-      (graphviz-sequence-graph-color (cfg dot-attr))
-      (string)))
-
-(defun make-vector (cfg graph user-class)
-  (sleep 1))
 
 (defun make-matrix (seq user-class)
   "Return a graph-matrix matrix appropriate for USER-CLASS, given the
@@ -305,18 +555,10 @@ ELEMENT is one of `node', `edge'."
   (let ((cfg (archaeological-sequence-configuration seq))
         (graph (archaeological-sequence-graph seq))))
   (cond
-    ((string= "distance" user-class) (create-distance-matrix cfg graph))
-    ((string= "reachable" user-class) (create-reachability-matrix cfg graph))
-    ((string= "adjacent" user-class) (create-adjacency-matrix cfg graph))))
+    ((eq :distance user-class) (create-distance-matrix cfg graph))
+    ((eq :reachable user-class) (create-reachability-matrix cfg graph))
+    ((eq :adjacent user-class) (create-adjacency-matrix cfg graph))))
 
-(defun get-from-map (map key)
-  (fset:lookup map key))
-
-(defun get-from-vector (vector element)
-  (fset:lookup vector element))
-
-(defun get-from-matrix (matrix from to)
-  (sleep 1))
 
 (defun tables-to-map (contexts other-table table-type)
   "Given a CONTEXTS table, an OTHER-TABLE, and a TABLE-TYPE in
@@ -355,242 +597,7 @@ and the value is either the period or phase of the context."
                 (setf ret
                       (fset:with ret (symbolicate (nth 0 x))
                                  (cond
-                                   ((string= (nth 1 x) "deposit") 0)
-                                   ((string= (nth 1 x) "interface") 1)))))
+                                   ((string= (nth 1 x) "deposit") :deposit)
+                                   ((string= (nth 1 x) "interface") :interface)))))
             contexts)
     ret))
-
-
-;; ;; Needs work!
-;; (defun process-user-value (value dot-attr option seq &key element)
-;;   (if (fset:contains? (fset:set "color" "fillcolor" "fontcolor")
-;;                       dot-attr)
-;;       (let* ((section (if (equal element :node)
-;;                           "Graphviz sequence node attributes"
-;;                         "Graphviz sequence edge attributes"))
-;;              (scheme (get-option (archaeological-sequence-configuration seq)
-;;                                  section
-;;                                  "colorscheme"))
-;;              (classifiers (archaeological-sequence-classifiers seq))
-;;              (range (unless (emptyp option)
-;;                       (round (1+ (- (fset:greatest (fset:range (fset:@ classifiers option)))
-;;                                     (fset:least (fset:range (fset:@ classifiers option)))))))))
-;;         (if (and option
-;;                  (not (emptyp scheme)))
-;;             (quotes-around (graphviz-color-string value scheme range))
-;;           ""))
-;;     (quotes-around value)))
-
-;; (defun edge--process-matrix-value (value attr option seq)
-;;   "Given a VALUE from a graph matrix, a Graphviz attribute, ATTR, an ini file
-;; OPTION, and an archaeological sequence, SEQ, return a properly formatted
-;; Graphviz dot value."
-;;   (let ((range (fset:range (fset:@ (archaeological-sequence-classifiers seq)
-;;                                    option))))
-;;     (cond
-;;      ((string= attr "style")
-;;       (quotes-around (graphviz-edge-style value)))
-;;      ((fset:contains? (fset:set "color" "fontcolor")
-;;                       attr)
-;;       (quotes-around (graphviz-color-string value
-;;                                             (get-option (archaeological-sequence-configuration seq)
-;;                                                         "Graphviz sequence edge attributes"
-;;                                                         "colorscheme")
-;;                                             (1+ (- (fset:greatest range)
-;;                                                    (fset:least range))))))
-;;      ((string= attr "penwidth")
-;;       (let ((interval (- (get-option (archaeological-sequence-configuration seq)
-;;                                      "Graphviz sequence edge attributes"
-;;                                      "penwidth-max"
-;;                                      :type :number)
-;;                          (get-option (archaeological-sequence-configuration seq)
-;;                                      "Graphviz sequence edge attributes"
-;;                                      "penwidth-min"
-;;                                      :type :number)))
-;;             (base (get-option (archaeological-sequence-configuration seq)
-;;                               "Graphviz sequence edge attributes"
-;;                               "penwidth-min"
-;;                               :type :number)))
-;;         (quotes-around (+ base
-;;                           (* value
-;;                              (/ interval
-;;                                 (1+ (- (fset:greatest range)
-;;                                        (fset:least range))))))))))))
-
-;; (defun node--process-matrix-value (value attr option seq)
-;;   "Given a VALUE from a graph matrix, a Graphviz attribute, ATTR, an ini file
-;; OPTION, and an archaeological sequence, SEQ, return a properly formatted
-;; Graphviz dot value."
-;;   (let ((range (fset:range (fset:@ (archaeological-sequence-classifiers seq)
-;;                                    option))))
-;;     (cond
-;;      ((string= attr "shape")
-;;       (quotes-around (graphviz-node-shape value)))
-;;      ((string= attr "style")
-;;       (quotes-around (graphviz-node-style value)))
-;;      ((fset:contains? (fset:set "color" "fillcolor" "fontcolor")
-;;                       attr)
-;;       (let ((scheme (get-option (archaeological-sequence-configuration seq)
-;;                                 "Graphviz sequence node attributes"
-;;                                 "colorscheme")))
-;;         (quotes-around (graphviz-color-string value
-;;                                               scheme
-;;                                               (1+ (- (fset:greatest range)
-;;                                                      (fset:least range)))))))
-;;      ((string= attr "penwidth")
-;;       (let ((interval (- (get-option (archaeological-sequence-configuration seq)
-;;                                      "Graphviz sequence node attributes"
-;;                                      "penwidth-max"
-;;                                      :type :number)
-;;                          (get-option (archaeological-sequence-configuration seq)
-;;                                      "Graphviz sequence node attributes"
-;;                                      "penwidth-min"
-;;                                      :type :number)))
-;;             (base (get-option (archaeological-sequence-configuration seq)
-;;                               "Graphviz sequence node attributes"
-;;                               "penwidth-min"
-;;                               :type :number)))
-;;         (quotes-around (+ base
-;;                           (* value
-;;                              (/ interval
-;;                                 (1+ (- (fset:greatest range)
-;;                                        (fset:least range))))))))))))
-
-;; (lol:defmacro! <-dot-edge (o!seq classifier dot-attr)
-;;   "Make functions to configure Graphviz edges."
-;;   `(let* ((g!cfg (archaeological-sequence-configuration ,g!seq))
-;;           (g!graph (archaeological-sequence-graph ,g!seq))
-;;           (g!classifiers (archaeological-sequence-classifiers ,g!seq))
-;;           (g!attribute ,dot-attr)
-;;           (g!map (make-edge-lookup-map g!cfg))
-;;           (g!class-with-node (graphviz-edge-classification g!cfg "classify"))
-;;           (g!value (when ,classifier (sequence-classifier g!cfg ,classifier))))
-;;      (if (or (not ,classifier) (and ,classifier (emptyp g!value))
-;;              (not (fset:domain-contains? g!classifiers g!value)))
-;;          (let ((g!y (process-user-value
-;;                    (lookup-option g!map g!attribute) g!attribute g!value ,g!seq)))
-;;            (constantly (if (emptyp g!y) "" g!y)))
-;;        (cond
-;;         ((string= "units" g!value)
-;;          (lambda (x)
-;;            (let ((g!user-value
-;;                    (if (= 0 (round (fset:@ (fset:@ g!classifiers g!value)
-;;                                            (if (string= "to" g!class-with-node)
-;;                                                (nth 1 x)
-;;                                                (nth 0 x)))))
-;;                        (lookup-option g!map g!value ,classifier "deposit")
-;;                        (lookup-option g!map g!value ,classifier "interface"))))
-;;              (if g!user-value
-;;                  (process-user-value g!user-value ,dot-attr g!value
-;;                                      ,o!seq :element :edge)
-;;                  (error "Unable to set edge function.  User value not set for ~s.~&"
-;;                         ,classifier)))))
-;;         ((string= "adjacent" g!value)
-;;          (lambda (x)
-;;            (let ((g!user-value
-;;                    (case (round (fset:@ (fset:@ g!classifiers g!value)
-;;                                         (if (string= "to" g!class-with-node)
-;;                                             (nth 1 x)
-;;                                             (nth 0 x))))
-;;                      (0 (lookup-option g!map g!value ,classifier "origin"))
-;;                      (1 (lookup-option g!map g!value ,classifier "adjacent"))
-;;                      (t (lookup-option g!map g!value ,classifier "not-adjacent")))))
-;;              (if g!user-value
-;;                  (process-user-value g!user-value ,dot-attr g!value
-;;                                      ,o!seq :element :edge)
-;;                (error "Unable to set edge function.  User value not set for ~s.~&"
-;;                       ,classifier)))))
-;;         ((string= "reachable" g!value)
-;;          (lambda (x)
-;;            (let ((g!user-value
-;;                    (case (round (fset:@ (fset:@ g!classifiers g!value)
-;;                                         (if (string= "to" g!class-with-node)
-;;                                             (nth 1 x)
-;;                                             (nth 0 x))))
-;;                      (0 (lookup-option g!map g!value ,classifier "origin"))
-;;                      (1 (lookup-option g!map g!value ,classifier "adjacent"))
-;;                      (2 (lookup-option g!map g!value ,classifier "reachable"))
-;;                      (t (lookup-option g!map g!value ,classifier "not-reachable")))))
-;;              (if g!user-value
-;;                  (process-user-value g!user-value ,dot-attr g!value
-;;                                      ,o!seq :element :edge)
-;;                (error "Unable to set edge function.  User value not set for ~s.~&"
-;;                       ,classifier)))))
-;;         ((fset:contains? (fset:set "distance" "levels" "periods" "phases")
-;;                          g!value)
-;;          (lambda (x)
-;;            (edge--process-matrix-value
-;;             (fset:@ (fset:@ g!classifiers g!value)
-;;                     (if (string= "to" g!class-with-node)
-;;                         (nth 1 x)
-;;                         (nth 0 x)))
-;;             ,dot-attr
-;;             g!value
-;;             ,o!seq)))
-;;         (t (error "Error: Unable to set edge function.~&"))))))
-
-;; (lol:defmacro! <-dot-node (o!seq classifier dot-attr)
-;;   `(let* ((g!sequence ,g!seq)
-;;           (g!opt ,classifier)
-;;           (g!attribute ,dot-attr)
-;;           (g!cfg (archaeological-sequence-configuration ,g!seq))
-;;           (g!classifiers (archaeological-sequence-classifiers ,g!seq))
-;;           (g!value (when ,classifier (sequence-classifier g!cfg ,classifier)))
-;;           (map (make-node-lookup-map g!cfg)))
-;;      (if (or (not g!opt) (and g!opt (emptyp g!value))
-;;              (not (fset:domain-contains? g!classifiers g!value)))
-;;          (let ((g!y (process-user-value (lookup-option map g!attribute)
-;;                                       g!attribute g!opt g!sequence)))
-;;            (constantly (if (emptyp g!y) "" g!y)))
-;;        (cond
-;;         ((string= "units" g!value)
-;;          (lambda (x)
-;;            (let ((g!user-value
-;;                    (if (= 0 (round (fset:@ (fset:@ g!classifiers g!value) x)))
-;;                        (lookup-option map g!value g!opt "deposit")
-;;                        (lookup-option map g!value g!opt "interface"))))
-;;              (if (emptyp g!user-value)
-;;                  (error "Unable to set node function.  User value not set for ~s.~&"
-;;                         g!opt)
-;;                  (let ((g!user-value-parsed
-;;                          (parse-integer g!user-value :junk-allowed t)))
-;;                    (process-user-value
-;;                     (if g!user-value-parsed g!user-value-parsed g!user-value)
-;;                     g!attribute g!value g!sequence :element :node))))))
-;;         ((string= "adjacent" g!value)
-;;          (lambda (x)
-;;            (let ((g!user-value
-;;                    (case (round (fset:@ (fset:@ g!classifiers g!value) x))
-;;                      (0 (lookup-option map g!value g!opt "origin"))
-;;                      (1 (lookup-option map g!value g!opt "adjacent"))
-;;                      (t (lookup-option map g!value g!opt "not-adjacent")))))
-;;              (if (emptyp g!user-value)
-;;                  (error "Unable to set node function.  User value not set for ~s.~&"
-;;                         g!opt)
-;;                  (let ((g!user-value-parsed
-;;                          (parse-integer g!user-value :junk-allowed t)))
-;;                    (process-user-value
-;;                     (if g!user-value-parsed g!user-value-parsed g!user-value)
-;;                     g!attribute g!value g!sequence :element :node))))))
-;;         ((string= "reachable" g!value)
-;;          (lambda (x)
-;;            (let ((g!user-value
-;;                    (case (round (fset:@ (fset:@ g!classifiers g!value) x))
-;;                      (0 (lookup-option map g!value g!opt "origin"))
-;;                      (1 (lookup-option map g!value g!opt "adjacent"))
-;;                      (2 (lookup-option map g!value g!opt "reachable"))
-;;                      (t (lookup-option map g!value g!opt "not-reachable")))))
-;;              (if (emptyp g!user-value)
-;;                  (error "Unable to set node function.  User value not set for ~s.~&"
-;;                         g!opt)
-;;                  (let ((g!user-value-parsed
-;;                          (parse-integer g!user-value :junk-allowed t)))
-;;                    (process-user-value
-;;                     (if g!user-value-parsed g!user-value-parsed g!user-value)
-;;                     g!attribute g!value g!sequence :element :node))))))
-;;         ((fset:contains? (fset:set "distance" "levels" "periods" "phases")
-;;                          g!value)
-;;          (lambda (x)
-;;            (node--process-matrix-value (fset:@ (fset:@ g!classifiers g!value) x)
-;;                                        g!attribute g!value g!sequence)))
-;;         (t (error "Error: Unable to set node function.~&"))))))
