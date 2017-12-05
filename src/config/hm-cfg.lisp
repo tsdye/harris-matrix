@@ -95,8 +95,8 @@
 '("Graphviz sequence node attributes" "style" :node :style :sequence :none :none :node "filled")
 '("Graphviz sequence node attributes" "color" :node :color :sequence :none :none :node "black")
 '("Graphviz sequence node attributes" "fontsize" :node :fontsize :sequence :none :none :node "14.0")
-'("Graphviz sequence node attributes" "fontsize-min" :node :fontsize-min :sequence :none :none :node "14.0")
-'("Graphviz sequence node attributes" "fontsize-max" :node :fontsize-max :sequence :none :none :node "14.0")
+'("Graphviz sequence node attributes" "fontsize-min" :node :fontsize-min :sequence :none :none :node "6.0")
+'("Graphviz sequence node attributes" "fontsize-max" :node :fontsize-max :sequence :none :none :node "22.0")
 '("Graphviz sequence node attributes" "fontcolor" :node :fontcolor :sequence :none :none :node "black")
 '("Graphviz sequence node attributes" "fillcolor" :node :fillcolor :sequence :none :none :node "white")
 '("Graphviz sequence node attributes" "fontname" :node :fontname :sequence :none :none :node "Helvetica")
@@ -104,18 +104,18 @@
 '("Graphviz sequence node attributes" "penwidth-min" :node :penwidth-min :sequence :none :none :node "1.0")
 '("Graphviz sequence node attributes" "penwidth-max" :node :penwidth-max :sequence :none :none :node "1.0")
 '("Graphviz sequence node attributes" "polygon-distortion" :node :polygon-distortion :sequence :none :none :node "0.0")
-'("Graphviz sequence node attributes" "polygon-distortion-min" :node :polygon-distortion-min :sequence :none :none :node "-100.0")
-'("Graphviz sequence node attributes" "polygon-distortion-max" :node :polygon-distortion-max :sequence :none :none :node "100.0")
+'("Graphviz sequence node attributes" "polygon-distortion-min" :node :polygon-distortion-min :sequence :none :none :node "0.0")
+'("Graphviz sequence node attributes" "polygon-distortion-max" :node :polygon-distortion-max :sequence :none :none :node "1.0")
 '("Graphviz sequence node attributes" "polygon-image" :node :polygon-image :sequence :none :none :node "")
 '("Graphviz sequence node attributes" "polygon-orientation" :node :polygon-orientation :sequence :none :none :node "0.0")
-'("Graphviz sequence node attributes" "polygon-orientation-min" :node :polygon-orientation-min :sequence :none :none :node "0.0")
-'("Graphviz sequence node attributes" "polygon-orientation-max" :node :polygon-orientation-max :sequence :none :none :node "360.0")
+'("Graphviz sequence node attributes" "polygon-orientation-min" :node :polygon-orientation-min :sequence :none :none :node "-10.0")
+'("Graphviz sequence node attributes" "polygon-orientation-max" :node :polygon-orientation-max :sequence :none :none :node "10.0")
 '("Graphviz sequence node attributes" "polygon-sides" :node :polygon-sides :sequence :none :none :node "4")
 '("Graphviz sequence node attributes" "polygon-sides-min" :node :polygon-sides-min :sequence :none :none :node "3")
 '("Graphviz sequence node attributes" "polygon-sides-max" :node :polygon-sides-max :sequence :none :none :node "16")
 '("Graphviz sequence node attributes" "polygon-skew" :node :polygon-skew :sequence :none :none :node "0.0")
-'("Graphviz sequence node attributes" "polygon-skew-min" :node :polygon-skew-min :sequence :none :none :node "-100.0")
-'("Graphviz sequence node attributes" "polygon-skew-max" :node :polygon-skew-max :sequence :none :none :node "100.0")
+'("Graphviz sequence node attributes" "polygon-skew-min" :node :polygon-skew-min :sequence :none :none :node "-1.0")
+'("Graphviz sequence node attributes" "polygon-skew-max" :node :polygon-skew-max :sequence :none :none :node "1.0")
 '("Graphviz sequence node attributes" "levels-colorscheme" :node :colorscheme :sequence :none :levels :levels "accent")
 '("Graphviz sequence node attributes" "distance-colorscheme" :node :colorscheme :sequence :none :distance :distance "accent")
 '("Reachability configuration" "reachable-from" :node :reachable-from :sequence :none :reachable :reachable "")
@@ -297,6 +297,7 @@
 
 
 
+
 ;;API
 (defun boolean-strings ()
   (fset:set "1" "yes" "true" "on" "0" "no" "false" "off"))
@@ -369,11 +370,11 @@
   (get-option cfg "Graphviz sequence node attributes" "polygon-distortion-min"
               :type :number))
 
-
 (defun edge-classify-by (seq)
   "Returns the value of EDGE-CLASSIFY-BY from the user's configuration in SEQ."
   (let ((cfg (archaeological-sequence-configuration seq)))
-    (get-option cfg "Graphviz sequence edge attributes" "edge-classify-by")))
+    (classification-to-keyword
+     (get-option cfg "Graphviz sequence edge attributes" "edge-classify-by"))))
 
 (defun fast-matrix-p (cfg)
   "Returns the boolean value for fast-matrix in the user's configuration, CFG,
@@ -466,7 +467,7 @@ user's configuration, CFG."
   "Given a valid classification string, CLS, return the corresponding keyword,
   or else error out."
   (if (or (fset:contains? (classifiers) cls)
-            (fset:contains? (fset:set "levels" "adjacent" "reachable" "distance" "units" "periods" "phases") cls)
+            (fset:contains? (fset:set "levels" "adjacent" "reachable" "distance" "units" "periods" "phases" "to" "from") cls)
             (emptyp cls))
       (if (emptyp cls) nil
           (cond
@@ -492,7 +493,9 @@ user's configuration, CFG."
             ((equal cls "node-polygon-sides-by") :node-polygon-sides-by)
             ((equal cls "node-polygon-distortion-by") :node-polygon-distortion-by)
             ((equal cls "node-polygon-orientation-by") :node-polygon-orientation-by)
-            ((equal cls "edge-color-by") :edge-color-by)))
+            ((equal cls "edge-color-by") :edge-color-by)
+            ((equal cls "from") :from)
+            ((equal cls "to") :to)))
       (error "Error: Unable to convert classification to keyword.")))
 
 (defun reachable-limit (cfg)
