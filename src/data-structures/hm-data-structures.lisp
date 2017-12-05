@@ -399,7 +399,7 @@ of the graph ELEMENT. ELEMENT is one of `node', `edge'."
        (let ((categories (category-attribute-map cfg element dot-attr)))
          #'(lambda (x)
              (let ((index (if node-p (fset:@ map x)
-                              (if (equal edge-node "from")
+                              (if (eq edge-node :from)
                                   (fset:@ map (nth 0 x))
                                   (fset:@ map (nth 1 x))))))
                (quotes-around
@@ -410,7 +410,7 @@ of the graph ELEMENT. ELEMENT is one of `node', `edge'."
              (interval (/ 1 (fset:greatest (fset:range map)))))
          #'(lambda (x)
              (let ((index (if node-p (fset:@ map x)
-                              (if (equal edge-node "from")
+                              (if (eq edge-node :from)
                                   (fset:@ map (nth 0 x))
                                   (fset:@ map (nth 1 x))))))
                (quotes-around (write-to-string
