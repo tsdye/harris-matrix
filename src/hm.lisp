@@ -18,23 +18,31 @@
 (defun to-dot-macro (seq element dot-attr graph-type)
   "Returns an anonymous function that takes a node or edge label and returns the
 behavior indicated in the user's configuration."
-  (let ((user-class (graphviz-classification seq element dot-attr)))
+  (let ((user-class (graphviz-classification seq element dot-attr))
+        (cfg (archaeological-sequence-configuration seq))
+        (colorp (fset:contains? (color-attributes) dot-attr)))
     (cond
-      ((fset:contains? (fset:union matrix-classes vector-classes) user-class)
+      ((fset:contains? (fset:union (matrix-classes) (vector-classes)) user-class)
        (make-map seq element dot-attr graph-type user-class))
       ((not user-class)
-       (let ((user-val (lookup-graphviz-option cfg dot-attr element "sequence")))
-         (constantly user-val)))
+       (let ((user-val (lookup-graphviz-option cfg dot-attr element graph-type))
+             (scheme (when colorp
+                         (lookup-graphviz-option
+                          cfg element :colorscheme graph-type))))
+         (if colorp
+             (constantly (quotes-around (graphviz-color-string user-val scheme)))
+             (constantly (quotes-around user-val)))))
        (t (error "Error: Unable to set ~a ~a.~&" element dot-attr)))))
 
 ;; passes test
 (defun quotes-around (string)
-  "Put quotes around STRING for output to dot unless string is already quoted."
-  (let ((quote-char #\"))
-    (if (and (eq (char string 0) quote-char)
-             (eq (char string (1- (length string))) quote-char))
-        string
-        (concatenate 'string "\"" string "\""))))
+  "Put quotes around STRING for output to dot."
+  (if (emptyp string) string
+      (let ((quote-char #\"))
+        (if (and (eq (char string 0) quote-char)
+                 (eq (char string (1- (length string))) quote-char))
+            string
+            (concatenate 'string "\"" string "\"")))))
 
 (defun new-graph ()
   "Returns a new instance of an empty directed graph."
@@ -106,64 +114,20 @@ correlated node symbol as a string."
 (defun graphviz-make-ranks (cfg &optional (verbose t))
   "Returns a list of ranks for Graphviz output if the user's configuration, CFG,
 specifies that correlations should be assumed true, nil otherwise."
-  (let ((inferences (read-table (input-file-name cfg "inferences")
-                                (file-header-p cfg "inferences") verbose))
-        (contexts (read-table (input-file-name cfg "contexts")
-                              (file-header-p cfg "contexts") verbose))
-        (ranks))
-    (if (and (assume-correlations-p cfg) (or inferences contexts))
-        (progn
+  (let ((ranks))
+    (if (assume-correlations-p cfg)
+        (let ((inferences (read-table (input-file-name cfg "inferences")
+                                      (file-header-p cfg "inferences") verbose))
+              (contexts (read-table (input-file-name cfg "contexts")
+                                    (file-header-p cfg "contexts") verbose)))
           (when inferences
-            (appendf ranks (set-same-ranks inferences)))
+            (appendf ranks (set-same-ranks inferences))
+            (when verbose (format t "Ranks set from inferences.~&")))
           (when contexts
-            (appendf ranks (set-other-ranks contexts)))
-          (when verbose (format t "Ranks set.~&")))
-        (when verbose (format t "Ranks not set.~&")))
+            (appendf ranks (set-other-ranks contexts))
+            (when verbose (format t "Ranks set from contexts.~&")))))
+    (when verbose (format t "Ranks not set.~&"))
     ranks))
-
-;; passes test
-
-(defun tables-to-map (contexts other-table table-type)
-  "Given a CONTEXTS table, an OTHER-TABLE, and a TABLE-TYPE in
-`periods' or `phases', return an fset map where the key is the context
-and the value is either the period or phase of the context."
-  (let ((ht (fset:empty-map))
-        (ret (fset:empty-map))
-        (n (cond
-            ((string= table-type "periods") 3)
-            ((string= table-type "phases") 4)
-            (t (error "Error: unrecognized table type")))))
-    (mapcar #'(lambda (x)
-                (setf ht (fset:with ht (nth 0 x) (nth 2 x))))
-            other-table)
-    (mapcar #'(lambda (x)
-                (setf ret
-                      (fset:with ret (symbolicate (nth 0 x))
-                                 (read-from-string (fset:@ ht (nth n x))))))
-            contexts)
-    ret))
-
-(defun alist-to-map (alist)
-  "Given an assoc-list, ALIST, return the corresponding fset map."
-  (let ((ret (fset:empty-map)))
-    (mapc #'(lambda (pair)
-              (setq ret (fset:with ret (car pair) (cdr pair))))
-          alist)
-    ret))
-
-(defun context-type-to-map (contexts)
-  "Given a context table, CONTEXTS, return an fset map where the key
-  is the context and the value is 0 if the unit-type is `deposit' or 1
-  if the unit-type is `interface'."
-  (let ((ret (fset:empty-map)))
-    (mapcar #'(lambda (x)
-                (setf ret
-                      (fset:with ret (symbolicate (nth 0 x))
-                                 (cond
-                                   ((string= (nth 1 x) "deposit") 0)
-                                   ((string= (nth 1 x) "interface") 1)))))
-            contexts)
-    ret))
 
 (defstruct (archaeological-sequence (:print-function print-archaeological-sequence)) "A structure to hold the user configuration, the resulting sequence
 and (optional) chronology graphs, and the various closures required to
@@ -213,7 +177,7 @@ discrepancies and errors out if it finds one."
           (create-chronology-graph ret verbose))
     (fset:do-set (classifier (classifiers))
                  (let ((class (sequence-classifier cfg classifier)))
-                   (unless (emptyp class)
+                   (when class
                      (when verbose
                        (format t "Making classifier for ~a.~&" class))
                      (setf (archaeological-sequence-classifiers ret)
@@ -223,61 +187,7 @@ discrepancies and errors out if it finds one."
     (when verbose (format t "Archaeological sequence configured.~&"))
     ret))
 
-(defun make-classifier (classifier-type seq &optional (verbose t))
-  "Given a string indicating CLASSIFIER-TYPE and an archaeological sequence SEQ
-return an fset map where the key is a symbol for a node in the directed graph of
-the archaeological sequence and whose value is a number in the range of
-CLASSIFIER-TYPE. CLASSIFIER-TYPE is one of `distance', `reachable', `adjacent',
-`periods', `phases', `units', or `levels'."
-  (let ((cfg (archaeological-sequence-configuration seq))
-        (graph (archaeological-sequence-graph seq)))
-    (when verbose (format t "Creating ~a classification.~&" classifier-type))
-    (cond
-      ((string= classifier-type "units")
-       (context-type-to-map (read-table (input-file-name cfg  "contexts")
-                                        (file-header-p cfg  "contexts")
-                                        verbose)))
-      ((string= classifier-type "distance")
-       (let* ((m (create-distance-matrix cfg graph))
-              (i (make-node-index graph))
-              (o (reachable-from-node cfg))
-              (new-key (fset:@ i o))
-              (map (fset:empty-map 0)))
-         (fset:do-map (key val i)
-           (let ((new-val (round (min (graph-matrix:matrix-ref m new-key val)
-                                      (graph-matrix:matrix-ref m val new-key)))))
-             (unless (graph-matrix:infinitep new-val m)
-               (setf map (fset:with map key new-val)))))
-         map))
-      ((string= classifier-type "reachable")
-       (let ((m (create-reachability-matrix cfg graph))
-             (i (make-node-index graph))
-             (o (reachable-from-node cfg))
-             (map (fset:empty-map)))
-         (fset:do-map (key val i)
-           (setf map
-                 (fset:with map key (graph-matrix:matrix-ref m (fset:@ i o) val))))
-         map))
-      ((string= classifier-type "adjacent")
-       (let ((m (create-adjacency-matrix cfg graph))
-             (i (make-node-index graph))
-             (o (reachable-from-node cfg))
-             (map (fset:empty-map)))
-         (fset:do-map (key val i)
-           (setf map
-                 (fset:with map key (graph-matrix:matrix-ref m (fset:@ i o) val))))
-         map))
-      ((member classifier-type '("periods" "phases") :test 'string=)
-       (tables-to-map (read-table (input-file-name cfg "contexts")
-                                  (file-header-p cfg "contexts")
-                                  verbose)
-                      (read-table (input-file-name cfg classifier-type)
-                                  (file-header-p cfg classifier-type)
-                                  verbose)
-                      classifier-type))
-      ((string= classifier-type "levels")
-       (alist-to-map (graph:levels graph :alist 't)))
-      (t (error "The classifier '~a' is not known." classifier-type)))))
+
 
 (defun create-chronology-graph (seq &optional (verbose t))
   "If the user has requested a chronology graph, then create and return a
@@ -364,7 +274,7 @@ empty graph. If VERBOSE, then advertise progress."
                                  (symbolicate "alpha-" (nth 1 node)))
                            0)))
     ;; Step 5 of the algorithm
-    (let ((i (make-node-index (archaeological-sequence-graph seq)))
+    (let ((i (map-index-to-node (archaeological-sequence-graph seq)))
           (events))
       (when verbose
         (format t "Adding edge values to the chronology graph.~&"))
@@ -397,7 +307,7 @@ possibly modified directed acyclic GRAPH."
   (let ((ret (graph:copy graph))
         (r (graph-matrix:to-adjacency-matrix graph (new-matrix nil)))
         (n (length (graph:nodes graph)))
-        (i (make-node-index graph)))
+        (i (map-index-to-node graph)))
     (loop :for x :below n :do
       (loop :for y :below n :do
         (loop :for z :below n :do
@@ -519,41 +429,60 @@ the graph picture."
 the archaeological sequence, SEQ."
   (let* ((cfg (archaeological-sequence-configuration seq))
          (graph (archaeological-sequence-graph seq))
-         (out-file (output-file-name cfg "sequence-dot")))
+         (out-file (output-file-name cfg :sequence-dot)))
     (graph-dot:to-dot-file
      graph out-file
-     :ranks (graphviz-make-ranks cfg)
+     :ranks (graphviz-make-ranks cfg verbose)
      :attributes (list
-                  (cons :style (graphviz-sequence-graph-attribute cfg "style"))
-                  (cons :dpi (graphviz-sequence-graph-attribute cfg "dpi"))
-                  (cons :margin (graphviz-sequence-graph-attribute cfg "margin"))
-                  (cons :bgcolor (graphviz-sequence-graph-color cfg "bgcolor"))
-                  (cons :fontname (graphviz-sequence-graph-attribute cfg "fontname"))
-                  (cons :fontsize (graphviz-sequence-graph-attribute cfg "fontsize"))
-                  (cons :fontcolor (graphviz-sequence-graph-color cfg "fontcolor") )
-                  (cons :splines (graphviz-sequence-graph-attribute cfg "splines"))
-                  (cons :page (graphviz-sequence-graph-attribute cfg "page"))
-                  (cons :size (graphviz-sequence-graph-attribute cfg "size"))
-                  (cons :ratio (graphviz-sequence-graph-attribute cfg "ratio"))
-                  (cons :label (graphviz-sequence-graph-attribute cfg "label"))
-                  (cons :labelloc (graphviz-sequence-graph-attribute cfg "labelloc")))
+                  (cons :style (quotes-around
+                                (graphviz-sequence-graph-attribute cfg :style)))
+                  (cons :dpi (quotes-around
+                              (graphviz-sequence-graph-attribute cfg :dpi)))
+                  (cons :margin (quotes-around
+                                 (graphviz-sequence-graph-attribute cfg :margin)))
+                  (cons :bgcolor (quotes-around
+                                  (graphviz-sequence-graph-color cfg :bgcolor)))
+                  (cons :fontname (quotes-around
+                                   (graphviz-sequence-graph-attribute cfg :fontname)))
+                  (cons :fontsize (quotes-around
+                                   (graphviz-sequence-graph-attribute cfg :fontsize)))
+                  (cons :fontcolor (quotes-around
+                                    (graphviz-sequence-graph-color cfg :fontcolor)) )
+                  (cons :splines (quotes-around
+                                  (graphviz-sequence-graph-attribute cfg :splines)))
+                  (cons :page (quotes-around
+                               (graphviz-sequence-graph-attribute cfg :page)))
+                  (cons :size (quotes-around
+                               (graphviz-sequence-graph-attribute cfg :size)))
+                  (cons :ratio (quotes-around
+                                (graphviz-sequence-graph-attribute cfg :ratio)))
+                  (cons :label (quotes-around
+                                (graphviz-sequence-graph-attribute cfg :label)))
+                  (cons :labelloc (quotes-around
+                                   (graphviz-sequence-graph-attribute cfg :labelloc))))
      :edge-attrs (list
-                  (cons :style (<-dot seq "edge" "style" "sequence"))
-                  (cons :arrowhead (<-dot seq "edge" "arrowhead" "sequence"))
-                  (cons :color (<-dot seq "edge" "color" "sequence"))
-                  (cons :fontname (graphviz-sequence-edge-attribute cfg "fontname"))
-                  (cons :fontsize (<-dot seq "edge" "fontsize" "sequence"))
-                  (cons :fontcolor (<-dot seq "edge" "fontcolor" "sequence") )
-                  (cons :penwidth (<-dot seq "edge" "penwidth" "sequence"))
-                  (cons :URL (<-dot seq "edge" "url" "sequence")))
+                  (cons :style (<-dot seq :edge :style :sequence))
+                  (cons :arrowhead (<-dot seq :edge :arrowhead :sequence))
+                  (cons :color (<-dot seq :edge :color :sequence))
+                  (cons :fontname (graphviz-sequence-edge-attribute cfg :fontname))
+                  (cons :fontsize (<-dot seq :edge :fontsize :sequence))
+                  (cons :fontcolor (<-dot seq :edge :fontcolor :sequence) )
+                  (cons :penwidth (<-dot seq :edge :penwidth :sequence))
+                  ;; (cons :URL (<-dot seq :edge :url :sequence))
+                  )
      :node-attrs (list
-                  (cons :shape (<-dot seq "node" "shape" "sequence"))
-                  (cons :style (<-dot seq "node" "style" "sequence"))
-                  (cons :fontname (graphviz-sequence-node-attribute cfg "fontname"))
-                  (cons :fontsize (<-dot seq "node" "fontsize" "sequence"))
-                  (cons :color (<-dot seq "node" "color" "sequence"))
-                  (cons :fillcolor (<-dot seq "node" "fill" "sequence"))
-                  (cons :fontcolor (<-dot seq "node" "fontcolor" "sequence"))
-                  (cons :penwidth (<-dot seq "node" "penwidth" "sequence"))
-                  (cons :URL (<-dot seq "node" "url" "sequence"))))
+                  (cons :shape (<-dot seq :node :shape :sequence))
+                  (cons :style (<-dot seq :node :style :sequence))
+                  (cons :fontname (graphviz-sequence-node-attribute cfg :fontname))
+                  (cons :fontsize (graphviz-sequence-node-attribute cfg :fontsize))
+                  (cons :color (<-dot seq :node :color :sequence))
+                  (cons :fillcolor (<-dot seq :node :fillcolor :sequence))
+                  (cons :fontcolor (<-dot seq :node :fontcolor :sequence))
+                  (cons :penwidth (<-dot seq :node :penwidth :sequence))
+                  (cons :skew (<-dot seq :node :polygon-skew :sequence))
+                  (cons :sides (<-dot seq :node :polygon-sides :sequence))
+                  (cons :orientation (<-dot seq :node :polygon-orientation :sequence))
+                  (cons :distortion (<-dot seq :node :polygon-distortion :sequence))
+                  ;; (cons :URL (<-dot seq :node :url :sequence))
+                  ))
     (when verbose (format t "Wrote ~a.~%" out-file))))
