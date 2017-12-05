@@ -30,7 +30,7 @@
          (if (cet-name-p scheme)
              (cet-color scheme index range)
              (let ((b-range (brewer-colorscheme-distinctions scheme)))
-               (when (< range b-range) (setf b-range range))
+               (when (< range b-range) (setf b-range (if (< range 3) 3 range)))
                (format nil "/~a~s/~s" scheme b-range
                        (1+ (mod index b-range)))))))
       (string
@@ -165,7 +165,7 @@ the number of distinctions in the color scheme."
 of distinctions as an integer and a boolean indicating whether or not
 color-scale was found.  If MEMBER is non-nil, then return nil if
 COLOR-SCALE is not a map key and non-nil otherwise."
-  (fset:@ (make-brewer-map) color-scale))
+  (fset:@ (make-brewer-map) (string-right-trim "0123456789" color-scale)))
 
 (defun brewer-color-scale-p (color-scale)
   (fset:domain-contains? (make-brewer-map) color-scale))
