@@ -152,3 +152,11 @@ graphviz dot arrow type string."
   (let ((map (graphviz-arrow-shape-map)))
     #'(lambda (index)
         (fset:@ map (mod index (fset:size map))))))
+
+(defun graphviz-polygon-sides-map (cfg)
+  (let ((max (polygon-sides-max cfg))
+        (min (polygon-sides-min cfg))
+        (map (fset:empty-map)))
+    (loop for i upto (- max min)
+          do (setf map (fset:with map i (write-to-string (+ min i)))))
+    map))
