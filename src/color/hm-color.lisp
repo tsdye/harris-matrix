@@ -13,37 +13,45 @@
   string. INDEX can be an integer, in which case SCHEME must be the base of a
   Brewer color name or a CET color name; or a string, in which case SCHEME must
   be `x11', `svg', or `solarized'."
-  (let ((named-colors (fset:set "x11" "svg" "solarized")))
-    (unless (or (fset:contains? named-colors scheme)
-                (brewer-colorscheme-distinctions scheme)
-                (cet-name-p scheme))
-      (error "The string \"~a\" is an invalid color scheme.~%" scheme))
-    (etypecase index
-      (integer
-       (progn
-         (when (fset:contains? named-colors scheme)
-           (error "The ~a colorscheme requires a color name, not ~a.~%"
-                  scheme index))
-         (unless range (error "Range is missing.~%"))
-         (unless (and (>= index 0) (<= index range))
-           (error "The index ~a is not in the range [0 .. ~a].~%" index range))
-         (if (cet-name-p scheme)
-             (cet-color scheme index range)
-             (let ((b-range (brewer-colorscheme-distinctions scheme)))
-               (when (< range b-range) (setf b-range (if (< range 3) 3 range)))
-               (format nil "/~a~s/~s" scheme b-range
-                       (1+ (mod index b-range)))))))
-      (string
-       (progn
-         (when (and (string= "solarized" scheme) (not (solarized-name-p index)))
-           (error "Error: \"~s\" is not a solarized color name.~&" index))
-         (when (and (string= "x11" scheme) (not (x11-name-p index)))
-           (error "Error: the name \"~a\" is not an ~a color.~%" index scheme))
-         (when (and (string= "svg" scheme) (not (svg-name-p index)))
-           (error "Error: the name \"~a\" is not an ~a color.~%" index scheme))
-         (if (string= scheme "solarized")
-             (graphviz-hex-color (solarized-map index))
-             (format nil "/~a/~a" scheme index)))))))
+  (cond
+    ((indexed-color-palette-p scheme)
+     (unless range (error "Color palette range is missing.~%"))
+     (if (cet-name-p scheme)
+         (cet-color scheme index range)
+         (brewer-color scheme index range)))
+    ((named-color-palette-p scheme)
+     (when (and (equal "solarized" scheme) (not (solarized-name-p index)))
+       (error "Error: \"~s\" is not a solarized color name.~&" index))
+     (when (and (equal "x11" scheme) (not (x11-name-p index)))
+       (error "Error: the name \"~a\" is not an ~a color.~%" index scheme))
+     (when (and (equal "svg" scheme) (not (svg-name-p index)))
+       (error "Error: the name \"~a\" is not an ~a color.~%" index scheme))
+     (if (equal scheme "solarized")
+         (graphviz-hex-color (solarized-map index))
+         (format nil "/~a/~a" scheme index)))
+    (t (error "The string \"~a\" is an invalid color scheme name.~%" scheme))))
+
+(defun brewer-color (scheme index range)
+  "Returns a Graphviz dot string that names a Brewer color, given a valid Brewer
+color SCHEME, a string or integer INDEX into the Brewer palette, and the
+required RANGE of colors. If RANGE is greater than the number of distinctions
+possible for the SCHEME, then the colors are recycled."
+  (let ((b-range (brewer-colorscheme-distinctions scheme))
+        (ind (etypecase index
+               (integer index)
+               (string (parse-integer index)))))
+    (when (< range b-range) (setf b-range (if (< range 3) 3 range)))
+    (format nil "/~a~s/~s" scheme b-range (1+ (mod ind b-range)))))
+
+(defun named-color-palette-p (palette)
+  "Returns non-nil if the string PALETTE is one of `x11', `svg', or `solarized',
+nil otherwise."
+  (fset:contains? (fset:set "x11" "svg" "solarized") palette))
+
+(defun indexed-color-palette-p (palette)
+  "Returns non-nil if the string PALETTE names a valid Brewer palette as defined
+  by Graphviz dot or one of the CET color schemes named by hm, nil otherwise."
+  (or (brewer-color-scale-p palette) (cet-name-p palette)))
 
 ;; internal
 (defun color-name-to-rgb (color)
@@ -163,9 +171,8 @@ the number of distinctions in the color scheme."
 (defun brewer-colorscheme-distinctions (color-scale)
   "Given a COLOR-SCALE name as a string, return as values the number
 of distinctions as an integer and a boolean indicating whether or not
-color-scale was found.  If MEMBER is non-nil, then return nil if
-COLOR-SCALE is not a map key and non-nil otherwise."
-  (fset:@ (make-brewer-map) (string-right-trim "0123456789" color-scale)))
+color-scale was found."
+  (fset:@ (make-brewer-map) color-scale))
 
 (defun brewer-color-scale-p (color-scale)
   (fset:domain-contains? (make-brewer-map) color-scale))
@@ -234,12 +241,15 @@ specification is prefixed with an octothorp."
   ramp with COLORS colors. INDEX is an index into the color map, an integer in
   the range [0..COLORS-1]."
   (let ((map (cet-map name))
+        (ind (etypecase index
+               (integer index)
+               (string (parse-integer index))))
         (ret))
-    (unless (and (>= index 0) (< index colors))
-      (error "Color index ~a out of range [0 .. ~a].~%" index (1- colors)))
+    (unless (and (>= ind 0) (< ind colors))
+      (error "Color index ~a out of range [0 .. ~a].~%" ind (1- colors)))
     (multiple-value-bind (increment base) (floor 256 colors)
       (setf ret
-            (fset:@ map (+ (floor (/ (+ base increment) 2)) (* index increment)))))
+            (fset:@ map (+ (floor (/ (+ base increment) 2)) (* ind increment)))))
     ret))
 
 (defun svg-map ()
