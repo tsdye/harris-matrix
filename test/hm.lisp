@@ -185,9 +185,9 @@
   "Test that edge and node fontsize min and max return correct strings."
   (with-fixture default-config
     (let ((res 14.0))
-      (is (equal (hm::fontsize-min *cfg* :node) res))
+      (is (equal (hm::fontsize-min *cfg* :node) 6.0))
       (is (equal (hm::fontsize-min *cfg* :edge) res))
-      (is (equal (hm::fontsize-max *cfg* :node) res))
+      (is (equal (hm::fontsize-max *cfg* :node) 22.0))
       (is (equal (hm::fontsize-max *cfg* :edge) res)))))
 
 (deftest test-lookup-fast-matrix ()
@@ -343,10 +343,10 @@ configuration."
          (hm::quotes-around "black")))
     (is (equal
          (funcall (hm::graphviz-sequence-node-attribute *cfg* :fontsize-max))
-         (hm::quotes-around "14.0")))
+         (hm::quotes-around "22.0")))
     (is (equal
          (funcall (hm::graphviz-sequence-node-attribute *cfg* :fontsize-min))
-         (hm::quotes-around "14.0")))
+         (hm::quotes-around "6.0")))
     (is (equal
          (funcall (hm::graphviz-sequence-node-attribute *cfg* :fontsize))
          (hm::quotes-around "14.0")))
@@ -459,13 +459,13 @@ that it errors out when set to an invalid value."
                (hm::lookup-graphviz-option *cfg* :edge :colorscheme :sequence)))
     (is (equal "x11"
                (hm::lookup-graphviz-option *cfg* :node :colorscheme :sequence)))
-    (is (equal "1"
+    (is (equal "0"
                (hm::lookup-graphviz-option *cfg* :node :origin :sequence
                                            :node-color-by :reachable)))
-    (is (equal "2"
+    (is (equal "1"
                (hm::lookup-graphviz-option *cfg* :node :reachable :sequence
                                                        :node-color-by :reachable)))
-    (is (equal "3"
+    (is (equal "2"
                (hm::lookup-graphviz-option *cfg* :node :not-reachable :sequence
                                            :node-color-by :reachable)))))
 
@@ -657,13 +657,6 @@ files and Input file headers."
     (is (equal (hm::quotes-around "1.0")
                (funcall
                 (hm::to-dot-macro *roskams-h-seq* :node :penwidth :sequence))))))
-
-(deftest test-write-dot-file ()
-  (with-fixture roskams-h-seq
-    (hm::write-sequence-graph-to-dot-file *roskams-h-seq* nil)
-    (is (probe-file
-         (hm::output-file-name
-          (hm::archaeological-sequence-configuration *roskams-h-seq*) "sequence-dot")))))
 
 (deftest test-write-dot-with-classifications ()
   (with-fixture roskams-h-class
