@@ -578,8 +578,9 @@ or nil if the option is not set."
 default configuration. If EMPTY is non-nil, then returns an empty
 configuration."
   (let ((cfg (make-config))
-        (sections))
-    (dolist (row master)
+        (sections)
+        (retsam (reverse master)))
+    (dolist (row retsam)
       (let ((section (nth 0 row))
             (option (nth 1 row))
             (default (nth 8 row)))
