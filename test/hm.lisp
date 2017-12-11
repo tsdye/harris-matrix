@@ -11,31 +11,33 @@
 (in-suite test)
 
 (defvar *transitive* nil
-  "Variable for use in hm tests.")
+  "Variable to hold a graph for use in hm tests.")
 
 (defvar *intransitive* nil
-  "Variable for use in hm tests.")
+  "Variable to hold a graph for use in hm tests.")
 
 (defvar *cfg* nil
-  "Variable for use in hm tests.")
+  "Variable to hold a configuration for use in hm tests.")
 
-(defvar *hm-test-path* nil
-  "Variable for use in hm tests.")
+(defvar *path* nil
+  "Variable to hold a path for use in hm tests.")
 
-(defvar *hm-test-config-path* nil
-  "Variable for use in hm tests.")
+(defvar *sequence* nil
+  "Variable to hold an archaeological-sequence for use in hm tests.")
 
-(defvar *roskams-h-structure* nil
-  "Variable for use in hm tests.")
-
-(defvar *roskams-h-seq* nil
-  "Variable for use in hm tests.")
-
-(defvar *roskams-h-class* nil
-  "Variable for use in hm tests.")
+(defixture fig-12
+  (:setup (setf *sequence*
+                (hm::configure-archaeological-sequence
+                 (hm::make-archaeological-sequence)
+                 (hm:read-configuration-from-files
+                  nil
+                  (uiop:merge-pathnames* "test/assets/examples/harris-fig-12/fig-12.ini"
+                                         (asdf:system-source-directory :hm-test)))
+                 nil)))
+  (:teardown (setf *sequence* nil)))
 
 (defixture roskams-h-class
-  (:setup (setf *roskams-h-class*
+  (:setup (setf *sequence*
                 (hm::configure-archaeological-sequence
                  (hm::make-archaeological-sequence)
                  (hm:read-configuration-from-files
@@ -44,10 +46,10 @@
                    "test/assets/examples/roskams-h-classified/roskams-h-classified.ini"
                        (asdf:system-source-directory :hm-test)))
                  nil)))
-  (:teardown (setf *roskams-h-class* nil)))
+  (:teardown (setf *sequence* nil)))
 
 (defixture roskams-h-seq
-  (:setup (setf *roskams-h-seq*
+  (:setup (setf *sequence*
                 (hm::configure-archaeological-sequence
                  (hm::make-archaeological-sequence)
                  (hm:read-configuration-from-files
@@ -55,29 +57,23 @@
                        "test/assets/examples/roskams-h-structure/roskams-h.ini"
                        (asdf:system-source-directory :hm-test)))
                  nil)))
-  (:teardown (setf *roskams-h-seq* nil)))
+  (:teardown (setf *sequence* nil)))
 
 (defixture roskams-h-structure
-  (:setup (setf *roskams-h-structure*
+  (:setup (setf *cfg*
                 (hm:read-configuration-from-files
                  nil
                  (uiop:merge-pathnames*
                   "test/assets/examples/roskams-h-structure/roskams-h.ini"
                   (asdf:system-source-directory :hm-test)))))
-  (:teardown (setf *roskams-h-structure* nil)))
-
-(defixture hm-test-path
-    (:setup
-     (setf *hm-test-path*
-           (uiop:merge-pathnames* "test/" (asdf:system-source-directory :hm-test))))
-  (:teardown (setf *hm-test-path* nil)))
+  (:teardown (setf *cfg* nil)))
 
 (defixture hm-test-config-path
     (:setup
-     (setf *hm-test-config-path*
+     (setf *path*
            (uiop:merge-pathnames* "test/assets/configurations/"
                                   (asdf:system-source-directory :hm-test))))
-  (:teardown (setf *hm-test-config-path* nil)))
+  (:teardown (setf *path* nil)))
 
 (defixture transitive-graph
   (:setup (setf *transitive* (graph:populate (make-instance 'graph:digraph)
@@ -145,13 +141,11 @@
 (deftest correlated-node-test ()
   (with-fixture transitive-graph
     (is (eq (hm::correlated-node (first (graph:nodes *transitive*))
-                                 (second (graph:nodes *transitive*))
-                                 nil)
+                                 (second (graph:nodes *transitive*)) nil)
             'a=b))
-    (is (string= (hm::correlated-node (first (graph:nodes *transitive*))
-                                 (second (graph:nodes *transitive*))
-                                 t)
-            "A=B"))))
+    (is (equal (hm::correlated-node (first (graph:nodes *transitive*))
+                                    (second (graph:nodes *transitive*)) t)
+               "A=B"))))
 
 ;; graph tests
 (deftest node-index-test ()
@@ -375,23 +369,23 @@ configuration."
 (deftest test-graphviz-classification ()
   "Test that classifications are read from a user configuration read from disk."
   (with-fixture roskams-h-seq
-    (is (not (hm::graphviz-classification *roskams-h-seq* :node :polygon-skew)))
-    (is (not (hm::graphviz-classification *roskams-h-seq* :node :polygon-sides)))
-    (is (not (hm::graphviz-classification *roskams-h-seq* :node :polygon-orientation)))
-    (is (not (hm::graphviz-classification *roskams-h-seq* :node :polygon-image)))
-    (is (not (hm::graphviz-classification *roskams-h-seq* :node :polygon-distortion)))
-    (is (not (hm::graphviz-classification *roskams-h-seq* :node :style)))
-    (is (not (hm::graphviz-classification *roskams-h-seq* :node :penwidth)))
-    (is (not (hm::graphviz-classification *roskams-h-seq* :node :color)))
-    (is (eq :units (hm::graphviz-classification *roskams-h-seq* :node :shape)))
-    (is (not (hm::graphviz-classification *roskams-h-seq* :node :fontcolor)))
-    (is (not (hm::graphviz-classification *roskams-h-seq* :node :fillcolor)))
-    (is (not (hm::graphviz-classification *roskams-h-seq* :edge :style)))
-    (is (not (hm::graphviz-classification *roskams-h-seq* :edge :arrowhead)))
-    (is (not (hm::graphviz-classification *roskams-h-seq* :edge :penwidth)))
-    (is (not (hm::graphviz-classification *roskams-h-seq* :edge :fontsize)))
-    (is (not (hm::graphviz-classification *roskams-h-seq* :edge :fontcolor)))
-    (is (not (hm::graphviz-classification *roskams-h-seq* :edge :color)))))
+    (is (not (hm::graphviz-classification *sequence* :node :polygon-skew)))
+    (is (not (hm::graphviz-classification *sequence* :node :polygon-sides)))
+    (is (not (hm::graphviz-classification *sequence* :node :polygon-orientation)))
+    (is (not (hm::graphviz-classification *sequence* :node :polygon-image)))
+    (is (not (hm::graphviz-classification *sequence* :node :polygon-distortion)))
+    (is (not (hm::graphviz-classification *sequence* :node :style)))
+    (is (not (hm::graphviz-classification *sequence* :node :penwidth)))
+    (is (not (hm::graphviz-classification *sequence* :node :color)))
+    (is (eq :units (hm::graphviz-classification *sequence* :node :shape)))
+    (is (not (hm::graphviz-classification *sequence* :node :fontcolor)))
+    (is (not (hm::graphviz-classification *sequence* :node :fillcolor)))
+    (is (not (hm::graphviz-classification *sequence* :edge :style)))
+    (is (not (hm::graphviz-classification *sequence* :edge :arrowhead)))
+    (is (not (hm::graphviz-classification *sequence* :edge :penwidth)))
+    (is (not (hm::graphviz-classification *sequence* :edge :fontsize)))
+    (is (not (hm::graphviz-classification *sequence* :edge :fontcolor)))
+    (is (not (hm::graphviz-classification *sequence* :edge :color)))))
 
 (deftest test-reachable-limit ()
   "Test that REACHABLE-LIMIT is not set in the default configuration."
@@ -412,14 +406,14 @@ that it errors out when set to an invalid value."
     (with-expected-failures
       (is (hm::chronology-graph-p *cfg*)))))
 
-(deftest test-include-url-p ()
-  "Test that INCLUDE-URL-P returns nil given the default configuration, and
-that it errors out when set to an invalid value."
-  (with-fixture default-config
-    (is (not (hm::include-url-p *cfg*)))
-    (set-option *cfg* "General configuration" "url-include" "foo")
-    (with-expected-failures
-      (is (hm::include-url-p *cfg*)))))
+;; (deftest test-include-url-p ()
+;;   "Test that INCLUDE-URL-P returns nil given the default configuration, and
+;; that it errors out when set to an invalid value."
+;;   (with-fixture default-config
+;;     (is (not (hm::include-url-p *cfg*)))
+;;     (set-option *cfg* "General configuration" "url-include" "foo")
+;;     (with-expected-failures
+;;       (is (hm::include-url-p *cfg*)))))
 
 (deftest test-default-url ()
   "Test that DEFAULT-URL returns the value given in the default configuration."
@@ -552,7 +546,7 @@ files and Input file headers."
   "Test that configurations are written to file and read back in correctly"
   (with-fixture hm-test-config-path
     (let ((path-name
-            (uiop:merge-pathnames* "test-config.ini" *hm-test-config-path*))
+            (uiop:merge-pathnames* "test-config.ini" *path*))
           (config-from-file nil))
       (with-fixture default-config
         (write-configuration *cfg* path-name)
@@ -565,18 +559,13 @@ files and Input file headers."
 (deftest read-write-split-configuration ()
   "Test that configurations written to two files are read back in correctly."
   (with-fixtures (hm-test-config-path default-config)
-    (let ((general-path-name
-            (uiop:merge-pathnames* "test-general-config.ini"
-                                   *hm-test-config-path*))
-          (graphviz-path-name
-            (uiop:merge-pathnames* "test-graphviz-config.ini"
-                                   *hm-test-config-path*))
+    (let ((gen-path-name (uiop:merge-pathnames* "test-general-config.ini" *path*))
+          (gv-path-name (uiop:merge-pathnames* "test-graphviz-config.ini" *path*))
           (config-from-file nil))
-      (write-general-configuration *cfg* general-path-name)
-      (write-Graphviz-style-configuration *cfg* graphviz-path-name)
+      (write-general-configuration *cfg* gen-path-name)
+      (write-Graphviz-style-configuration *cfg* gv-path-name)
       (setf config-from-file
-            (read-configuration-from-files nil
-                                           general-path-name graphviz-path-name))
+            (read-configuration-from-files nil gen-path-name gv-path-name))
       (is (equal (get-configuration-sections *cfg*)
                  (get-configuration-sections config-from-file)))
       (is (equal (get-all-configuration-options *cfg*)
@@ -589,22 +578,22 @@ files and Input file headers."
 
 (deftest test-roskams-h-structure-config ()
   (with-fixture roskams-h-structure
-    (is (not (configuration-errors? *roskams-h-structure*)))))
+    (is (not (configuration-errors? *cfg*)))))
 
 (deftest test-roskams-h-structure-graph ()
   (with-fixture roskams-h-structure
-    (is (typep (hm::make-new-sequence-graph *roskams-h-structure* nil)
+    (is (typep (hm::make-new-sequence-graph *cfg* nil)
                'graph:digraph))))
 
 (deftest test-roskams-h-structure-configure-sequence ()
   (with-fixture roskams-h-structure
     (is (typep (hm:configure-archaeological-sequence
-                (hm::make-archaeological-sequence) *roskams-h-structure* nil)
+                (hm::make-archaeological-sequence) *cfg* nil)
                'hm::archaeological-sequence))))
 
 (deftest test-roskams-h-structure-graph-nodes-edges ()
   (with-fixture roskams-h-structure
-    (let ((g (hm::make-new-sequence-graph *roskams-h-structure* nil)))
+    (let ((g (hm::make-new-sequence-graph *cfg* nil)))
       (is (equal (graph:nodes g) '(|1| |2| |3| |4| |5|)))
       (is (equal
            (graph:edges g)
@@ -618,50 +607,58 @@ files and Input file headers."
   (with-fixture roskams-h-seq
     (is (equal (hm::quotes-around "solid")
                (funcall
-                (hm::to-dot-macro *roskams-h-seq* :edge :style :sequence))))
+                (hm::to-dot-macro *sequence* :edge :style :sequence))))
     (is (equal (hm::quotes-around "normal")
                (funcall
-                (hm::to-dot-macro *roskams-h-seq* :edge :arrowhead :sequence))))
+                (hm::to-dot-macro *sequence* :edge :arrowhead :sequence))))
     (is (equal (hm::quotes-around "14.0")
                (funcall
-                (hm::to-dot-macro *roskams-h-seq* :edge :fontsize :sequence))))
+                (hm::to-dot-macro *sequence* :edge :fontsize :sequence))))
     (is (equal (hm::quotes-around "/x11/black")
                (funcall
-                (hm::to-dot-macro *roskams-h-seq* :edge :fontcolor :sequence))))
+                (hm::to-dot-macro *sequence* :edge :fontcolor :sequence))))
     (is (equal (hm::quotes-around "/x11/black")
                (funcall
-                (hm::to-dot-macro *roskams-h-seq* :edge :color :sequence))))
+                (hm::to-dot-macro *sequence* :edge :color :sequence))))
     (is (equal (hm::quotes-around "1.0")
                (funcall
-                (hm::to-dot-macro *roskams-h-seq* :edge :penwidth :sequence))))
+                (hm::to-dot-macro *sequence* :edge :penwidth :sequence))))
     (is (equal (hm::quotes-around "box")
                (funcall
-                (hm::to-dot-macro *roskams-h-seq* :node :shape :sequence)
+                (hm::to-dot-macro *sequence* :node :shape :sequence)
                 (hm::symbolicate "1"))))
     (is (equal (hm::quotes-around "box")
                (funcall
-                (hm::to-dot-macro *roskams-h-seq* :node :shape :sequence)
+                (hm::to-dot-macro *sequence* :node :shape :sequence)
                 (hm::symbolicate "2"))))
     (is (equal (hm::quotes-around "filled")
                (funcall
-                (hm::to-dot-macro *roskams-h-seq* :node :style :sequence))))
+                (hm::to-dot-macro *sequence* :node :style :sequence))))
     (is (equal (hm::quotes-around "/x11/black")
                (funcall
-                (hm::to-dot-macro *roskams-h-seq* :node :color :sequence))))
+                (hm::to-dot-macro *sequence* :node :color :sequence))))
     (is (equal (hm::quotes-around "/x11/white")
                (funcall
-                (hm::to-dot-macro *roskams-h-seq* :node :fillcolor :sequence))))
+                (hm::to-dot-macro *sequence* :node :fillcolor :sequence))))
     (is (equal (hm::quotes-around "/x11/black")
                (funcall
-                (hm::to-dot-macro *roskams-h-seq* :node :fontcolor :sequence))))
+                (hm::to-dot-macro *sequence* :node :fontcolor :sequence))))
     (is (equal (hm::quotes-around "1.0")
                (funcall
-                (hm::to-dot-macro *roskams-h-seq* :node :penwidth :sequence))))))
+                (hm::to-dot-macro *sequence* :node :penwidth :sequence))))))
 
 (deftest test-write-dot-with-classifications ()
   (with-fixture roskams-h-class
-    (hm::write-sequence-graph-to-dot-file *roskams-h-class* nil)
+    (hm::write-sequence-graph-to-dot-file *sequence* nil)
     (is (probe-file
          (hm::output-file-name
-          (hm::archaeological-sequence-configuration *roskams-h-class*)
+          (hm::archaeological-sequence-configuration *sequence*)
+          "sequence-dot")))))
+
+(deftest test-periods-phases ()
+  (with-fixture fig-12
+    (hm::write-sequence-graph-to-dot-file *sequence* nil)
+    (is (probe-file
+         (hm::output-file-name
+          (hm::archaeological-sequence-configuration *sequence*)
           "sequence-dot")))))
