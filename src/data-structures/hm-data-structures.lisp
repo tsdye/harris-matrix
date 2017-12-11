@@ -147,52 +147,61 @@ non-negative integer."
                                         (file-header-p cfg  "contexts")
                                         verbose)))
       ((eq classifier-type :distance)
-       (let* ((m (create-distance-matrix seq))
-              (i (graph:nodes graph))
-              (o (distance-from-node cfg))
-              (unreachable (+ 1 (truncate (max-value m))))
-              (map (fset:empty-map)))
-         (dolist (key i)
-           (let ((new-val (truncate (graph-matrix:distance-from-to graph m o key))))
-             (if (graph-matrix:infinitep new-val m)
-                 (setf map (fset:with map key unreachable))
-                 (setf map (fset:with map key new-val)))))
+       (let ((m (create-distance-matrix seq))
+             (nodes (graph:nodes graph))
+             (origin (distance-from-node cfg))
+             (unreachable -1)
+             (map (fset:empty-map)))
+         (unless origin (error "Error: Configuration lacks distance from node."))
+         (dolist (node nodes)
+           (let ((to (graph-matrix:distance-from-to graph m origin node))
+                 (from (graph-matrix:distance-from-to graph m node origin)))
+             (if (graph-matrix:infinitep to m)
+                 (if (graph-matrix:infinitep from m)
+                     (setf map (fset:with map node unreachable))
+                     (setf map (fset:with map node (truncate from))))
+                 (setf map (fset:with map node (truncate to))))))
+         (let ((max (1+ (fset:greatest (fset:range map)))))
+           (fset:do-map (node distance map)
+             (when (eq distance unreachable)
+               (setf map (fset:with map node max)))))
          map))
       ((eq classifier-type :reachable)
        (let ((m (create-reachability-matrix seq))
-             (o (reachable-from-node cfg))
+             (origin (reachable-from-node cfg))
              (map (fset:empty-map)))
-         (unless o (error "Error: Configuration lacks reachable from node."))
-         (dolist (x (graph:nodes graph))
-           (if (eq x o)
-               (setf map (fset:with map x :origin))
-               (if (graph-matrix:reachablep graph m o x)
-                   (setf map (fset:with map x :reachable))
-                   (setf map (fset:with map x :not-reachable)))))
+         (unless origin (error "Error: Configuration lacks reachable from node."))
+         (dolist (node (graph:nodes graph))
+           (if (eq node origin)
+               (setf map (fset:with map node :origin))
+               (if (or (graph-matrix:reachablep graph m origin node)
+                       (graph-matrix:reachablep graph m node origin))
+                   (setf map (fset:with map node :reachable))
+                   (setf map (fset:with map node :not-reachable)))))
          map))
       ((eq classifier-type :adjacent)
        (let ((m (create-adjacency-matrix seq))
              (i (map-node-to-index graph))
-             (o (adjacent-from-node cfg))
+             (origin (adjacent-from-node cfg))
              (map (fset:empty-map)))
-         (unless o (error "Error: Configuration lacks adjacent origin."))
+         (unless origin (error "Error: Configuration lacks adjacent origin."))
          (fset:do-map (key index i)
-           (if (eq key o)
+           (if (eq key origin)
                (setf map (fset:with map key :origin))
-               (setf map
-                     (fset:with map key
-                                (case (truncate
-                                       (graph-matrix:matrix-ref m (fset:@ i o) index))
-                                  (0 :not-adjacent)
-                                  (1 :adjacent)
-                                  (otherwise :not-adjacent))))))
+               (let ((to (truncate
+                          (graph-matrix:matrix-ref m (fset:@ i origin) index)))
+                     (from (truncate
+                            (graph-matrix:matrix-ref m index (fset:@ i origin)))))
+                 (if (or (eq to 1) (eq from 1))
+                     (setf map (fset:with map key :adjacent))
+                     (setf map (fset:with map key :not-adjacent))))))
          map))
       ((member classifier-type '(:periods :phases) :test 'eq)
        (tables-to-map (read-table (input-file-name cfg "contexts")
                                   (file-header-p cfg "contexts")
                                   verbose)
-                      (read-table (input-file-name cfg classifier-type)
-                                  (file-header-p cfg classifier-type)
+                      (read-table (input-file-name cfg (string-downcase classifier-type))
+                                  (file-header-p cfg (string-downcase classifier-type))
                                   verbose)
                       classifier-type))
       ((eq classifier-type :levels)
@@ -211,19 +220,8 @@ value is an index into the matrix representation of GRAPH."
     node-index))
 
 (defun map-index-to-node (graph)
-  "Returns an fset map where the key is a node of graph GRAPH and the
-value is an index into the matrix representation of GRAPH."
-  (let ((counter -1)
-        (node-index (fset:empty-map)))
-    (mapc
-     (lambda (node)
-       (setf node-index (fset:with node-index (incf counter) node)))
-     (graph:nodes graph))
-    node-index))
-
-(defun make-node-index (graph)
-  "Returns an fset map where the key is a node of graph GRAPH and the
-value is an index into the matrix representation of GRAPH."
+  "Returns an fset map where the key is an index into the matrix representation
+of GRAPH and the value is a node of graph GRAPH."
   (let ((counter -1)
         (node-index (fset:empty-map)))
     (mapc
@@ -235,7 +233,7 @@ value is an index into the matrix representation of GRAPH."
 (defun make-map (seq element dot-attr graph-type user-class &optional (verbose t))
   "Return a closure for the classification, USER-CLASS, that can be passed
 directly to graph-dot for the attribute, DOT-ATTR, of the graph ELEMENT. ELEMENT
-is one of `node', `edge'."
+is one of :node :edge."
   (cond
     ((eq user-class :distance)
      (make-distance-map seq element dot-attr graph-type user-class verbose))
@@ -244,11 +242,13 @@ is one of `node', `edge'."
     ((eq user-class :reachable)
      (make-reachable-map seq element dot-attr graph-type user-class verbose))
     ((eq user-class :units)
-     (make-units-map seq element dot-attr user-class verbose))
+     (make-units-map seq element dot-attr graph-type user-class verbose))
     ((eq user-class :levels)
      (make-levels-map seq element dot-attr graph-type user-class verbose))
-    ((eq user-class :phases) (make-phases-map seq element dot-attr user-class verbose))
-    ((eq user-class :periods) (make-periods-map seq element dot-attr user-class verbose))))
+    ((eq user-class :phases)
+     (make-phases-map seq element dot-attr graph-type user-class verbose))
+    ((eq user-class :periods)
+     (make-periods-map seq element dot-attr graph-type user-class verbose))))
 
 (defun concatenate-classifier (element dot-attr)
   "Given two keywords, return a string that describes an hm classifier."
@@ -382,13 +382,14 @@ fset MAP."
 of the graph ELEMENT. ELEMENT is one of :node, :edge."
   (let* ((cfg (archaeological-sequence-configuration seq))
          (map (make-classifier :distance seq verbose))
+         (cls (classification-to-keyword (concatenate-classifier element dot-attr)))
          (node-p (eq element :node))
          (edge-node (edge-classify-by seq)))
     (cond
       ((fset:contains? (color-attributes) dot-attr)
        (let ((colors (1+ (fset:greatest (fset:range map))))
              (scheme (lookup-graphviz-option cfg element :colorscheme
-                                             graph-type :none user-class)))
+                                             graph-type cls user-class)))
          #'(lambda (x)
              (let ((color (if node-p (fset:@ map x) (choose-node x edge-node map))))
                (quotes-around
@@ -409,7 +410,7 @@ of the graph ELEMENT. ELEMENT is one of :node, :edge."
                                (+ min (* (- max min) (* interval index)))))))))
       (t (error "Error: Unable to make distance map.")))))
 
-(defun make-units-map (seq element dot-attr user-class &optional (verbose t))
+(defun make-units-map (seq element dot-attr graph-type user-class &optional (verbose t))
   "Return an fset map for a unit classification, whose key is an integer and
 value is a string appropriate for the attribute, DOT-ATTR, of the graph ELEMENT.
 ELEMENT is one of :node, :edge."
@@ -419,13 +420,13 @@ ELEMENT is one of :node, :edge."
          (node-p (eq element :node))
          (edge-node (edge-classify-by seq))
          (deposit (lookup-graphviz-option
-                   cfg element :deposit :sequence cls user-class))
+                   cfg element :deposit graph-type cls user-class))
          (interface (lookup-graphviz-option
-                     cfg element :interface :sequence cls user-class)))
+                     cfg element :interface graph-type cls user-class)))
     (cond
       ((fset:contains? (color-attributes) dot-attr)
        (let ((scheme (lookup-graphviz-option cfg
-                      element :colorscheme :sequence cls user-class)))
+                      element :colorscheme graph-type cls user-class)))
          #'(lambda (x)
              (let ((index (if node-p (fset:@ map x) (choose-node x edge-node map))))
                (quotes-around (graphviz-color-string
@@ -467,59 +468,49 @@ ELEMENT is one of :node, :edge."
                                (+ min (* (- max min) (* interval index)))))))))
       (t (error "Error: Unable to make levels map.")))))
 
-(defun make-phases-map (seq element dot-attr user-class &optional (verbose t))
+(defun make-phases-map (seq element dot-attr graph-type user-class &optional (verbose t))
   "Return an fset map for a phases classification, whose key is an integer and
 value is a string appropriate for the attribute, DOT-ATTR, of the graph ELEMENT.
 ELEMENT is one of `node', `edge'."
   (let ((map (make-classifier :phases seq verbose))
+        (cfg (archaeological-sequence-configuration seq))
         (cls (classification-to-keyword (concatenate-classifier element dot-attr)))
-        (node-p (equal element :node))
+        (node-p (eq element :node))
         (edge-node (edge-classify-by seq)))
     (cond
       ((fset:contains? (color-attributes) dot-attr)
-       (let ((scheme (lookup-graphviz-option
-                      (archaeological-sequence-configuration seq)
-                      element :colorscheme :sequence cls user-class)))
+       (let ((colors (fset:greatest (fset:range map)))
+             (scheme (lookup-graphviz-option cfg
+                      element :colorscheme graph-type cls user-class)))
          #'(lambda (x)
-             (let ((index (if node-p (fset:@ map x)
-                              (if (equal edge-node "from")
-                                  (fset:@ map (nth 0 x))
-                                  (fset:@ map (nth 1 x))))))
-               (graphviz-color-string index scheme)))))
+             (let ((index (if node-p (fset:@ map x) (choose-node x edge-node map))))
+               (quotes-around (graphviz-color-string index scheme colors))))))
       ((fset:contains? (fset:union (category-attributes) (numeric-attributes)) dot-attr)
        #'(lambda (x)
-            (if node-p (fset:@ map x)
-                (if (equal edge-node "from")
-                    (fset:@ map (nth 0 x))
-                    (fset:@ map (nth 1 x))))))
-      (t (error "Error: Unable to make units map.")))))
+           (if node-p (fset:@ map x) (choose-node x edge-node map))))
+      (t (error "Error: Unable to make phases map.")))))
 
-(defun make-periods-map (seq element dot-attr user-class &optional (verbose t))
+(defun make-periods-map (seq element dot-attr graph-type user-class &optional (verbose t))
   "Return an fset map for a periods classification, whose key is an integer and
 value is a string appropriate for the attribute, DOT-ATTR, of the graph ELEMENT.
 ELEMENT is one of `node', `edge'."
-  (let* ((map (make-classifier "periods" seq verbose))
-         (cls (classifier-to-keyword (concatenate-classifier element dot-attr)))
-         (node-p (equal element "node"))
-         (edge-node (edge-classify-by seq)))
+  (let ((map (make-classifier :periods seq verbose))
+        (cfg (archaeological-sequence-configuration seq))
+        (cls (classification-to-keyword (concatenate-classifier element dot-attr)))
+        (node-p (eq element :node))
+        (edge-node (edge-classify-by seq)))
     (cond
       ((fset:contains? (color-attributes) dot-attr)
-       (let ((scheme (lookup-graphviz-option
-                      (archaeological-sequence-configuration seq)
-                      element "colorscheme" "sequence" cls user-class)))
+       (let ((colors (fset:greatest (fset:range map)))
+             (scheme (lookup-graphviz-option cfg
+                      element :colorscheme graph-type cls user-class)))
          #'(lambda (x)
-             (let ((index (if node-p (fset:@ map x)
-                              (if (equal edge-node "from")
-                                  (fset:@ map (nth 0 x))
-                                  (fset:@ map (nth 1 x))))))
-               (graphviz-color-string index scheme)))))
+             (let ((index (if node-p (fset:@ map x) (choose-node x edge-node map))))
+               (quotes-around (graphviz-color-string index scheme colors))))))
       ((fset:contains? (fset:union (category-attributes) (numeric-attributes)) dot-attr)
        #'(lambda (x)
-           (if node-p (fset:@ map x)
-               (if (equal edge-node "from")
-                   (fset:@ map (nth 0 x))
-                   (fset:@ map (nth 1 x))))))
-      (t (error "Error: Unable to make units map.")))))
+           (if node-p (fset:@ map x) (choose-node x edge-node map))))
+      (t (error "Error: Unable to make periods map.")))))
 
 
 (defun make-matrix (seq user-class)
@@ -540,16 +531,17 @@ and the value is either the period or phase of the context."
   (let ((ht (fset:empty-map))
         (ret (fset:empty-map))
         (n (cond
-            ((string= table-type "periods") 3)
-            ((string= table-type "phases") 4)
-            (t (error "Error: unrecognized table type")))))
+             ((eq table-type :periods) 3)
+             ((eq table-type :phases) 4)
+             (t (error "Error: ~s is an unrecognized table type"
+                       (string-downcase table-type))))))
     (mapcar #'(lambda (x)
                 (setf ht (fset:with ht (nth 0 x) (nth 2 x))))
             other-table)
     (mapcar #'(lambda (x)
                 (setf ret
                       (fset:with ret (symbolicate (nth 0 x))
-                                 (read-from-string (fset:@ ht (nth n x))))))
+                                 (parse-integer (fset:@ ht (nth n x))))))
             contexts)
     ret))
 
