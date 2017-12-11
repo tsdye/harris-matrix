@@ -37,9 +37,10 @@ color SCHEME, a string or integer INDEX into the Brewer palette, and the
 required RANGE of colors. If RANGE is greater than the number of distinctions
 possible for the SCHEME, then the colors are recycled."
   (let ((b-range (brewer-colorscheme-distinctions scheme))
-        (ind (etypecase index
+        (ind (typecase index
                (integer index)
-               (string (parse-integer index)))))
+               (string (parse-integer index))
+               (otherwise (error "Error: ~s is not a valid Brewer color index." index)))))
     (when (< range b-range) (setf b-range (if (< range 3) 3 range)))
     (format nil "/~a~s/~s" scheme b-range (1+ (mod ind b-range)))))
 
@@ -74,10 +75,11 @@ nil otherwise."
 (defun graphviz-hsv-string (color)
   "Given a cl-colors package x11 color name COLOR, return the Graphviz HSV
   string that specifies the color."
-  (let ((hsv-color (etypecase color
+  (let ((hsv-color (typecase color
                      (string (rgb-to-hsv (color-name-to-rgb color)))
                      (rgb (as-hsv color))
-                     (hsv color))))
+                     (hsv color)
+                     (otherwise (error "Error: ~s is not a valid color." color)))))
     (format nil "~,3f ~,3f ~,3f"
             (/ (hsv-hue hsv-color) 360)
             (hsv-saturation hsv-color)
@@ -241,9 +243,10 @@ specification is prefixed with an octothorp."
   ramp with COLORS colors. INDEX is an index into the color map, an integer in
   the range [0..COLORS-1]."
   (let ((map (cet-map name))
-        (ind (etypecase index
+        (ind (typecase index
                (integer index)
-               (string (parse-integer index))))
+               (string (parse-integer index))
+               (otherwise (error "Error: ~s is not a valid cet color index." index))))
         (ret))
     (unless (and (>= ind 0) (< ind colors))
       (error "Color index ~a out of range [0 .. ~a].~%" ind (1- colors)))
