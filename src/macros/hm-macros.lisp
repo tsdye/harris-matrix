@@ -5,7 +5,7 @@
 ;; Licensed under the Gnu Public License Version 3 or later
 
 (in-package #:hm)
-(named-readtables:in-readtable lol:lol-syntax)
+
 
 ;; Macros
 
