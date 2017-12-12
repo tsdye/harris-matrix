@@ -479,15 +479,26 @@ ELEMENT is one of `node', `edge'."
         (edge-node (edge-classify-by seq)))
     (cond
       ((fset:contains? (color-attributes) dot-attr)
-       (let ((colors (fset:greatest (fset:range map)))
+       (let ((colors (1+ (fset:greatest (fset:range map))))
              (scheme (lookup-graphviz-option cfg
                       element :colorscheme graph-type cls user-class)))
          #'(lambda (x)
              (let ((index (if node-p (fset:@ map x) (choose-node x edge-node map))))
                (quotes-around (graphviz-color-string index scheme colors))))))
-      ((fset:contains? (fset:union (category-attributes) (numeric-attributes)) dot-attr)
-       #'(lambda (x)
-           (if node-p (fset:@ map x) (choose-node x edge-node map))))
+      ((fset:contains? (category-attributes) dot-attr)
+       (let ((categories (category-attribute-map cfg element dot-attr)))
+         #'(lambda (x)
+             (let ((index (if node-p (fset:@ map x) (choose-node x edge-node map))))
+               (quotes-around
+                (fset:@ categories (mod index (fset:size categories))))))))
+      ((fset:contains? (numeric-attributes) dot-attr)
+       (let ((min (numeric-attribute-min cfg element dot-attr))
+             (max (numeric-attribute-max cfg element dot-attr))
+             (interval (/ 1 (fset:greatest (fset:range map)))))
+         #'(lambda (x)
+             (let ((index (if node-p (fset:@ map x) (choose-node x edge-node map))))
+               (quotes-around (write-to-string
+                               (+ min (* (- max min) (* interval index)))))))))
       (t (error "Error: Unable to make phases map.")))))
 
 (defun make-periods-map (seq element dot-attr graph-type user-class &optional (verbose t))
@@ -501,15 +512,26 @@ ELEMENT is one of `node', `edge'."
         (edge-node (edge-classify-by seq)))
     (cond
       ((fset:contains? (color-attributes) dot-attr)
-       (let ((colors (fset:greatest (fset:range map)))
+       (let ((colors (1+ (fset:greatest (fset:range map))))
              (scheme (lookup-graphviz-option cfg
                       element :colorscheme graph-type cls user-class)))
          #'(lambda (x)
              (let ((index (if node-p (fset:@ map x) (choose-node x edge-node map))))
                (quotes-around (graphviz-color-string index scheme colors))))))
-      ((fset:contains? (fset:union (category-attributes) (numeric-attributes)) dot-attr)
-       #'(lambda (x)
-           (if node-p (fset:@ map x) (choose-node x edge-node map))))
+      ((fset:contains? (category-attributes) dot-attr)
+       (let ((categories (category-attribute-map cfg element dot-attr)))
+         #'(lambda (x)
+             (let ((index (if node-p (fset:@ map x) (choose-node x edge-node map))))
+               (quotes-around
+                (fset:@ categories (mod index (fset:size categories))))))))
+      ((fset:contains? (numeric-attributes) dot-attr)
+       (let ((min (numeric-attribute-min cfg element dot-attr))
+             (max (numeric-attribute-max cfg element dot-attr))
+             (interval (/ 1 (fset:greatest (fset:range map)))))
+         #'(lambda (x)
+             (let ((index (if node-p (fset:@ map x) (choose-node x edge-node map))))
+               (quotes-around (write-to-string
+                               (+ min (* (- max min) (* interval index)))))))))
       (t (error "Error: Unable to make periods map.")))))
 
 
