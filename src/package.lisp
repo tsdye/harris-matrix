@@ -14,7 +14,6 @@
    :write-configuration
    :write-Graphviz-style-configuration
    :write-general-configuration
-   :convert-csv-config-to-ini
    :configuration-errors?
    :reset-option
    :set-input-file
