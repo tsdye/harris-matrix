@@ -607,48 +607,53 @@ files and Input file headers."
   (with-fixture roskams-h-seq
     (is (equal (hm::quotes-around "solid")
                (funcall
-                (hm::to-dot-macro *sequence* :edge :style :sequence))))
+                (hm::to-dot-macro *sequence* :edge :style :sequence nil))))
     (is (equal (hm::quotes-around "normal")
                (funcall
-                (hm::to-dot-macro *sequence* :edge :arrowhead :sequence))))
+                (hm::to-dot-macro *sequence* :edge :arrowhead :sequence nil))))
     (is (equal (hm::quotes-around "14.0")
                (funcall
-                (hm::to-dot-macro *sequence* :edge :fontsize :sequence))))
+                (hm::to-dot-macro *sequence* :edge :fontsize :sequence nil))))
     (is (equal (hm::quotes-around "/x11/black")
                (funcall
-                (hm::to-dot-macro *sequence* :edge :fontcolor :sequence))))
+                (hm::to-dot-macro *sequence* :edge :fontcolor :sequence nil))))
     (is (equal (hm::quotes-around "/x11/black")
                (funcall
-                (hm::to-dot-macro *sequence* :edge :color :sequence))))
+                (hm::to-dot-macro *sequence* :edge :color :sequence nil))))
     (is (equal (hm::quotes-around "1.0")
                (funcall
-                (hm::to-dot-macro *sequence* :edge :penwidth :sequence))))
+                (hm::to-dot-macro *sequence* :edge :penwidth :sequence nil))))
     (is (equal (hm::quotes-around "box")
                (funcall
-                (hm::to-dot-macro *sequence* :node :shape :sequence)
+                (hm::to-dot-macro *sequence* :node :shape :sequence nil)
                 (hm::symbolicate "1"))))
     (is (equal (hm::quotes-around "box")
                (funcall
-                (hm::to-dot-macro *sequence* :node :shape :sequence)
+                (hm::to-dot-macro *sequence* :node :shape :sequence nil)
                 (hm::symbolicate "2"))))
     (is (equal (hm::quotes-around "filled")
                (funcall
-                (hm::to-dot-macro *sequence* :node :style :sequence))))
+                (hm::to-dot-macro *sequence* :node :style :sequence nil))))
     (is (equal (hm::quotes-around "/x11/black")
                (funcall
-                (hm::to-dot-macro *sequence* :node :color :sequence))))
+                (hm::to-dot-macro *sequence* :node :color :sequence nil))))
     (is (equal (hm::quotes-around "/x11/white")
                (funcall
-                (hm::to-dot-macro *sequence* :node :fillcolor :sequence))))
+                (hm::to-dot-macro *sequence* :node :fillcolor :sequence nil))))
     (is (equal (hm::quotes-around "/x11/black")
                (funcall
-                (hm::to-dot-macro *sequence* :node :fontcolor :sequence))))
+                (hm::to-dot-macro *sequence* :node :fontcolor :sequence nil))))
     (is (equal (hm::quotes-around "1.0")
                (funcall
-                (hm::to-dot-macro *sequence* :node :penwidth :sequence))))))
+                (hm::to-dot-macro *sequence* :node :penwidth :sequence nil))))))
 
 (deftest test-write-dot-with-classifications ()
   (with-fixture roskams-h-class
+    (let ((old-file (probe-file
+                     (hm::output-file-name
+                      (hm::archaeological-sequence-configuration *sequence*)
+                      "sequence-dot"))))
+      (when old-file (delete-file old-file)))
     (hm::write-sequence-graph-to-dot-file *sequence* nil)
     (is (probe-file
          (hm::output-file-name
@@ -657,6 +662,11 @@ files and Input file headers."
 
 (deftest test-periods-phases ()
   (with-fixture fig-12
+    (let ((old-file (probe-file
+                     (hm::output-file-name
+                      (hm::archaeological-sequence-configuration *sequence*)
+                      "sequence-dot"))))
+      (when old-file (delete-file old-file)))
     (hm::write-sequence-graph-to-dot-file *sequence* nil)
     (is (probe-file
          (hm::output-file-name
