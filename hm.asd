@@ -17,8 +17,6 @@
                #:fset
                #:py-configparser
                #:cl-colors
-               #:let-over-lambda
-               #:named-readtables
                #:fare-memoization)
   :components ((:static-file "COPYING")
                (:file "src/package")
