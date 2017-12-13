@@ -17,7 +17,8 @@
                #:fset
                #:py-configparser
                #:cl-colors
-               #:fare-memoization)
+               #:fare-memoization
+               #:external-program)
   :components ((:static-file "COPYING")
                (:file "src/package")
                (:file "src/macros/hm-macros")
