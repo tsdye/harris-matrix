@@ -25,6 +25,90 @@
 (defvar *sequence* nil
   "Variable to hold an archaeological-sequence for use in hm tests.")
 
+(defixture fig-12-units
+  (:setup (setf *sequence*
+                (hm::configure-archaeological-sequence
+                 (hm::make-archaeological-sequence)
+                 (hm:read-configuration-from-files
+                  nil
+                  (uiop:merge-pathnames*
+                   "test/assets/examples/harris-fig-12-units/fig-12.ini"
+                   (asdf:system-source-directory :hm-test)))
+                 nil)))
+  (:teardown (setf *sequence* nil)))
+
+(defixture fig-12-phases
+  (:setup (setf *sequence*
+                (hm::configure-archaeological-sequence
+                 (hm::make-archaeological-sequence)
+                 (hm:read-configuration-from-files
+                  nil
+                  (uiop:merge-pathnames*
+                   "test/assets/examples/harris-fig-12-phases/fig-12.ini"
+                   (asdf:system-source-directory :hm-test)))
+                 nil)))
+  (:teardown (setf *sequence* nil)))
+
+(defixture fig-12-periods
+  (:setup (setf *sequence*
+                (hm::configure-archaeological-sequence
+                 (hm::make-archaeological-sequence)
+                 (hm:read-configuration-from-files
+                  nil
+                  (uiop:merge-pathnames*
+                   "test/assets/examples/harris-fig-12-periods/fig-12.ini"
+                   (asdf:system-source-directory :hm-test)))
+                 nil)))
+  (:teardown (setf *sequence* nil)))
+
+(defixture fig-12-levels
+  (:setup (setf *sequence*
+                (hm::configure-archaeological-sequence
+                 (hm::make-archaeological-sequence)
+                 (hm:read-configuration-from-files
+                  nil
+                  (uiop:merge-pathnames*
+                   "test/assets/examples/harris-fig-12-levels/fig-12.ini"
+                   (asdf:system-source-directory :hm-test)))
+                 nil)))
+  (:teardown (setf *sequence* nil)))
+
+(defixture fig-12-distance
+  (:setup (setf *sequence*
+                (hm::configure-archaeological-sequence
+                 (hm::make-archaeological-sequence)
+                 (hm:read-configuration-from-files
+                  nil
+                  (uiop:merge-pathnames*
+                   "test/assets/examples/harris-fig-12-distance/fig-12.ini"
+                   (asdf:system-source-directory :hm-test)))
+                 nil)))
+  (:teardown (setf *sequence* nil)))
+
+(defixture fig-12-adjacent
+  (:setup (setf *sequence*
+                (hm::configure-archaeological-sequence
+                 (hm::make-archaeological-sequence)
+                 (hm:read-configuration-from-files
+                  nil
+                  (uiop:merge-pathnames*
+                   "test/assets/examples/harris-fig-12-adjacent/fig-12.ini"
+                   (asdf:system-source-directory :hm-test)))
+                 nil)))
+  (:teardown (setf *sequence* nil)))
+
+(defixture fig-12-reachable
+  (:setup (setf *sequence*
+                (hm::configure-archaeological-sequence
+                 (hm::make-archaeological-sequence)
+                 (hm:read-configuration-from-files
+                  nil
+                  (uiop:merge-pathnames*
+                   "test/assets/examples/harris-fig-12-reachable/fig-12.ini"
+                   (asdf:system-source-directory :hm-test)))
+                 nil)))
+  (:teardown (setf *sequence* nil)))
+
 (defixture fig-12
   (:setup (setf *sequence*
                 (hm::configure-archaeological-sequence
@@ -189,20 +273,14 @@
   (with-fixture default-config
     (is (hm:fast-matrix-p *cfg*))
     (hm::set-option *cfg* "General configuration" "fast-matrix" "off")
-    (is (not (hm:fast-matrix-p *cfg*)))
-    (hm::set-option *cfg* "General configuration" "fast-matrix" "foo")
-    (with-expected-failures
-      (is (not (hm:fast-matrix-p *cfg*))))))
+    (is (not (hm:fast-matrix-p *cfg*)))))
 
 (deftest test-assume-correlations-p ()
   "Test that the default configuration returns nil, that setting the option to `yes' returns non-nil, and that setting the option to `foo' returns an error."
   (with-fixture default-config
     (is (not (hm::assume-correlations-p *cfg*)))
     (hm::set-option *cfg* "General configuration" "assume-correlations" "yes")
-    (is (hm::assume-correlations-p *cfg*))
-    (hm::set-option *cfg* "General configuration" "assume-correlations" "foo")
-    (with-expected-failures
-      (is (not (hm::assume-correlations-p *cfg*))))))
+    (is (hm::assume-correlations-p *cfg*))))
 
 (deftest test-project-directory ()
   "Test that PROJECT-DIRECTORY returns nil when called on the default configuration."
@@ -401,10 +479,7 @@ configuration."
   "Test that CHRONOLOGY-GRAPH-P returns nil given the default configuration, and
 that it errors out when set to an invalid value."
   (with-fixture default-config
-    (is (not (hm::chronology-graph-p *cfg*)))
-    (set-option *cfg* "General configuration" "chronology-graph-draw" "foo")
-    (with-expected-failures
-      (is (hm::chronology-graph-p *cfg*)))))
+    (is (not (hm::chronology-graph-p *cfg*)))))
 
 ;; (deftest test-include-url-p ()
 ;;   "Test that INCLUDE-URL-P returns nil given the default configuration, and
@@ -648,6 +723,9 @@ files and Input file headers."
                 (hm::to-dot-macro *sequence* :node :penwidth :sequence nil))))))
 
 (deftest test-write-dot-with-classifications ()
+  "Test whether or not it is possible to write the sequence graph dot file for
+roskams-h-class. Does not check for a correct output file, just whether is
+exists or not."
   (with-fixture roskams-h-class
     (let ((old-file (probe-file
                      (hm::output-file-name
@@ -661,7 +739,121 @@ files and Input file headers."
           "sequence-dot")))))
 
 (deftest test-periods-phases ()
+  "Test whether fig-12 will produce a sequence graph dot file."
   (with-fixture fig-12
+    (let ((old-file (probe-file
+                     (hm::output-file-name
+                      (hm::archaeological-sequence-configuration *sequence*)
+                      "sequence-dot"))))
+      (when old-file (delete-file old-file)))
+    (hm::write-sequence-graph-to-dot-file *sequence* nil)
+    (is (probe-file
+         (hm::output-file-name
+          (hm::archaeological-sequence-configuration *sequence*)
+          "sequence-dot")))))
+
+(deftest test-reachable ()
+  "Test that reachable classifies node fill color, shape, and pen width, and
+edge color, pen width, arrowhead, and style, the writes a sequence graph dot
+file. Does not test whether the dot file is correct."
+  (with-fixture fig-12-reachable
+    (let ((old-file (probe-file
+                     (hm::output-file-name
+                      (hm::archaeological-sequence-configuration *sequence*)
+                      "sequence-dot"))))
+      (when old-file (delete-file old-file)))
+    (hm::write-sequence-graph-to-dot-file *sequence* nil)
+    (is (probe-file
+         (hm::output-file-name
+          (hm::archaeological-sequence-configuration *sequence*)
+          "sequence-dot")))))
+
+(deftest test-adjacent ()
+  "Test that adjacent classifies node fill color, shape, and pen width, and
+edge color, pen width, arrowhead, and style, the writes a sequence graph dot
+file. Does not test whether the dot file is correct."
+  (with-fixture fig-12-adjacent
+    (let ((old-file (probe-file
+                     (hm::output-file-name
+                      (hm::archaeological-sequence-configuration *sequence*)
+                      "sequence-dot"))))
+      (when old-file (delete-file old-file)))
+    (hm::write-sequence-graph-to-dot-file *sequence* nil)
+    (is (probe-file
+         (hm::output-file-name
+          (hm::archaeological-sequence-configuration *sequence*)
+          "sequence-dot")))))
+
+(deftest test-distance ()
+  "Test that distance classifies node fill color, shape, and pen width, and
+edge color, pen width, arrowhead, and style, the writes a sequence graph dot
+file. Does not test whether the dot file is correct."
+  (with-fixture fig-12-distance
+    (let ((old-file (probe-file
+                     (hm::output-file-name
+                      (hm::archaeological-sequence-configuration *sequence*)
+                      "sequence-dot"))))
+      (when old-file (delete-file old-file)))
+    (hm::write-sequence-graph-to-dot-file *sequence* nil)
+    (is (probe-file
+         (hm::output-file-name
+          (hm::archaeological-sequence-configuration *sequence*)
+          "sequence-dot")))))
+
+(deftest test-levels ()
+  "Test that levels classifies node fill color, shape, and pen width, and edge
+color, pen width, arrowhead, and style, the writes a sequence graph dot file.
+Does not test whether the dot file is correct."
+  (with-fixture fig-12-levels
+    (let ((old-file (probe-file
+                     (hm::output-file-name
+                      (hm::archaeological-sequence-configuration *sequence*)
+                      "sequence-dot"))))
+      (when old-file (delete-file old-file)))
+    (hm::write-sequence-graph-to-dot-file *sequence* nil)
+    (is (probe-file
+         (hm::output-file-name
+          (hm::archaeological-sequence-configuration *sequence*)
+          "sequence-dot")))))
+
+
+(deftest test-periods ()
+  "Test that periods classifies node fill color, shape, and pen width, and
+edge color, pen width, arrowhead, and style, the writes a sequence graph dot
+file. Does not test whether the dot file is correct."
+  (with-fixture fig-12-periods
+    (let ((old-file (probe-file
+                     (hm::output-file-name
+                      (hm::archaeological-sequence-configuration *sequence*)
+                      "sequence-dot"))))
+      (when old-file (delete-file old-file)))
+    (hm::write-sequence-graph-to-dot-file *sequence* nil)
+    (is (probe-file
+         (hm::output-file-name
+          (hm::archaeological-sequence-configuration *sequence*)
+          "sequence-dot")))))
+
+(deftest test-phases ()
+  "Test that phases classifies node fill color, shape, and pen width, and
+edge color, pen width, arrowhead, and style, the writes a sequence graph dot
+file. Does not test whether the dot file is correct."
+  (with-fixture fig-12-phases
+    (let ((old-file (probe-file
+                     (hm::output-file-name
+                      (hm::archaeological-sequence-configuration *sequence*)
+                      "sequence-dot"))))
+      (when old-file (delete-file old-file)))
+    (hm::write-sequence-graph-to-dot-file *sequence* nil)
+    (is (probe-file
+         (hm::output-file-name
+          (hm::archaeological-sequence-configuration *sequence*)
+          "sequence-dot")))))
+
+(deftest test-units ()
+  "Test that units classifies node fill color, shape, and pen width, and
+edge color, pen width, arrowhead, and style, the writes a sequence graph dot
+file. Does not test whether the dot file is correct."
+  (with-fixture fig-12-units
     (let ((old-file (probe-file
                      (hm::output-file-name
                       (hm::archaeological-sequence-configuration *sequence*)
