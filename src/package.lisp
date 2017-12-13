@@ -5,7 +5,8 @@
    :common-lisp
    :cl-colors
    :py-configparser
-   :alexandria)
+   :alexandria
+   :external-program)
   (:export
    :configure-archaeological-sequence
    :default-configuration
