@@ -481,8 +481,10 @@ the archaeological sequence, SEQ."
                   (cons :penwidth (<-dot seq :node :penwidth :sequence verbose))
                   (cons :skew (<-dot seq :node :polygon-skew :sequence verbose))
                   (cons :sides (<-dot seq :node :polygon-sides :sequence verbose))
-                  (cons :orientation (<-dot seq :node :polygon-orientation :sequence verbose))
-                  (cons :distortion (<-dot seq :node :polygon-distortion :sequence verbose))
+                  (cons :orientation
+                        (<-dot seq :node :polygon-orientation :sequence verbose))
+                  (cons :distortion
+                        (<-dot seq :node :polygon-distortion :sequence verbose))
                   ;; (cons :URL (<-dot seq :node :url :sequence verbose))
                   ))
     (when verbose (format t "Wrote ~a.~%" out-file))))
