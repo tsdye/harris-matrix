@@ -25,6 +25,54 @@
 (defvar *sequence* nil
   "Variable to hold an archaeological-sequence for use in hm tests.")
 
+(defixture fig-12-polygon-skew
+  (:setup (setf *sequence*
+                (hm::configure-archaeological-sequence
+                 (hm::make-archaeological-sequence)
+                 (hm:read-configuration-from-files
+                  nil
+                  (uiop:merge-pathnames*
+                   "test/assets/examples/harris-fig-12-polygon-skew/fig-12.ini"
+                   (asdf:system-source-directory :hm-test)))
+                 nil)))
+  (:teardown (setf *sequence* nil)))
+
+(defixture fig-12-polygon-sides
+  (:setup (setf *sequence*
+                (hm::configure-archaeological-sequence
+                 (hm::make-archaeological-sequence)
+                 (hm:read-configuration-from-files
+                  nil
+                  (uiop:merge-pathnames*
+                   "test/assets/examples/harris-fig-12-polygon-sides/fig-12.ini"
+                   (asdf:system-source-directory :hm-test)))
+                 nil)))
+  (:teardown (setf *sequence* nil)))
+
+(defixture fig-12-polygon-orientation
+  (:setup (setf *sequence*
+                (hm::configure-archaeological-sequence
+                 (hm::make-archaeological-sequence)
+                 (hm:read-configuration-from-files
+                  nil
+                  (uiop:merge-pathnames*
+                   "test/assets/examples/harris-fig-12-polygon-orientation/fig-12.ini"
+                   (asdf:system-source-directory :hm-test)))
+                 nil)))
+  (:teardown (setf *sequence* nil)))
+
+(defixture fig-12-polygon-distortion
+  (:setup (setf *sequence*
+                (hm::configure-archaeological-sequence
+                 (hm::make-archaeological-sequence)
+                 (hm:read-configuration-from-files
+                  nil
+                  (uiop:merge-pathnames*
+                   "test/assets/examples/harris-fig-12-polygon-distortion/fig-12.ini"
+                   (asdf:system-source-directory :hm-test)))
+                 nil)))
+  (:teardown (setf *sequence* nil)))
+
 (defixture fig-12-units
   (:setup (setf *sequence*
                 (hm::configure-archaeological-sequence
@@ -210,11 +258,11 @@
 
 (deftest graphviz-node-shape-test ()
   (is (equal (funcall (hm::graphviz-node-shape) 0) "box"))
-  (is (equal (funcall (hm::graphviz-node-shape) 1) "polygon"))
+  (is (equal (funcall (hm::graphviz-node-shape) 1) "trapezium"))
   (is (equal (funcall (hm::graphviz-node-shape) 2) "ellipse"))
   (is (equal (funcall (hm::graphviz-node-shape) 3) "egg"))
   (is (equal (funcall (hm::graphviz-node-shape) 4) "triangle"))
-  (is (equal (funcall (hm::graphviz-node-shape) 39) "box")))
+  (is (equal (funcall (hm::graphviz-node-shape) 37) "box")))
 
 (deftest graphviz-arrow-shape-test ()
   (is (equal (funcall (hm::graphviz-arrow-shape) 0) "none"))
@@ -731,7 +779,7 @@ exists or not."
                      (hm::output-file-name
                       (hm::archaeological-sequence-configuration *sequence*)
                       "sequence-dot"))))
-      (when old-file (delete-file old-file)))
+      (uiop:delete-file-if-exists old-file))
     (hm::write-sequence-graph-to-dot-file *sequence* nil)
     (is (probe-file
          (hm::output-file-name
@@ -745,7 +793,7 @@ exists or not."
                      (hm::output-file-name
                       (hm::archaeological-sequence-configuration *sequence*)
                       "sequence-dot"))))
-      (when old-file (delete-file old-file)))
+      (uiop:delete-file-if-exists old-file))
     (hm::write-sequence-graph-to-dot-file *sequence* nil)
     (is (probe-file
          (hm::output-file-name
@@ -754,14 +802,14 @@ exists or not."
 
 (deftest test-reachable ()
   "Test that reachable classifies node fill color, shape, and pen width, and
-edge color, pen width, arrowhead, and style, the writes a sequence graph dot
+edge color, pen width, arrowhead, and style, then writes a sequence graph dot
 file. Does not test whether the dot file is correct."
   (with-fixture fig-12-reachable
     (let ((old-file (probe-file
                      (hm::output-file-name
                       (hm::archaeological-sequence-configuration *sequence*)
                       "sequence-dot"))))
-      (when old-file (delete-file old-file)))
+      (uiop:delete-file-if-exists old-file))
     (hm::write-sequence-graph-to-dot-file *sequence* nil)
     (is (probe-file
          (hm::output-file-name
@@ -770,14 +818,14 @@ file. Does not test whether the dot file is correct."
 
 (deftest test-adjacent ()
   "Test that adjacent classifies node fill color, shape, and pen width, and
-edge color, pen width, arrowhead, and style, the writes a sequence graph dot
+edge color, pen width, arrowhead, and style, then writes a sequence graph dot
 file. Does not test whether the dot file is correct."
   (with-fixture fig-12-adjacent
     (let ((old-file (probe-file
                      (hm::output-file-name
                       (hm::archaeological-sequence-configuration *sequence*)
                       "sequence-dot"))))
-      (when old-file (delete-file old-file)))
+      (uiop:delete-file-if-exists old-file))
     (hm::write-sequence-graph-to-dot-file *sequence* nil)
     (is (probe-file
          (hm::output-file-name
@@ -786,14 +834,14 @@ file. Does not test whether the dot file is correct."
 
 (deftest test-distance ()
   "Test that distance classifies node fill color, shape, and pen width, and
-edge color, pen width, arrowhead, and style, the writes a sequence graph dot
+edge color, pen width, arrowhead, and style, then writes a sequence graph dot
 file. Does not test whether the dot file is correct."
   (with-fixture fig-12-distance
     (let ((old-file (probe-file
                      (hm::output-file-name
                       (hm::archaeological-sequence-configuration *sequence*)
                       "sequence-dot"))))
-      (when old-file (delete-file old-file)))
+      (uiop:delete-file-if-exists old-file))
     (hm::write-sequence-graph-to-dot-file *sequence* nil)
     (is (probe-file
          (hm::output-file-name
@@ -802,14 +850,14 @@ file. Does not test whether the dot file is correct."
 
 (deftest test-levels ()
   "Test that levels classifies node fill color, shape, and pen width, and edge
-color, pen width, arrowhead, and style, the writes a sequence graph dot file.
+color, pen width, arrowhead, and style, then writes a sequence graph dot file.
 Does not test whether the dot file is correct."
   (with-fixture fig-12-levels
     (let ((old-file (probe-file
                      (hm::output-file-name
                       (hm::archaeological-sequence-configuration *sequence*)
                       "sequence-dot"))))
-      (when old-file (delete-file old-file)))
+      (uiop:delete-file-if-exists old-file))
     (hm::write-sequence-graph-to-dot-file *sequence* nil)
     (is (probe-file
          (hm::output-file-name
@@ -819,14 +867,14 @@ Does not test whether the dot file is correct."
 
 (deftest test-periods ()
   "Test that periods classifies node fill color, shape, and pen width, and
-edge color, pen width, arrowhead, and style, the writes a sequence graph dot
+edge color, pen width, arrowhead, and style, then writes a sequence graph dot
 file. Does not test whether the dot file is correct."
   (with-fixture fig-12-periods
     (let ((old-file (probe-file
                      (hm::output-file-name
                       (hm::archaeological-sequence-configuration *sequence*)
                       "sequence-dot"))))
-      (when old-file (delete-file old-file)))
+      (uiop:delete-file-if-exists old-file))
     (hm::write-sequence-graph-to-dot-file *sequence* nil)
     (is (probe-file
          (hm::output-file-name
@@ -835,14 +883,14 @@ file. Does not test whether the dot file is correct."
 
 (deftest test-phases ()
   "Test that phases classifies node fill color, shape, and pen width, and
-edge color, pen width, arrowhead, and style, the writes a sequence graph dot
+edge color, pen width, arrowhead, and style, then writes a sequence graph dot
 file. Does not test whether the dot file is correct."
   (with-fixture fig-12-phases
     (let ((old-file (probe-file
                      (hm::output-file-name
                       (hm::archaeological-sequence-configuration *sequence*)
                       "sequence-dot"))))
-      (when old-file (delete-file old-file)))
+      (uiop:delete-file-if-exists old-file))
     (hm::write-sequence-graph-to-dot-file *sequence* nil)
     (is (probe-file
          (hm::output-file-name
@@ -851,14 +899,74 @@ file. Does not test whether the dot file is correct."
 
 (deftest test-units ()
   "Test that units classifies node fill color, shape, and pen width, and
-edge color, pen width, arrowhead, and style, the writes a sequence graph dot
+edge color, pen width, arrowhead, and style, then writes a sequence graph dot
 file. Does not test whether the dot file is correct."
   (with-fixture fig-12-units
     (let ((old-file (probe-file
                      (hm::output-file-name
                       (hm::archaeological-sequence-configuration *sequence*)
                       "sequence-dot"))))
-      (when old-file (delete-file old-file)))
+      (uiop:delete-file-if-exists old-file))
+    (hm::write-sequence-graph-to-dot-file *sequence* nil)
+    (is (probe-file
+         (hm::output-file-name
+          (hm::archaeological-sequence-configuration *sequence*)
+          "sequence-dot")))))
+
+(deftest test-polygon-distortion ()
+  "Test that distance classifies polygon distortion, then writes a sequence graph dot
+file. Does not test whether the dot file is correct."
+  (with-fixture fig-12-polygon-distortion
+    (let ((old-file (probe-file
+                     (hm::output-file-name
+                      (hm::archaeological-sequence-configuration *sequence*)
+                      "sequence-dot"))))
+      (uiop:delete-file-if-exists old-file))
+    (hm::write-sequence-graph-to-dot-file *sequence* nil)
+    (is (probe-file
+         (hm::output-file-name
+          (hm::archaeological-sequence-configuration *sequence*)
+          "sequence-dot")))))
+
+(deftest test-polygon-orientation ()
+  "Test that distance classifies polygon orientation, then writes a sequence graph dot
+file. Does not test whether the dot file is correct."
+  (with-fixture fig-12-polygon-orientation
+    (let ((old-file (probe-file
+                     (hm::output-file-name
+                      (hm::archaeological-sequence-configuration *sequence*)
+                      "sequence-dot"))))
+      (uiop:delete-file-if-exists old-file))
+    (hm::write-sequence-graph-to-dot-file *sequence* nil)
+    (is (probe-file
+         (hm::output-file-name
+          (hm::archaeological-sequence-configuration *sequence*)
+          "sequence-dot")))))
+
+(deftest test-polygon-sides ()
+  "Test that distance classifies polygon sides, then writes a sequence graph dot
+file. Does not test whether the dot file is correct."
+  (with-fixture fig-12-polygon-sides
+    (let ((old-file (probe-file
+                     (hm::output-file-name
+                      (hm::archaeological-sequence-configuration *sequence*)
+                      "sequence-dot"))))
+      (uiop:delete-file-if-exists old-file))
+    (hm::write-sequence-graph-to-dot-file *sequence* nil)
+    (is (probe-file
+         (hm::output-file-name
+          (hm::archaeological-sequence-configuration *sequence*)
+          "sequence-dot")))))
+
+(deftest test-polygon-skew ()
+  "Test that distance classifies polygon skew, then writes a sequence graph dot
+file. Does not test whether the dot file is correct."
+  (with-fixture fig-12-polygon-skew
+    (let ((old-file (probe-file
+                     (hm::output-file-name
+                      (hm::archaeological-sequence-configuration *sequence*)
+                      "sequence-dot"))))
+      (uiop:delete-file-if-exists old-file))
     (hm::write-sequence-graph-to-dot-file *sequence* nil)
     (is (probe-file
          (hm::output-file-name
