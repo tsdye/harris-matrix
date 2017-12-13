@@ -443,13 +443,14 @@ value is a string appropriate for the attribute, DOT-ATTR, of the graph ELEMENT.
 ELEMENT is one of :node, :edge."
   (let* ((cfg (archaeological-sequence-configuration seq))
          (map (make-classifier :levels seq verbose))
+         (cls (classification-to-keyword (concatenate-classifier element dot-attr)))
          (edge-node (edge-classify-by seq))
          (node-p (eq element :node)))
     (cond
       ((fset:contains? (color-attributes) dot-attr)
        (let ((colors (1+ (fset:greatest (fset:range map))))
              (scheme (lookup-graphviz-option cfg element :colorscheme
-                                             graph-type :none user-class)))
+                                             graph-type cls user-class)))
          #'(lambda (x)
              (let ((color (if node-p (fset:@ map x) (choose-node x edge-node map))))
                (quotes-around (graphviz-color-string color scheme colors))))))
