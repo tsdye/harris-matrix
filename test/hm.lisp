@@ -25,6 +25,18 @@
 (defvar *sequence* nil
   "Variable to hold an archaeological-sequence for use in hm tests.")
 
+(defixture fig-12-correlations
+    (:setup (setf *sequence*
+                  (hm::configure-archaeological-sequence
+                   (hm::make-archaeological-sequence)
+                   (hm:read-configuration-from-files
+                    nil
+                    (uiop:merge-pathnames*
+                     "test/assets/examples/harris-fig-12-correlations/fig-12.ini"
+                     (asdf:system-source-directory :hm-test)))
+                   nil)))
+  (:teardown (setf *sequence* nil)))
+
 (defixture fig-12-polygon-skew
   (:setup (setf *sequence*
                 (hm::configure-archaeological-sequence
@@ -967,6 +979,21 @@ file. Does not test whether the dot file is correct."
                       (hm::archaeological-sequence-configuration *sequence*)
                       "sequence-dot"))))
       (uiop:delete-file-if-exists old-file))
+    (hm::write-sequence-graph-to-dot-file *sequence* nil)
+    (is (probe-file
+         (hm::output-file-name
+          (hm::archaeological-sequence-configuration *sequence*)
+          "sequence-dot")))))
+
+(deftest test-correlations ()
+  "Test that correlations are made correctly for periods, then writes a sequence
+graph dot file. Does not test whether the dot file is correct."
+  (with-fixture fig-12-correlations
+      (let ((old-file (probe-file
+                       (hm::output-file-name
+                        (hm::archaeological-sequence-configuration *sequence*)
+                        "sequence-dot"))))
+        (uiop:delete-file-if-exists old-file))
     (hm::write-sequence-graph-to-dot-file *sequence* nil)
     (is (probe-file
          (hm::output-file-name
