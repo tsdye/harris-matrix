@@ -709,8 +709,8 @@ option."
 finds one, otherwise returns nil.  Problems include missing input
 files, missing configuration values, and contradictory configuration
 settings."
-  (let ((missing-files (unable-to-find-input-files? cfg)))
-    (when missing-files (error "Error: Unable to find ~a" missing-files)))
+  (when-let ((missing-files (unable-to-find-input-files? cfg)))
+    (error "Error: Unable to find ~a" missing-files))
   (unless (input-file-name-p cfg :contexts)
     (error "Error: Contexts file not specified."))
   (unless (input-file-name-p cfg :observations)
@@ -722,7 +722,36 @@ settings."
   (when (Graphviz-node-fill-problem? cfg)
     (error "Error: Graphviz node fills are classified.  Check that \"node-style-by\" is not set and that node \"style\" is \"filled\"."))
   (when (Graphviz-node-polygon-shape-problem? cfg)
-    (error "Error: Graphviz node polygons are classified.  Check that \"node-shape-by\" is not set and that node \"shape\" is \"polygon\".")))
+    (error "Error: Graphviz node polygons are classified.  Check that \"node-shape-by\" is not set and that node \"shape\" is \"polygon\"."))
+  (when (assume-correlations-p cfg) (correlation-problems? cfg)))
+
+(defun correlation-problems? (cfg)
+  "Raises an error if correlated nodes are assigned to different unit types,
+periods, or phases."
+  (let ((correlations (read-table (input-file-name cfg "inferences")
+                                  (file-header-p cfg "inferences") nil))
+        (contexts (read-table (input-file-name cfg "contexts")
+                              (file-header-p cfg "contexts") nil))
+        (period-map (fset:empty-map))
+        (phase-map (fset:empty-map))
+        (unit-map (fset:empty-map)))
+    (dolist (context contexts)
+      (setf period-map (fset:with period-map (nth 0 context) (nth 3 context)))
+      (setf phase-map (fset:with phase-map (nth 0 context) (nth 4 context)))
+      (setf unit-map (fset:with unit-map (nth 0 context) (nth 1 context))))
+    (dolist (correlation correlations)
+      (unless (equal (fset:@ unit-map (nth 0 correlation))
+                     (fset:@ unit-map (nth 1 correlation)))
+        (error "Error: Contexts ~s and ~s must be assigned to the same unit type."
+               (nth 0 correlation) (nth 1 correlation)))
+      (unless (equal (fset:@ period-map (nth 0 correlation))
+                     (fset:@ period-map (nth 1 correlation)))
+        (error "Error: Contexts ~s and ~s must be assigned to the same period."
+               (nth 0 correlation) (nth 1 correlation)))
+      (unless (equal (fset:@ phase-map (nth 0 correlation))
+                     (fset:@ phase-map (nth 1 correlation)))
+        (error "Error: Contexts ~s and ~s must be assigned to the same phase."
+               (nth 0 correlation) (nth 1 correlation))))))
 
 (defun set-input-file (cfg option file-name header)
   "If OPTION is recognized, then FILE-NAME and HEADER are registered with the
