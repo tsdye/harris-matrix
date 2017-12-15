@@ -56,7 +56,7 @@ the possibly modified GRAPH."
         (contexts (read-table (input-file-name cfg "contexts")
                               (file-header-p cfg "contexts") verbose)))
     (dolist (node contexts)
-      (graph:add-node ret (symbolicate (nth 0 node))))
+      (graph:add-node ret (ensure-symbol (nth 0 node))))
     (when verbose (format t "Nodes added to the sequence graph.~&"))
     ret))
 
@@ -67,8 +67,8 @@ VERBOSE, then advertise the activity. Returns the possibly modified GRAPH."
         (obs (read-table (input-file-name cfg "observations")
                          (file-header-p cfg "observations") verbose)))
     (dolist (arc obs)
-      (graph:add-edge ret (list (symbolicate (nth 0 arc))
-                                (symbolicate (nth 1 arc)))))
+      (graph:add-edge ret (list (ensure-symbol (nth 0 arc))
+                                (ensure-symbol (nth 1 arc)))))
     (when verbose (format t "Arcs added to the sequence graph.~&"))
     ret))
 
@@ -78,6 +78,7 @@ VERBOSE, then advertise the activity. Returns the possibly modified GRAPH."
   (let ((new-graph (new-graph)))
     (setf new-graph (add-nodes new-graph cfg verbose))
     (setf new-graph (add-arcs new-graph cfg verbose))
+    (setf new-graph (assume-correlations new-graph cfg verbose))
     new-graph))
 
 (defun check-cycles (graph)
@@ -97,8 +98,8 @@ VERBOSE, then advertise the activity. Returns the possibly modified GRAPH."
             (setf inferences (read-table input-file-name file-header verbose))
             (error "Error: No inference table specified."))
         (dolist (part inferences)
-          (graph:merge-nodes ret (symbolicate (nth 1 part))
-                             (symbolicate (nth 0 part))
+          (graph:merge-nodes ret (ensure-symbol (nth 1 part))
+                             (ensure-symbol (nth 0 part))
                              :new (correlated-node (nth 0 part) (nth 1 part))))
         (check-cycles ret)
         ret)
@@ -171,8 +172,8 @@ discrepancies and errors out if it finds one."
     ;; (setf (archaeological-sequence-graph ret)
     ;;       (add-missing-interfaces (archaeological-sequence-graph ret)
     ;;                               cfg verbose))
-    (setf (archaeological-sequence-graph ret)
-          (assume-correlations (archaeological-sequence-graph ret) cfg verbose))
+    ;; (setf (archaeological-sequence-graph ret)
+    ;;       (assume-correlations (archaeological-sequence-graph ret) cfg verbose))
     (setf (archaeological-sequence-chronology-graph ret)
           (create-chronology-graph ret verbose))
     (fset:do-set (classifier (classifiers))
@@ -279,7 +280,7 @@ empty graph. If VERBOSE, then advertise progress."
       (when verbose
         (format t "Adding edge values to the chronology graph.~&"))
       (dolist (row event-table)
-        (push (symbolicate (nth 1 row))
+        (push (ensure-symbol (nth 1 row))
               events)
         (graph:add-edge ret
                         (list (symbolicate "beta-" (nth 1 row))
@@ -366,7 +367,7 @@ routines.  If FAST is nil, then uses CL matrix routines."
             (context-lookup (fset:empty-map)))
         (dolist (context contexts)
           (setf context-lookup (fset:with context-lookup
-                                          (symbolicate (nth 0 context))
+                                          (ensure-symbol (nth 0 context))
                                           (nth 1 context))))
         (dolist (edge (graph:edges g))
           (and (string= (fset:@ context-lookup
@@ -413,11 +414,11 @@ the graph picture."
     (mapcar
      #'(lambda (x)
          (let ((rank (nth 2 x)))
-           (when (or (string= rank "basal") (string= rank "surface"))
+           (when (or (equal rank "basal") (equal rank "surface"))
              (push (graph-dot::make-rank
                     :value (cond
-                             ((string= rank "basal") "sink")
-                             ((string= rank "surface") "source"))
+                             ((equal rank "basal") "sink")
+                             ((equal rank "surface") "source"))
                     :node-list (list (nth 0 x)))
                    ranks))))
      table)
@@ -432,7 +433,7 @@ the archaeological sequence, SEQ."
          (out-file (output-file-name cfg :sequence-dot)))
     (graph-dot:to-dot-file
      graph out-file
-     :ranks (graphviz-make-ranks cfg verbose)
+;;     :ranks (graphviz-make-ranks cfg verbose)
      :attributes (list
                   (cons :style (quotes-around
                                 (graphviz-sequence-graph-attribute cfg :style)))
