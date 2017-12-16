@@ -561,15 +561,15 @@ ELEMENT is one of `node', `edge'."
       (t (error "Error: Unable to make periods map.")))))
 
 
-(defun make-matrix (seq user-class)
-  "Return a graph-matrix matrix appropriate for USER-CLASS, given the
-  information on the user's configuration and a directed graph from SEQ."
-  (let ((cfg (archaeological-sequence-configuration seq))
-        (graph (archaeological-sequence-graph seq))))
-  (cond
-    ((eq :distance user-class) (create-distance-matrix cfg graph))
-    ((eq :reachable user-class) (create-reachability-matrix cfg graph))
-    ((eq :adjacent user-class) (create-adjacency-matrix cfg graph))))
+;; (defun make-matrix (seq user-class)
+;;   "Return a graph-matrix matrix appropriate for USER-CLASS, given the
+;;   information on the user's configuration and a directed graph from SEQ."
+;;   (let ((cfg (archaeological-sequence-configuration seq))
+;;         (graph (archaeological-sequence-graph seq))))
+;;   (cond
+;;     ((eq :distance user-class) (create-distance-matrix cfg graph))
+;;     ((eq :reachable user-class) (create-reachability-matrix cfg graph))
+;;     ((eq :adjacent user-class) (create-adjacency-matrix cfg graph))))
 
 
 (defun tables-to-map (contexts other-table table-type)
