@@ -44,9 +44,10 @@ give notice."
                                  (pathname name))))
     (progn
       (when verbose
-        (format t "Reading table ~a.~%" in-file))
+        (format t "Reading table from ~a.~a.~&" (pathname-name name)
+                (pathname-type name)))
       (cl-csv:read-csv in-file :skip-first-p header))
-    (error "Unable to read ~a.~&" name)))
+    (error "Unable to read ~a.~&" in-file)))
 
 ;; API
 (defun write-default-configuration (path-name)
