@@ -188,7 +188,12 @@ discrepancies and errors out if it finds one."
     (when verbose (format t "Archaeological sequence configured.~&"))
     ret))
 
-
+(defun lookup-correlated-node (node map)
+  "Returns a symbol for NODE or its correlated context."
+  (let ((node-symbol (ensure-symbol node)))
+    (if (and map (fset:domain-contains? map node-symbol))
+        (fset:@ map node-symbol)
+        node-symbol)))
 
 (defun create-chronology-graph (seq &optional (verbose t))
   "If the user has requested a chronology graph, then create and return a
@@ -196,109 +201,95 @@ chronology graph, given an archaeological sequence, SEQ. Otherwise, return an
 empty graph. If VERBOSE, then advertise progress."
   (if (chronology-graph-p (archaeological-sequence-configuration seq))
       (when verbose
-        (format t "Creating chronology graph.~&"))
+        (format t "Creating the chronology graph.~&"))
       (progn
         (when verbose (format t "Chronology graph off.~&"))
         (return-from create-chronology-graph (new-graph))))
   (let* ((ret (new-graph))
-         (distance-matrix
-           (create-distance-matrix (archaeological-sequence-configuration seq)
-                                   (archaeological-sequence-graph seq)))
+         (distance-matrix (create-distance-matrix seq))
          (cfg (archaeological-sequence-configuration seq))
          (event-table (read-table (input-file-name cfg "events")
                                   (file-header-p cfg "events")
                                   verbose))
          (event-order-table
-           (when (input-file-name-p "event-order")
+           (when (input-file-name-p cfg "event-order")
              (read-table (input-file-name cfg "event-order")
                          (file-header-p cfg "event-order")
-                         verbose))))
-    ;; If assume-correlations then adjust the event-table and
+                         verbose)))
+         (inference-map (fset:empty-map)))
+    ;; If assume-correlations then make a map to adjust the event-table and
     ;; event-order table accordingly
     (when (assume-correlations-p cfg)
       (let ((inference-table
               (read-table (input-file-name cfg "inferences")
                           (file-header-p cfg "inferences")
-                          verbose))
-            (inference-map (fset:empty-map)))
+                          verbose)))
         (dolist (row inference-table)
           (setq inference-map
                 (fset:with inference-map
-                           (nth 0 row)
-                           (correlated-node (nth 0 row) (nth 1 row) t)))
+                           (ensure-symbol (nth 0 row))
+                           (correlated-node (nth 0 row) (nth 1 row))))
           (setq inference-map
                 (fset:with inference-map
-                           (nth 1 row)
-                           (correlated-node (nth 0 row) (nth 1 row) t))))
-        (setf event-table
-              (mapcar #'(lambda (row)
-                          (let ((node-1 (fset:lookup inference-map (nth 0 row)))
-                                (node-2 (fset:lookup inference-map (nth 1 row))))
-                            (when node-1 (setf (nth 0 row) node-1))
-                            (when node-2 (setf (nth 1 row) node-2))))
-                      event-table))
-        (when event-order-table
-          (setf event-order-table
-                (mapcar #'(lambda (row)
-                            (let ((node-1 (fset:lookup inference-map (nth 0 row)))
-                                  (node-2 (fset:lookup inference-map (nth 1 row))))
-                              (when node-1 (setf (nth 0 row) node-1))
-                              (when node-2 (setf (nth 1 row) node-2))))
-                        event-order-table)))))
+                           (ensure-symbol (nth 1 row))
+                           (correlated-node (nth 0 row) (nth 1 row)))))))
     ;; Steps 1 and 2 of the algorithm
+    (when verbose (format t "Adding phase nodes to the chronology graph.~&"))
     (dolist (col event-table)
-      (graph:add-node ret (symbolicate "alpha-"(nth 1 col)))
-      (graph:add-node ret (symbolicate "beta-" (nth 1 col)))
-      (graph:add-node ret (symbolicate "theta-"(nth 0 col))))
+      (graph:add-node ret (symbolicate
+                           "alpha-" (lookup-correlated-node (nth 1 col) inference-map)))
+      (graph:add-node ret (symbolicate
+                           "beta-" (lookup-correlated-node (nth 1 col) inference-map)))
+      (graph:add-node ret (symbolicate "theta-" (nth 0 col))))
     ;; Step 3 of the algorithm
+    (when verbose (format t "Adding dated event nodes to the chronology graph.~&"))
     (when event-order-table
       (dolist (pair event-order-table)
-        (graph:add-edge ret
-                        (list (symbolicate "theta-" (nth 1 pair))
-                              (symbolicate "theta-" (nth 0 pair)))
-                        0)))
-    (when verbose
-      (format t "Modeling radiocarbon dates.~&"))
+        (let ((older (symbolicate "theta-" (nth 0 pair)))
+              (younger (symbolicate "theta-" (nth 1 pair))))
+          (graph:add-edge ret (list older younger) 0))))
     ;; Step 4 of the algorithm
     (dolist (node event-table)
-      (and (eq 0 (graph:indegree ret (symbolicate "theta-" (nth 0 node))))
-           (not (string= (nth 3 node) "disparate"))
-           (graph:add-edge ret
-                           (list (symbolicate "beta-" (nth 1 node))
-                                 (symbolicate "theta-" (nth 0 node)))
-                           0))
-      (and (eq 0 (graph:outdegree ret
-                                  (symbolicate "theta-" (nth 0 node))))
-           (not (string= (nth 3 node) "disjunct"))
-           (graph:add-edge ret
-                           (list (symbolicate "theta-" (nth 0 node))
-                                 (symbolicate "alpha-" (nth 1 node)))
-                           0)))
+      (let ((event (symbolicate "theta-" (nth 0 node)))
+            (beta (symbolicate "beta-" (lookup-correlated-node
+                                        (nth 1 node) inference-map)))
+            (alpha (symbolicate "alpha-" (lookup-correlated-node
+                                          (nth 1 node) inference-map))))
+        (and (eq 0 (graph:indegree ret event))
+             (not (equal (nth 3 node) "disparate"))
+             (graph:add-edge ret (list beta event) 0))
+        (and (eq 0 (graph:outdegree ret event))
+             (not (equal (nth 3 node) "disjunct"))
+             (graph:add-edge ret (list event alpha) 0))))
     ;; Step 5 of the algorithm
-    (let ((i (map-index-to-node (archaeological-sequence-graph seq)))
+    (when verbose (format t "Adding edges to the chronology graph.~&"))
+    (let ((i (map-node-to-index (archaeological-sequence-graph seq)))
           (events))
-      (when verbose
-        (format t "Adding edge values to the chronology graph.~&"))
       (dolist (row event-table)
-        (push (ensure-symbol (nth 1 row))
-              events)
+        (push (lookup-correlated-node (nth 1 row) inference-map) events)
         (graph:add-edge ret
-                        (list (symbolicate "beta-" (nth 1 row))
-                              (symbolicate "alpha-" (nth 1 row)))
+                        (list (symbolicate "beta-" (lookup-correlated-node
+                                                    (nth 1 row) inference-map))
+                              (symbolicate "alpha-" (lookup-correlated-node
+                                                     (nth 1 row) inference-map)))
                         2))
-      (dolist (pair (append (unique-pairs events)
-                            (unique-pairs (reverse events))))
-        (let ((distance (graph-matrix:matrix-ref distance-matrix
-                                                 (fset:@ i (nth 0 pair))
-                                                 (fset:@ i (nth 1 pair)))))
-          (unless (graph-matrix:infinitep distance distance-matrix)
-            (graph:add-edge ret
-                            (list (symbolicate "alpha-" (nth 0 pair))
-                                  (symbolicate "beta-" (nth 1 pair)))
-                            (if (eql 1 (round distance)) 1 2))))))
+      (map-permutations
+       #'(lambda (pair)
+           (let ((distance (graph-matrix:matrix-ref distance-matrix
+                                                    (fset:@ i (nth 0 pair))
+                                                    (fset:@ i (nth 1 pair)))))
+             (unless (graph-matrix:infinitep distance distance-matrix)
+               (graph:add-edge ret
+                               (list (symbolicate "alpha-" (nth 0 pair))
+                                     (symbolicate "beta-" (nth 1 pair)))
+                               (if (eq 1 (round distance)) 1 2)))))
+       (remove-duplicates events) :length 2))
     ;; Step 6 of the algorithm
+    (when verbose (format t "Checking the chronology graph for cycles.~&"))
     (when (graph:cycles ret)
-      (error "Error: chronology graph has a cycle."))
+      (error "Error: The chronology graph is cyclical.~&Nodes: ~a~&Edges: ~a~&"
+             (graph:nodes ret) (graph:edges ret)))
+    (when verbose (format t "Performing transitive reduction of the chronology graph.~&"))
     (setf ret (transitive-reduction ret))
     ret))
 
@@ -319,31 +310,6 @@ possibly modified directed acyclic GRAPH."
                  (setf (graph-matrix:matrix-ref r x z) 0)
                  (graph:delete-edge ret (list (fset:@ i x) (fset:@ i z))))))))
     ret))
-
-
-;; The following two functions are from
-;; http://stackoverflow.com/questions/14758218/two-element-combinations-of-the-elements-of-a-list-inside-lisp-without-duplicat
-
-;; The functions answered this query:
-
-;; From any given list in lisp, I want to get the two element combinations of the
-;; elements of that list without having duplicate combinations
-;; (meaning (a b) = (b a) and one should be removed)
-
-;; So for example if I have a list that is (a b c d),
-
-;; I want to get ((a b) (a c) (a d) (b c) (b d) (c d))
-
-(defun pair-with (elem list)
-  (mapcar (lambda (a)
-            (list elem a))
-          list))
-
-(defun unique-pairs (list)
-  (mapcon (lambda (rest)
-            (pair-with (first rest)
-                       (rest rest)))
-          (remove-duplicates list)))
 
 (defun new-matrix (&optional (fast t))
   "Makes a matrix instance.  If FAST is t, then uses fast matrix
