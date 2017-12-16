@@ -25,6 +25,18 @@
 (defvar *sequence* nil
   "Variable to hold an archaeological-sequence for use in hm tests.")
 
+(defixture bldg-1-5
+  (:setup (setf *sequence*
+                (hm::configure-archaeological-sequence
+                 (hm::make-archaeological-sequence)
+                 (hm:read-configuration-from-files
+                  nil
+                  (uiop:merge-pathnames*
+                   "test/assets/examples/bldg-1-5/bldg-1-5.ini"
+                   (asdf:system-source-directory :hm-test)))
+                 nil)))
+  (:teardown (setf *sequence* nil)))
+
 (defixture fig-12-correlations
     (:setup (setf *sequence*
                   (hm::configure-archaeological-sequence
@@ -815,187 +827,166 @@ exists or not."
 (deftest test-reachable ()
   "Test that reachable classifies node fill color, shape, and pen width, and
 edge color, pen width, arrowhead, and style, then writes a sequence graph dot
-file. Does not test whether the dot file is correct."
+file. Checks whether the dot file exists, compiles it with dot, and opens the
+resulting pdf file for viewing."
   (with-fixture fig-12-reachable
-    (let ((old-file (probe-file
-                     (hm::output-file-name
-                      (hm::archaeological-sequence-configuration *sequence*)
-                      "sequence-dot"))))
-      (uiop:delete-file-if-exists old-file))
-    (hm::write-sequence-graph-to-dot-file *sequence* nil)
-    (is (probe-file
-         (hm::output-file-name
-          (hm::archaeological-sequence-configuration *sequence*)
-          "sequence-dot")))))
+    (let* ((cfg (hm::archaeological-sequence-configuration *sequence*))
+           (old-file (probe-file (hm::output-file-name cfg "sequence-dot"))))
+      (uiop:delete-file-if-exists old-file)
+      (hm::write-sequence-graph-to-dot-file *sequence* nil)
+      (is (probe-file (hm::output-file-name cfg "sequence-dot")))
+      (hm::make-graphics-file cfg :sequence "pdf" "open"))))
 
 (deftest test-adjacent ()
-  "Test that adjacent classifies node fill color, shape, and pen width, and
-edge color, pen width, arrowhead, and style, then writes a sequence graph dot
-file. Does not test whether the dot file is correct."
+  "Test that adjacent classifies node fill color, shape, and pen width, and edge
+color, pen width, arrowhead, and style, then writes a sequence graph dot file.
+Checks whether the dot file exists, compiles it with dot, and opens the
+resulting pdf file for viewing."
   (with-fixture fig-12-adjacent
-    (let ((old-file (probe-file
-                     (hm::output-file-name
-                      (hm::archaeological-sequence-configuration *sequence*)
-                      "sequence-dot"))))
-      (uiop:delete-file-if-exists old-file))
-    (hm::write-sequence-graph-to-dot-file *sequence* nil)
-    (is (probe-file
-         (hm::output-file-name
-          (hm::archaeological-sequence-configuration *sequence*)
-          "sequence-dot")))))
+    (let* ((cfg (hm::archaeological-sequence-configuration *sequence*))
+           (old-file (probe-file (hm::output-file-name cfg "sequence-dot"))))
+      (uiop:delete-file-if-exists old-file)
+      (hm::write-sequence-graph-to-dot-file *sequence* nil)
+      (is (probe-file (hm::output-file-name cfg "sequence-dot")))
+      (hm::make-graphics-file cfg :sequence "pdf" "open"))))
 
 (deftest test-distance ()
-  "Test that distance classifies node fill color, shape, and pen width, and
-edge color, pen width, arrowhead, and style, then writes a sequence graph dot
-file. Does not test whether the dot file is correct."
+  "Test that distance classifies node fill color, shape, and pen width, and edge
+color, pen width, arrowhead, and style, then writes a sequence graph dot file.
+Checks whether the dot file exists, compiles it with dot, and opens the
+resulting pdf file for viewing."
   (with-fixture fig-12-distance
-    (let ((old-file (probe-file
-                     (hm::output-file-name
-                      (hm::archaeological-sequence-configuration *sequence*)
-                      "sequence-dot"))))
-      (uiop:delete-file-if-exists old-file))
-    (hm::write-sequence-graph-to-dot-file *sequence* nil)
-    (is (probe-file
-         (hm::output-file-name
-          (hm::archaeological-sequence-configuration *sequence*)
-          "sequence-dot")))))
+    (let* ((cfg (hm::archaeological-sequence-configuration *sequence*))
+           (old-file (probe-file (hm::output-file-name cfg "sequence-dot"))))
+      (uiop:delete-file-if-exists old-file)
+      (hm::write-sequence-graph-to-dot-file *sequence* nil)
+      (is (probe-file (hm::output-file-name cfg "sequence-dot")))
+      (hm::make-graphics-file cfg :sequence "pdf" "open"))))
 
 (deftest test-levels ()
   "Test that levels classifies node fill color, shape, and pen width, and edge
 color, pen width, arrowhead, and style, then writes a sequence graph dot file.
-Does not test whether the dot file is correct."
+Checks whether the dot file exists, compiles it with dot, and opens the
+resulting pdf file for viewing."
   (with-fixture fig-12-levels
-    (let ((old-file (probe-file
-                     (hm::output-file-name
-                      (hm::archaeological-sequence-configuration *sequence*)
-                      "sequence-dot"))))
-      (uiop:delete-file-if-exists old-file))
-    (hm::write-sequence-graph-to-dot-file *sequence* nil)
-    (is (probe-file
-         (hm::output-file-name
-          (hm::archaeological-sequence-configuration *sequence*)
-          "sequence-dot")))))
+    (let* ((cfg (hm::archaeological-sequence-configuration *sequence*))
+           (old-file (probe-file (hm::output-file-name cfg "sequence-dot"))))
+      (uiop:delete-file-if-exists old-file)
+      (hm::write-sequence-graph-to-dot-file *sequence* nil)
+      (is (probe-file (hm::output-file-name cfg "sequence-dot")))
+      (hm::make-graphics-file cfg :sequence "pdf" "open"))))
 
 
 (deftest test-periods ()
-  "Test that periods classifies node fill color, shape, and pen width, and
-edge color, pen width, arrowhead, and style, then writes a sequence graph dot
-file. Does not test whether the dot file is correct."
+  "Test that periods classifies node fill color, shape, and pen width, and edge
+color, pen width, arrowhead, and style, then writes a sequence graph dot file.
+Checks whether the dot file exists, compiles it with dot, and opens the
+resulting pdf file for viewing."
   (with-fixture fig-12-periods
-    (let ((old-file (probe-file
-                     (hm::output-file-name
-                      (hm::archaeological-sequence-configuration *sequence*)
-                      "sequence-dot"))))
-      (uiop:delete-file-if-exists old-file))
-    (hm::write-sequence-graph-to-dot-file *sequence* nil)
-    (is (probe-file
-         (hm::output-file-name
-          (hm::archaeological-sequence-configuration *sequence*)
-          "sequence-dot")))))
+    (let* ((cfg (hm::archaeological-sequence-configuration *sequence*))
+           (old-file (probe-file (hm::output-file-name cfg "sequence-dot"))))
+      (uiop:delete-file-if-exists old-file)
+      (hm::write-sequence-graph-to-dot-file *sequence* nil)
+      (is (probe-file (hm::output-file-name cfg "sequence-dot")))
+      (hm::make-graphics-file cfg :sequence "pdf" "open"))))
 
 (deftest test-phases ()
-  "Test that phases classifies node fill color, shape, and pen width, and
-edge color, pen width, arrowhead, and style, then writes a sequence graph dot
-file. Does not test whether the dot file is correct."
+  "Test that phases classifies node fill color, shape, and pen width, and edge
+color, pen width, arrowhead, and style, then writes a sequence graph dot file.
+Checks whether the dot file exists, compiles it with dot, and opens the
+resulting pdf file for viewing."
   (with-fixture fig-12-phases
-    (let ((old-file (probe-file
-                     (hm::output-file-name
-                      (hm::archaeological-sequence-configuration *sequence*)
-                      "sequence-dot"))))
-      (uiop:delete-file-if-exists old-file))
-    (hm::write-sequence-graph-to-dot-file *sequence* nil)
-    (is (probe-file
-         (hm::output-file-name
-          (hm::archaeological-sequence-configuration *sequence*)
-          "sequence-dot")))))
+    (let* ((cfg (hm::archaeological-sequence-configuration *sequence*))
+           (old-file (probe-file (hm::output-file-name cfg "sequence-dot"))))
+      (uiop:delete-file-if-exists old-file)
+      (hm::write-sequence-graph-to-dot-file *sequence* nil)
+      (is (probe-file (hm::output-file-name cfg "sequence-dot")))
+      (hm::make-graphics-file cfg :sequence "pdf" "open"))))
 
 (deftest test-units ()
-  "Test that units classifies node fill color, shape, and pen width, and
-edge color, pen width, arrowhead, and style, then writes a sequence graph dot
-file. Does not test whether the dot file is correct."
+  "Test that units classifies node fill color, shape, and pen width, and edge
+color, pen width, arrowhead, and style, then writes a sequence graph dot file.
+Checks whether the dot file is exists, compiles it with dot, and opens the
+resulting pdf file for viewing."
   (with-fixture fig-12-units
-    (let ((old-file (probe-file
-                     (hm::output-file-name
-                      (hm::archaeological-sequence-configuration *sequence*)
-                      "sequence-dot"))))
-      (uiop:delete-file-if-exists old-file))
-    (hm::write-sequence-graph-to-dot-file *sequence* nil)
-    (is (probe-file
-         (hm::output-file-name
-          (hm::archaeological-sequence-configuration *sequence*)
-          "sequence-dot")))))
+    (let* ((cfg (hm::archaeological-sequence-configuration *sequence*))
+           (old-file (probe-file (hm::output-file-name cfg "sequence-dot"))))
+      (uiop:delete-file-if-exists old-file)
+      (hm::write-sequence-graph-to-dot-file *sequence* nil)
+      (is (probe-file (hm::output-file-name cfg "sequence-dot")))
+      (hm::make-graphics-file cfg :sequence "pdf" "open"))))
 
 (deftest test-polygon-distortion ()
-  "Test that distance classifies polygon distortion, then writes a sequence graph dot
-file. Does not test whether the dot file is correct."
+  "Test that distance classifies polygon distortion, then writes a sequence
+graph dot file. Checks whether the dot file exists, compiles it with dot, and
+opens the resulting pdf file for viewing."
   (with-fixture fig-12-polygon-distortion
-    (let ((old-file (probe-file
-                     (hm::output-file-name
-                      (hm::archaeological-sequence-configuration *sequence*)
-                      "sequence-dot"))))
-      (uiop:delete-file-if-exists old-file))
-    (hm::write-sequence-graph-to-dot-file *sequence* nil)
-    (is (probe-file
-         (hm::output-file-name
-          (hm::archaeological-sequence-configuration *sequence*)
-          "sequence-dot")))))
+    (let* ((cfg (hm::archaeological-sequence-configuration *sequence*))
+           (old-file (probe-file (hm::output-file-name cfg "sequence-dot"))))
+      (uiop:delete-file-if-exists old-file)
+      (hm::write-sequence-graph-to-dot-file *sequence* nil)
+      (is (probe-file (hm::output-file-name cfg "sequence-dot")))
+      (hm::make-graphics-file cfg :sequence "pdf" "open"))))
 
 (deftest test-polygon-orientation ()
-  "Test that distance classifies polygon orientation, then writes a sequence graph dot
-file. Does not test whether the dot file is correct."
+  "Test that distance classifies polygon orientation, then writes a sequence
+graph dot file. Checks whether the dot file exists, compiles it with dot, and
+opens the resulting pdf file for viewing."
   (with-fixture fig-12-polygon-orientation
-    (let ((old-file (probe-file
-                     (hm::output-file-name
-                      (hm::archaeological-sequence-configuration *sequence*)
-                      "sequence-dot"))))
-      (uiop:delete-file-if-exists old-file))
-    (hm::write-sequence-graph-to-dot-file *sequence* nil)
-    (is (probe-file
-         (hm::output-file-name
-          (hm::archaeological-sequence-configuration *sequence*)
-          "sequence-dot")))))
+    (let* ((cfg (hm::archaeological-sequence-configuration *sequence*))
+           (old-file (probe-file (hm::output-file-name cfg "sequence-dot"))))
+      (uiop:delete-file-if-exists old-file)
+      (hm::write-sequence-graph-to-dot-file *sequence* nil)
+      (is (probe-file (hm::output-file-name cfg "sequence-dot")))
+      (hm::make-graphics-file cfg :sequence "pdf" "open"))))
 
 (deftest test-polygon-sides ()
   "Test that distance classifies polygon sides, then writes a sequence graph dot
-file. Does not test whether the dot file is correct."
+file. Checks whether the dot file exists, compiles it with dot, and opens the
+resulting pdf file for viewing."
   (with-fixture fig-12-polygon-sides
-    (let ((old-file (probe-file
-                     (hm::output-file-name
-                      (hm::archaeological-sequence-configuration *sequence*)
-                      "sequence-dot"))))
-      (uiop:delete-file-if-exists old-file))
-    (hm::write-sequence-graph-to-dot-file *sequence* nil)
-    (is (probe-file
-         (hm::output-file-name
-          (hm::archaeological-sequence-configuration *sequence*)
-          "sequence-dot")))))
+    (let* ((cfg (hm::archaeological-sequence-configuration *sequence*))
+           (old-file (probe-file (hm::output-file-name cfg "sequence-dot"))))
+      (uiop:delete-file-if-exists old-file)
+      (hm::write-sequence-graph-to-dot-file *sequence* nil)
+      (is (probe-file (hm::output-file-name cfg "sequence-dot")))
+      (hm::make-graphics-file cfg :sequence "pdf" "open"))))
 
 (deftest test-polygon-skew ()
   "Test that distance classifies polygon skew, then writes a sequence graph dot
-file. Does not test whether the dot file is correct."
+file. Checks whether the dot file exists, compiles it with dot, and opens the
+resulting pdf file for viewing."
   (with-fixture fig-12-polygon-skew
-    (let ((old-file (probe-file
-                     (hm::output-file-name
-                      (hm::archaeological-sequence-configuration *sequence*)
-                      "sequence-dot"))))
-      (uiop:delete-file-if-exists old-file))
-    (hm::write-sequence-graph-to-dot-file *sequence* nil)
-    (is (probe-file
-         (hm::output-file-name
-          (hm::archaeological-sequence-configuration *sequence*)
-          "sequence-dot")))))
+    (let* ((cfg (hm::archaeological-sequence-configuration *sequence*))
+           (old-file (probe-file (hm::output-file-name cfg "sequence-dot"))))
+      (uiop:delete-file-if-exists old-file)
+      (hm::write-sequence-graph-to-dot-file *sequence* nil)
+      (is (probe-file (hm::output-file-name cfg "sequence-dot")))
+      (hm::make-graphics-file cfg :sequence "pdf" "open"))))
 
 (deftest test-correlations ()
   "Test that correlations are made correctly for periods, then writes a sequence
-graph dot file. Does not test whether the dot file is correct."
+graph dot file. Checks whether the dot file exists, compiles it with dot, and
+opens the resulting pdf file for viewing."
   (with-fixture fig-12-correlations
-      (let ((old-file (probe-file
-                       (hm::output-file-name
-                        (hm::archaeological-sequence-configuration *sequence*)
-                        "sequence-dot"))))
-        (uiop:delete-file-if-exists old-file))
-    (hm::write-sequence-graph-to-dot-file *sequence* nil)
-    (is (probe-file
-         (hm::output-file-name
-          (hm::archaeological-sequence-configuration *sequence*)
-          "sequence-dot")))))
+    (let* ((cfg (hm::archaeological-sequence-configuration *sequence*))
+           (old-file (probe-file (hm::output-file-name cfg "sequence-dot"))))
+      (uiop:delete-file-if-exists old-file)
+      (hm::write-sequence-graph-to-dot-file *sequence* nil)
+      (is (probe-file (hm::output-file-name cfg "sequence-dot")))
+      (hm::make-graphics-file cfg :sequence "pdf" "open"))))
+
+;; (deftest test-bldg-1-5 ()
+;;   "Test that a large project actually runs, then writes a sequence graph dot
+;; file. Does not test whether the dot file is correct."
+;;   (with-fixture bldg-1-5
+;;       (let ((old-file (probe-file
+;;                        (hm::output-file-name
+;;                         (hm::archaeological-sequence-configuration *sequence*)
+;;                         "sequence-dot"))))
+;;         (uiop:delete-file-if-exists old-file))
+;;     (hm::write-sequence-graph-to-dot-file *sequence* nil)
+;;     (is (probe-file
+;;          (hm::output-file-name
+;;           (hm::archaeological-sequence-configuration *sequence*)
+;;           "sequence-dot")))))
