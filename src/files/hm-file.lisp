@@ -49,20 +49,17 @@ give notice."
       (cl-csv:read-csv in-file :skip-first-p header))
     (error "Unable to read ~a.~&" in-file)))
 
-;; API
 (defun write-default-configuration (path-name)
   "Write the default configuration to path-name."
   (let ((config (make-default-or-empty-configuration (master-table))))
     (with-open-file (stream path-name :direction :output :if-exists :supersede)
       (write-stream config stream))))
 
-;; API
 (defun write-configuration (cfg file-name)
   "Write configuration, CFG, to the file, FILE-NAME."
   (with-open-file (stream file-name :direction :output :if-exists :supersede)
     (write-stream cfg stream)))
 
-;; API
 (defun write-Graphviz-style-configuration (config path-name)
   "Write the Graphviz style portion of CONFIG to PATH-NAME."
   (let ((cfg (copy-structure config))
@@ -72,7 +69,6 @@ give notice."
         (remove-section cfg section)))
     (write-configuration cfg path-name)))
 
-;; API
 (defun write-general-configuration (config path-name)
   "Write the non-Graphviz portion of CONFIG to PATH-NAME."
   (let ((cfg (copy-structure config))
@@ -97,7 +93,6 @@ out if one or more initialization files were not read. Prints a status message."
     config))
 
 ;; output files
-;; API
 
 (defun write-levels (graph out-file cfg)
   "Write levels of GRAPH to OUT-FILE in the project directory specified in CFG."
@@ -145,3 +140,105 @@ can't be found, nil otherwise."
         (when file-name (unless (probe-file (uiop:merge-pathnames* dir file-name))
                           (push file-name missing)))))
     missing))
+
+(defun dot-output-format-map ()
+  "Return an fset map where the keys are strings specifying valid dot output formats and the values are strings indicating the associated file name extensions."
+  (let ((map (-> (fset:empty-map)
+                 (fset:with "bmp" "bmp")
+                 (fset:with "canon" "dot")
+                 (fset:with "gv" "dot")
+                 (fset:with "xdot" "dot")
+                 (fset:with "xdot1.2" "dot")
+                 (fset:with "xdot1.4" "dot")
+                 (fset:with "cgimage" "cgi")
+                 (fset:with "eps" "eps")
+                 (fset:with "exr" "exr")
+                 (fset:with "fig" "fig")
+                 (fset:with "gd" "gd")
+                 (fset:with "gd2" "gd2")
+                 (fset:with "gif" "gif")
+                 (fset:with "gtk" "gtk")
+                 (fset:with "ico" "ico")
+                 (fset:with "imap" "map")
+                 (fset:with "cmapx" "map")
+                 (fset:with "imap_np" "map")
+                 (fset:with "cmapx_np" "map")
+                 (fset:with "jp2" "jp2")
+                 (fset:with "jpg" "jpg")
+                 (fset:with "jpeg" "jpeg")
+                 (fset:with "jpe" "jpe")
+                 (fset:with "json" "json")
+                 (fset:with "json0" "json")
+                 (fset:with "dot_json" "json")
+                 (fset:with "xdot_json" "json")
+                 (fset:with "pict" "pct")
+                 (fset:with "pct" "pct")
+                 (fset:with "pdf" "pdf")
+                 (fset:with "pic" "pic")
+                 (fset:with "plain" "txt")
+                 (fset:with "plain-ext" "txt")
+                 (fset:with "png" "png")
+                 (fset:with "pov" "pov")
+                 (fset:with "ps" "ps")
+                 (fset:with "ps2" "ps2")
+                 (fset:with "psd" "psd")
+                 (fset:with "sgi" "sgi")
+                 (fset:with "svg" "svg")
+                 (fset:with "svgz" "svg")
+                 (fset:with "tga" "tga")
+                 (fset:with "tif" "tif")
+                 (fset:with "tiff" "tiff")
+                 (fset:with "tk" "tk")
+                 (fset:with "vml" "vml")
+                 (fset:with "vmlz" "vml")
+                 (fset:with "vrml" "wrl")
+                 (fset:with "wbmp" "wbmp")
+                 (fset:with "webp" "webp")
+                 (fset:with "xlib" "")
+                 (fset:with "x11" ""))))
+    map))
+
+(defun image-file-format-p (format)
+  "A predicate for a valid dot image file FORMAT."
+  (let ((map (dot-output-format-map)))
+    (fset:domain-contains? map format)))
+
+(defun image-file-extension (format)
+  "Return a string with a file extension for FORMAT."
+  (if (image-file-format-p format)
+      (let ((map (dot-output-format-map)))
+        (fset:lookup map format))
+      (error "Error: ~s is not a valid Graphviz dot image file format.~&" format)))
+
+(defun make-graphics-file (cfg graph format &optional open)
+  "Run the dot program to make a graphics file of type, FORMAT, based on
+information in the user's configuration, CFG, for the specified GRAPH. GRAPH is
+one of :sequence, :chronology. FORMAT is any output format recognized by the dot
+program."
+  (unless (image-file-format-p format)
+    (error "Error: ~s is not a valic Graphviz dot image file format.~&" format))
+  (unless (fset:contains? (fset:set :sequence :chronology) graph)
+    (error "Error: ~a is not a recognized graph type.~&" graph))
+  (unless (typep cfg 'config)
+    (error "Error: ~a is not a user configuration file.~&" cfg))
+  (let* ((ext (image-file-extension format))
+         (dot-file (namestring
+                    (truename
+                     (output-file-name
+                      cfg (case graph (:sequence :sequence-dot)
+                                (:chronology :chronology-dot))))))
+         (can-open (fset:set "jpg" "jpe" "jp2" "jpeg" "png" "pdf" "tif" "tiff" "gif"))
+         (output-file (ppcre:regex-replace "[.]dot" (copy-seq dot-file)
+                                           (format nil ".~a" ext)))
+         (result-code))
+    (if (fset:contains? (fset:set "x11" "xlib" "gtk") format)
+        (external-program:start "dot"
+                                (list (format nil "-T~a" format) dot-file
+                                      (format nil "-o~a" output-file))
+                                :output *standard-output*)
+        (setf result-code
+              (external-program:run "dot"
+                                    (list (format nil "-T~a" format) dot-file
+                                          (format nil "-o~a" output-file)))))
+    (when (and result-code open (fset:contains? can-open format))
+      (external-program:run open (list output-file)))))
