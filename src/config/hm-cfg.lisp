@@ -333,6 +333,9 @@
 (defun boolean-strings ()
   (fset:set "1" "yes" "true" "on" "0" "no" "false" "off"))
 
+(defun boolean-string-p (candidate)
+  (fset:contains? (boolean-strings) candidate))
+
 (defun penwidth-min (cfg element)
   "Returns penwidth-min for the ELEMENT from the user's configuration, CFG.
   ELEMENT is one of `edge', `node'."
@@ -416,7 +419,6 @@ or nil if CFG contains a value not interpreted by py-configparser as a boolean."
         (unless (emptyp value)
           (error "Error: ~s is not valid for fast-matrix." value)))))
 
-;;API
 (defun assume-correlations-p (cfg)
   "Returns the boolean value for assume-correlations in the user's
   configuration, CFG, or an error if CFG contains a value not interpreted by
@@ -775,6 +777,21 @@ If NAME exists and VERBOSE is non-nil, then asks about overwriting it."
       (unless (yes-or-no-p "Overwrite ~a?" name))
       (return-from set-dot-file))
     (set-option cfg "Output files" option name)))
+
+(defun toggle-chronology-graph (cfg &optional (verbose t))
+  "Toggle configuration option `chronology-graph-draw.'"
+  (let* ((section "General configuration")
+         (option "chronology-graph-draw")
+         (value (get-option cfg section option)))
+    (unless (boolean-string-p value)
+      (error "Error: ~s is an invalid setting for ~s.~&" value option))
+    (if (get-option cfg section option :type :boolean)
+        (progn
+          (set-option cfg section option "no")
+          (when verbose (format t "Option ~s set to `no'.~&" option)))
+        (progn
+          (set-option cfg section option "yes")
+          (when verbose (format t "Option ~s set to `yes'.~&" option))))))
 
 (defun show-configuration-options (cfg section-name)
   "Print the options in section SECTION-NAME of configuration CFG.
