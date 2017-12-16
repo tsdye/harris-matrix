@@ -22,7 +22,8 @@
   (fmemo:memoize 'graphviz-node-style-map)
   (fmemo:memoize 'graphviz-edge-style-map)
   (fmemo:memoize 'graphviz-node-shape-map)
-  (fmemo:memoize 'graphviz-arrow-shape-map))
+  (fmemo:memoize 'graphviz-arrow-shape-map)
+  (fmemo:memoize 'dot-output-format-map))
 
 (defun unmemoize-functions ()
   "Called for its side-effects."
@@ -38,4 +39,5 @@
   (fmemo:unmemoize 'graphviz-node-style-map)
   (fmemo:unmemoize 'graphviz-edge-style-map)
   (fmemo:unmemoize 'graphviz-node-shape-map)
-  (fmemo:unmemoize 'graphviz-arrow-shape-map))
+  (fmemo:unmemoize 'graphviz-arrow-shape-map)
+  (fmemo:unmemoize 'dot-output-format-map))
