@@ -6,7 +6,7 @@
    :cl-colors
    :py-configparser
    :alexandria
-   :external-program)
+   :inferior-shell)
   (:export
    :configure-archaeological-sequence
    :default-configuration
