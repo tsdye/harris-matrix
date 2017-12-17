@@ -229,16 +229,7 @@ program."
                                 (:chronology :chronology-dot))))))
          (can-open (fset:set "jpg" "jpe" "jp2" "jpeg" "png" "pdf" "tif" "tiff" "gif"))
          (output-file (ppcre:regex-replace "[.]dot" (copy-seq dot-file)
-                                           (format nil ".~a" ext)))
-         (result-code))
-    (if (fset:contains? (fset:set "x11" "xlib" "gtk") format)
-        (external-program:start "dot"
-                                (list (format nil "-T~a" format) dot-file
-                                      (format nil "-o~a" output-file))
-                                :output *standard-output*)
-        (setf result-code
-              (external-program:run "dot"
-                                    (list (format nil "-T~a" format) dot-file
-                                          (format nil "-o~a" output-file)))))
-    (when (and result-code open (fset:contains? can-open format))
-      (external-program:run open (list output-file)))))
+                                           (format nil ".~a" ext))))
+    (run (format nil "dot -T~a ~a -o~a" format dot-file output-file))
+    (when (and open (fset:contains? can-open format))
+      (run (format nil "open ~a" output-file)))))
