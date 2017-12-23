@@ -75,7 +75,6 @@
 '("Graphviz sequence graph attributes" "page" :graph :page :sequence :none :none :graph "7,5")
 '("Graphviz sequence graph attributes" "dpi" :graph :dpi :sequence :none :none :graph "96")
 '("Graphviz sequence graph attributes" "margin" :graph :margin :sequence :none :none :graph "0.5,0.5")
-'("Graphviz sequence graph attributes" "label-break" :graph :label-break :sequence :none :none :graph "")
 '("Graphviz sequence graph attributes" "fontsize-subscript" :graph :fontsize-subscript :sequence :none :none :graph "10")
 '("Graphviz sequence graph attributes" "splines" :graph :splines :sequence :none :none :graph "ortho")
 '("Graphviz sequence edge attributes" "edge-classify-by" :edge :none :sequence :none :none :edge "from")
@@ -91,8 +90,6 @@
 '("Graphviz sequence edge attributes" "penwidth" :edge :penwidth :sequence :none :none :edge "1.0")
 '("Graphviz sequence edge attributes" "penwidth-min" :edge :penwidth-min :sequence :none :none :edge "1.0")
 '("Graphviz sequence edge attributes" "penwidth-max" :edge :penwidth-max :sequence :none :none :edge "1.0")
-'("Graphviz sequence edge attributes" "levels-colorscheme" :edge :colorscheme :sequence :none :levels :levels "accent")
-'("Graphviz sequence edge attributes" "distance-colorscheme" :edge :colorscheme :sequence :none :distance :distance "accent")
 '("Graphviz sequence edge font color schemes" "levels" :edge :colorscheme :sequence :edge-fontcolor-by :levels :levels "accent")
 '("Graphviz sequence edge font color schemes" "distance" :edge :colorscheme :sequence :edge-fontcolor-by :distance :distance "accent")
 '("Graphviz sequence edge font color schemes" "periods" :edge :colorscheme :sequence :edge-fontcolor-by :periods :periods "set1")
@@ -297,16 +294,15 @@
 '("Graphviz chronology graph attributes" "label" :graph :label :chronology :none :none :none "Chronology Graph")
 '("Graphviz chronology graph attributes" "labelloc" :graph :labelloc :chronology :none :none :none "t")
 '("Graphviz chronology graph attributes" "style" :graph :style :chronology :none :none :none "filled")
-'("Graphviz chronology graph attributes" "size" :graph :size :chronology :none :none :none "")
-'("Graphviz chronology graph attributes" "ratio" :graph :ratio :chronology :none :none :none "")
-'("Graphviz chronology graph attributes" "page" :graph :page :chronology :none :none :none "")
+'("Graphviz chronology graph attributes" "size" :graph :size :chronology :none :none :none "6,4!")
+'("Graphviz chronology graph attributes" "ratio" :graph :ratio :chronology :none :none :none "auto")
+'("Graphviz chronology graph attributes" "page" :graph :page :chronology :none :none :none "7,5")
 '("Graphviz chronology graph attributes" "dpi" :graph :dpi :chronology :none :none :none "0.0")
-'("Graphviz chronology graph attributes" "margin" :graph :margin :chronology :none :none :none "")
+'("Graphviz chronology graph attributes" "margin" :graph :margin :chronology :none :none :none "0.5,0.5")
 '("Graphviz chronology graph attributes" "bgcolor" :graph :bgcolor :chronology :none :none :none "white")
-'("Graphviz chronology graph attributes" "label-break" :graph :label-break :chronology :none :none :none "")
-'("Graphviz chronology graph attributes" "fontsize-subscript" :graph :fontsize-subscript :chronology :none :none :none "")
+'("Graphviz chronology graph attributes" "fontsize-subscript" :graph :fontsize-subscript :chronology :none :none :none "10.0")
 '("Graphviz chronology graph attributes" "splines" :graph :splines :chronology :none :none :none "ortho")
-'("Graphviz chronology node attributes" "colorscheme" :node :colorscheme :chronology :none :none :none "")
+'("Graphviz chronology node attributes" "colorscheme" :node :colorscheme :chronology :none :none :none "x11")
 '("Graphviz chronology node attributes" "style" :node :style :chronology :none :none :none "filled")
 '("Graphviz chronology node attributes" "fontname" :node :fontname :chronology :none :none :none "Helvetica")
 '("Graphviz chronology node attributes" "fontsize" :node :fontsize :chronology :none :none :none "14.0")
@@ -314,7 +310,7 @@
 '("Graphviz chronology node attributes" "color" :node :color :chronology :none :none :none "black")
 '("Graphviz chronology node attributes" "fillcolor" :node :fillcolor :chronology :none :none :none "white")
 '("Graphviz chronology edge attributes" "fontname" :edge :fontname :chronology :none :none :none "Helvetica")
-'("Graphviz chronology edge attributes" "colorscheme" :edge :colorscheme :chronology :none :none :none "")
+'("Graphviz chronology edge attributes" "colorscheme" :edge :colorscheme :chronology :none :none :none "x11")
 '("Graphviz chronology edge attributes" "fontsize" :edge :fontsize :chronology :none :none :none "14.0")
 '("Graphviz chronology edge attributes" "fontcolor" :edge :fontcolor :chronology :none :none :none "black")
 '("Graphviz chronology edge attributes" "arrowhead" :edge :arrowhead :chronology :none :none :none "normal")
@@ -461,6 +457,31 @@ or nil if CFG contains a value not interpreted by py-configparser as a boolean."
         (get-option cfg "General configuration" "add-interfaces" :type :boolean)
         (unless (emptyp value)
           (error "Error: ~s is not valid for add-interfaces." value)))))
+
+(defun graphviz-chronology-graph-attribute (cfg attribute)
+  "Return the sequence graph attribute from the user's configuration, CFG."
+  (get-option cfg "Graphviz chronology graph attributes" attribute))
+
+(defun graphviz-chronology-graph-color (cfg attribute)
+  "Return a graphviz color string for the sequence graph ATTRIBUTE from the
+  user's configuration, CFG."
+  (let ((name (graphviz-chronology-graph-attribute cfg attribute))
+        (scheme (graphviz-chronology-graph-attribute cfg "colorscheme")))
+    (graphviz-color-string name scheme)))
+
+(defun graphviz-chronology-node-attribute (cfg attribute)
+  "Return a function that returns the sequence graph node attribute from the
+user's configuration, CFG."
+  (let ((attr (quotes-around
+               (get-option cfg "Graphviz chronology node attributes" attribute))))
+    (constantly attr)))
+
+(defun graphviz-chronology-edge-attribute (cfg attribute)
+  "Return a function that returns the sequence graph edge attribute from the
+user's configuration, CFG."
+  (let ((attr (quotes-around
+               (get-option cfg "Graphviz chronology edge attributes" attribute))))
+    (constantly attr)))
 
 (defun graphviz-sequence-graph-attribute (cfg attribute)
   "Return the sequence graph attribute from the user's configuration, CFG."
