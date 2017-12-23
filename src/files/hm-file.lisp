@@ -212,9 +212,9 @@ can't be found, nil otherwise."
 
 (defun make-graphics-file (cfg graph format &optional open)
   "Run the dot program to make a graphics file of type, FORMAT, based on
-information in the user's configuration, CFG, for the specified GRAPH. GRAPH is
-one of :sequence, :chronology. FORMAT is any output format recognized by the dot
-program."
+information in the user's configuration, CFG, for the specified GRAPH type.
+GRAPH is one of :sequence, :chronology. FORMAT is any output format recognized
+by the dot program."
   (unless (image-file-format-p format)
     (error "Error: ~s is not a valic Graphviz dot image file format.~&" format))
   (unless (fset:contains? (fset:set :sequence :chronology) graph)
