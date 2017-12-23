@@ -25,6 +25,18 @@
 (defvar *sequence* nil
   "Variable to hold an archaeological-sequence for use in hm tests.")
 
+(defixture fig-12-chronology
+  (:setup (setf *sequence*
+                (hm::configure-archaeological-sequence
+                 (hm::make-archaeological-sequence)
+                 (hm:read-configuration-from-files
+                  nil
+                  (uiop:merge-pathnames*
+                   "test/assets/examples/harris-fig-12-chronology/fig-12.ini"
+                   (asdf:system-source-directory :hm-test)))
+                 nil)))
+  (:teardown (setf *sequence* nil)))
+
 (defixture bldg-1-5
   (:setup (setf *sequence*
                 (hm::configure-archaeological-sequence
@@ -317,7 +329,7 @@
 (deftest transitive-reduction ()
   (with-fixture transitive-graph
     (is (graph:graph-equal
-         (hm::transitive-reduction *transitive*)
+         (hm::transitive-reduction *transitive* nil)
          *intransitive*))))
 
 ;;; Tests for configurations
@@ -394,7 +406,6 @@ default configuration."
   (with-fixture default-config
     (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :splines) "ortho"))
     (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :fontsize-subscript) "10"))
-    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :label-break) ""))
     (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :margin) "0.5,0.5"))
     (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :dpi) "96"))
     (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :page) "7,5"))
@@ -975,6 +986,17 @@ opens the resulting pdf file for viewing."
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
       (hm::make-graphics-file cfg :sequence "pdf" "open"))))
+
+(deftest test-chronology ()
+  "Test the chronology graph. Checks whether the dot file exists, compiles it
+with dot, and opens the resulting pdf file for viewing."
+  (with-fixture fig-12-chronology
+    (let* ((cfg (hm::archaeological-sequence-configuration *sequence*))
+           (old-file (probe-file (hm::output-file-name cfg "chronology-dot"))))
+      (uiop:delete-file-if-exists old-file)
+      (hm::write-chronology-graph-to-dot-file *sequence*)
+      (is (probe-file (hm::output-file-name cfg "chronology-dot")))
+      (hm::make-graphics-file cfg :chronology "pdf" "open"))))
 
 ;; (deftest test-bldg-1-5 ()
 ;;   "Test that a large project actually runs, then writes a sequence graph dot
