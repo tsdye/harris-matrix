@@ -6,10 +6,6 @@
 
 (in-package #:hm)
 
-;; The inferior-shell package should enable hm.lisp to call a script
-;; that compiles and displays the dot file output.
-;; (require "inferior-shell")
-
 (defun <-dot-graph (attribute)
   "Format an attribute from the user's configuration for Graphviz."
   (quotes-around attribute))
@@ -34,13 +30,20 @@ behavior indicated in the user's configuration."
              (constantly (quotes-around user-val)))))
        (t (error "Error: Unable to set ~a ~a.~&" element dot-attr)))))
 
-;; passes test
+(defun to-chron-macro (seq element &optional (verbose t))
+  "Returns an anonymous function that takes a node or edge label for a
+  chronology graph and returns the behavior indicated in the user's
+  configuration."
+  (if (eq element :node)
+      (chronology-node-map seq verbose)
+      (chronology-edge-map seq verbose)))
+
 (defun quotes-around (string)
-  "Put quotes around STRING for output to dot."
-  (if (emptyp string) string
+  "Ensure there are double quotes around STRING for output to dot."
+  (if (emptyp string) "\"\""
       (let ((quote-char #\"))
         (if (and (eq (char string 0) quote-char)
-                 (eq (char string (1- (length string))) quote-char))
+                 (eq (char string (- (length string) 1)) quote-char))
             string
             (concatenate 'string "\"" string "\"")))))
 
@@ -296,20 +299,24 @@ empty graph. If VERBOSE, then advertise progress."
   "Perform transitive reduction on the directed acyclic GRAPH. Returns the
 possibly modified directed acyclic GRAPH."
   (let ((ret (graph:copy graph))
-        (r (graph-matrix:to-adjacency-matrix graph (new-matrix nil)))
-        (n (length (graph:nodes graph)))
-        (i (map-index-to-node graph)))
-    (loop :for x :below n :do
-      (loop :for y :below n :do
-        (loop :for z :below n :do
-          (when (= 1 (graph-matrix:matrix-ref r x y)
-                   (graph-matrix:matrix-ref r y z)
-                   (graph-matrix:matrix-ref r x z))
-  ;;          (setf (graph-matrix:matrix-ref r x z) 0)
-            (graph:delete-edge ret (list (fset:@ i x) (fset:@ i z)))
-            (when verbose
-              (format t "Transitive reduction removed the edge from node ~a to node ~a.~&"
-                      (fset:@ i x) (fset:@ i z)))))))
+        (a (graph-matrix:to-adjacency-matrix graph (new-matrix)))
+        (r (graph-matrix:to-reachability-matrix graph (new-matrix)))
+        (i (map-node-to-index graph))
+        (nodes (graph:nodes graph)))
+    (map-permutations
+     #'(lambda (x)
+         (when (and
+                (= (graph-matrix:matrix-ref a (fset:@ i (nth 0 x))
+                                            (fset:@ i (nth 1 x)))
+                   (graph-matrix:matrix-ref a (fset:@ i (nth 0 x))
+                                            (fset:@ i (nth 2 x)))
+                   1)
+                (graph-matrix:reachablep graph r (nth 1 x) (nth 2 x)))
+           (graph:delete-edge ret (list (nth 0 x) (nth 2 x)))
+           (when verbose
+             (format t "Transitive reduction removed the edge from node ~a to node ~a.~&"
+                     (nth 0 x) (nth 2 x)))))
+     nodes :length 3)
     ret))
 
 (defun new-matrix (&optional (fast t))
@@ -428,31 +435,31 @@ the archaeological sequence, SEQ."
                   (cons :labelloc (quotes-around
                                    (graphviz-sequence-graph-attribute cfg :labelloc))))
      :edge-attrs (list
-                  (cons :style (<-dot seq :edge :style :sequence verbose))
-                  (cons :arrowhead (<-dot seq :edge :arrowhead :sequence verbose))
-                  (cons :color (<-dot seq :edge :color :sequence verbose))
+                  (cons :style (<-seq seq :edge :style :sequence verbose))
+                  (cons :arrowhead (<-seq seq :edge :arrowhead :sequence verbose))
+                  (cons :color (<-seq seq :edge :color :sequence verbose))
                   (cons :fontname (graphviz-sequence-edge-attribute cfg :fontname))
-                  (cons :fontsize (<-dot seq :edge :fontsize :sequence verbose))
-                  (cons :fontcolor (<-dot seq :edge :fontcolor :sequence verbose))
-                  (cons :penwidth (<-dot seq :edge :penwidth :sequence verbose))
-                  ;; (cons :URL (<-dot seq :edge :url :sequence verbose))
+                  (cons :fontsize (<-seq seq :edge :fontsize :sequence verbose))
+                  (cons :fontcolor (<-seq seq :edge :fontcolor :sequence verbose))
+                  (cons :penwidth (<-seq seq :edge :penwidth :sequence verbose))
+                  ;; (cons :URL (<-seq seq :edge :url :sequence verbose))
                   )
      :node-attrs (list
-                  (cons :shape (<-dot seq :node :shape :sequence verbose))
-                  (cons :style (<-dot seq :node :style :sequence verbose))
+                  (cons :shape (<-seq seq :node :shape :sequence verbose))
+                  (cons :style (<-seq seq :node :style :sequence verbose))
                   (cons :fontname (graphviz-sequence-node-attribute cfg :fontname))
                   (cons :fontsize (graphviz-sequence-node-attribute cfg :fontsize))
-                  (cons :color (<-dot seq :node :color :sequence verbose))
-                  (cons :fillcolor (<-dot seq :node :fillcolor :sequence verbose))
-                  (cons :fontcolor (<-dot seq :node :fontcolor :sequence verbose))
-                  (cons :penwidth (<-dot seq :node :penwidth :sequence verbose))
-                  (cons :skew (<-dot seq :node :polygon-skew :sequence verbose))
-                  (cons :sides (<-dot seq :node :polygon-sides :sequence verbose))
+                  (cons :color (<-seq seq :node :color :sequence verbose))
+                  (cons :fillcolor (<-seq seq :node :fillcolor :sequence verbose))
+                  (cons :fontcolor (<-seq seq :node :fontcolor :sequence verbose))
+                  (cons :penwidth (<-seq seq :node :penwidth :sequence verbose))
+                  (cons :skew (<-seq seq :node :polygon-skew :sequence verbose))
+                  (cons :sides (<-seq seq :node :polygon-sides :sequence verbose))
                   (cons :orientation
-                        (<-dot seq :node :polygon-orientation :sequence verbose))
+                        (<-seq seq :node :polygon-orientation :sequence verbose))
                   (cons :distortion
-                        (<-dot seq :node :polygon-distortion :sequence verbose))
-                  ;; (cons :URL (<-dot seq :node :url :sequence verbose))
+                        (<-seq seq :node :polygon-distortion :sequence verbose))
+                  ;; (cons :URL (<-seq seq :node :url :sequence verbose))
                   ))
     (when verbose (format t "Wrote ~a.~%" out-file))))
 
@@ -493,14 +500,16 @@ the archaeological sequence, SEQ."
                   (cons :labelloc (quotes-around
                                    (graphviz-chronology-graph-attribute cfg :labelloc))))
      :edge-attrs (list
-                  (cons :style (<-dot seq :edge :style :chronology verbose))
+                  (cons :style (<-chron seq :edge verbose))
                   (cons :arrowhead (graphviz-chronology-edge-attribute cfg :arrowhead))
                   (cons :color (graphviz-chronology-edge-attribute cfg :color))
                   (cons :fontname (graphviz-chronology-edge-attribute cfg :fontname))
                   (cons :fontsize (graphviz-chronology-edge-attribute cfg :fontsize))
-                  (cons :fontcolor (graphviz-chronology-edge-attribute cfg :fontcolor)))
+                  (cons :fontcolor (graphviz-chronology-edge-attribute cfg :fontcolor))
+                  (cons :label (constantly (quotes-around ""))))
      :node-attrs (list
-                  (cons :shape (<-dot seq :node :shape :chronology verbose))
+                  (cons :label (graphviz-chronology-label-attribute))
+                  (cons :shape (<-chron seq :node verbose))
                   (cons :fontname (graphviz-chronology-node-attribute cfg :fontname))
                   (cons :fontsize (graphviz-chronology-node-attribute cfg :fontsize))
                   (cons :color (graphviz-chronology-node-attribute cfg :color))
