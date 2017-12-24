@@ -245,14 +245,16 @@
 
 (defixture transitive-graph
   (:setup (setf *transitive* (graph:populate (make-instance 'graph:digraph)
-                                             :nodes '(a b c)
+                                             :nodes '(a b c d)
                                              :edges '((a b)
                                                       (b c)
-                                                      (a c)))
+                                                      (c d)
+                                                      (a d)))
                 *intransitive* (graph:populate (make-instance 'graph:digraph)
                                                :nodes '(a b c)
                                                :edges '((a b)
-                                                        (b c)))
+                                                        (b c)
+                                                        (c d)))
                 *cfg* (hm:default-configuration)))
   (:teardown (setf *transitive* nil
                    *intransitive* nil
@@ -994,7 +996,7 @@ with dot, and opens the resulting pdf file for viewing."
     (let* ((cfg (hm::archaeological-sequence-configuration *sequence*))
            (old-file (probe-file (hm::output-file-name cfg "chronology-dot"))))
       (uiop:delete-file-if-exists old-file)
-      (hm::write-chronology-graph-to-dot-file *sequence*)
+      (hm::write-chronology-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "chronology-dot")))
       (hm::make-graphics-file cfg :chronology "pdf" "open"))))
 
