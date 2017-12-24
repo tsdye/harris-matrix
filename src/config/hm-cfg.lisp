@@ -309,6 +309,8 @@
 '("Graphviz chronology node attributes" "fontcolor" :node :fontcolor :chronology :none :none :none "black")
 '("Graphviz chronology node attributes" "color" :node :color :chronology :none :none :none "black")
 '("Graphviz chronology node attributes" "fillcolor" :node :fillcolor :chronology :none :none :none "white")
+'("Graphviz chronology node attributes" "phase" :node :phase :chronology :none :none :none "box")
+'("Graphviz chronology node attributes" "event" :node :event :chronology :none :none :none "ellipse")
 '("Graphviz chronology edge attributes" "fontname" :edge :fontname :chronology :none :none :none "Helvetica")
 '("Graphviz chronology edge attributes" "colorscheme" :edge :colorscheme :chronology :none :none :none "x11")
 '("Graphviz chronology edge attributes" "fontsize" :edge :fontsize :chronology :none :none :none "14.0")
@@ -318,10 +320,6 @@
 '("Graphviz chronology edge attributes" "abutting" :edge :abutting :chronology :none :none :none "dashed")
 '("Graphviz chronology edge attributes" "separated" :edge :separated :chronology :none :none :none "dotted")
 '("Graphviz chronology edge attributes" "color" :edge :color :chronology :none :none :none "black")
-'("Graphviz chronology node shapes" "phase" :node :phase :chronology :none :none :none "box")
-'("Graphviz chronology node shapes" "event" :node :event :chronology :none :none :none "ellipse")
-'("Graphviz colors" "label-dark" :node :label-dark :all :none :none :none "black")
-'("Graphviz colors" "label-light" :node :label-light :all :none :none :none "white")
 '("Graphviz legend node attributes" "color" :node :color :legend :none :none :none "black")
 '("Graphviz legend node attributes" "fillcolor" :node :fillcolor :legend :none :none :none "white")
 '("Graphviz legend node attributes" "shape" :node :shape :legend :none :none :none "box")))
@@ -475,6 +473,11 @@ user's configuration, CFG."
   (let ((attr (quotes-around
                (get-option cfg "Graphviz chronology node attributes" attribute))))
     (constantly attr)))
+
+(defun graphviz-chronology-label-attribute ()
+  #'(lambda (x)
+      (let* ((s (ppcre:split "-" (string-downcase x))))
+        (format nil "<&~a;<sub>~a</sub>>" (nth 0 s) (nth 1 s)))))
 
 (defun graphviz-chronology-edge-attribute (cfg attribute)
   "Return a function that returns the sequence graph edge attribute from the
