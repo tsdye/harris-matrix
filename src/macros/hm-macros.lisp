@@ -9,8 +9,11 @@
 
 ;; Macros
 
-(defmacro <-dot (seq element dot-attr graph-type verbose)
+(defmacro <-seq (seq element dot-attr graph-type verbose)
   (list 'to-dot-macro seq element dot-attr graph-type verbose))
+
+(defmacro <-chron (seq element verbose)
+  (list 'to-chron-macro seq element verbose))
 
 ;; From On Lisp, p. 92, a macro for testing macroexpansion
 (defmacro mac (expr)
