@@ -127,6 +127,26 @@ and the value is either the period or phase of the context."
             contexts)
     ret))
 
+(defun chronology-node-map (seq &optional (verbose t))
+  (let* ((cfg (archaeological-sequence-configuration seq))
+         (phases (fset:set #\a #\b #\A #\B))
+         (phase (get-option cfg "Graphviz chronology node attributes" "phase"))
+         (event (get-option cfg "Graphviz chronology node attributes" "event")))
+    #'(lambda (x)
+        (if (fset:contains? phases (char (string x) 0)) phase event))))
+
+(defun chronology-edge-map (seq &optional (verbose t))
+  (let* ((cfg (archaeological-sequence-configuration seq))
+         (graph (archaeological-sequence-chronology-graph seq))
+         (sequential (get-option cfg "Graphviz chronology edge attributes" "sequential"))
+         (abutting (get-option cfg "Graphviz chronology edge attributes" "abutting"))
+         (separated (get-option cfg "Graphviz chronology edge attributes" "separated")))
+    #'(lambda (x)
+        (case (graph:edge-value graph x)
+          (0 sequential)
+          (1 abutting)
+          (2 separated)))))
+
 (defun make-classifier (classifier-type seq &optional (verbose t))
   "Given a keyword indicating CLASSIFIER-TYPE and an archaeological sequence SEQ
 return an fset map where the key is a symbol for a node in the directed graph of
