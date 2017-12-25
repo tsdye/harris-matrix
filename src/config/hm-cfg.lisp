@@ -476,7 +476,7 @@ user's configuration, CFG."
 
 (defun graphviz-chronology-label-attribute ()
   #'(lambda (x)
-      (let* ((s (ppcre:split "-" (string-downcase x))))
+      (let ((s (ppcre:split "-" (string-downcase x))))
         (format nil "<&~a;<sub>~a</sub>>" (nth 0 s) (nth 1 s)))))
 
 (defun graphviz-chronology-edge-attribute (cfg attribute)
