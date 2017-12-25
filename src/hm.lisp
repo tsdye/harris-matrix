@@ -6,11 +6,6 @@
 
 (in-package #:hm)
 
-(defun <-dot-graph (attribute)
-  "Format an attribute from the user's configuration for Graphviz."
-  (quotes-around attribute))
-
-
 (defun to-dot-macro (seq element dot-attr graph-type &optional (verbose t))
   "Returns an anonymous function that takes a node or edge label and returns the
 behavior indicated in the user's configuration."
@@ -78,11 +73,11 @@ VERBOSE, then advertise the activity. Returns the possibly modified GRAPH."
 (defun make-new-sequence-graph (cfg &optional (verbose t))
   "Given a configuration CFG, make a new digraph instance and populate it with
   nodes and arcs from the files specified in the configuration."
-  (let ((new-graph (new-graph)))
-    (setf new-graph (add-nodes new-graph cfg verbose))
-    (setf new-graph (add-arcs new-graph cfg verbose))
-    (setf new-graph (assume-correlations new-graph cfg verbose))
-    new-graph))
+  (let ((graph (new-graph)))
+    (setf graph (add-nodes graph cfg verbose))
+    (setf graph (add-arcs graph cfg verbose))
+    (setf graph (assume-correlations graph cfg verbose))
+    graph))
 
 (defun check-cycles (graph)
   "Reports an error when cycles are present in GRAPH."
@@ -124,22 +119,21 @@ specifies that correlations should be assumed true, nil otherwise."
                                       (file-header-p cfg "inferences") verbose))
               (contexts (read-table (input-file-name cfg "contexts")
                                     (file-header-p cfg "contexts") verbose)))
-          (when inferences
-            (appendf ranks (set-same-ranks inferences))
-            (when verbose (format t "Ranks set from inferences.~&")))
-          (when contexts
-            (appendf ranks (set-other-ranks contexts))
-            (when verbose (format t "Ranks set from contexts.~&")))))
+          (when inferences (appendf ranks (set-same-ranks inferences))
+                (when verbose (format t "Ranks set from inferences.~&")))
+          (when contexts (appendf ranks (set-other-ranks contexts))
+                (when verbose (format t "Ranks set from contexts.~&")))))
     (when verbose (format t "Ranks not set.~&"))
     ranks))
 
-(defstruct (archaeological-sequence (:print-function print-archaeological-sequence)) "A structure to hold the user configuration, the resulting sequence
-and (optional) chronology graphs, and the various closures required to
-visualize the archaeological sequence with d3 and GraphViz."
-           (graph nil)
-           (chronology-graph nil)
-           (classifiers (fset:empty-map))
-           (configuration nil))
+(defstruct (archaeological-sequence (:print-function print-archaeological-sequence))
+  "A structure to hold the user configuration, the resulting sequence
+and (optional) chronology graphs, and the various closures required to visualize
+the archaeological sequence with d3 and GraphViz."
+  (graph nil)
+  (chronology-graph nil)
+  (classifiers (fset:empty-map))
+  (configuration nil))
 
 (defun print-archaeological-sequence (seq stream depth)
   (format stream
@@ -151,12 +145,10 @@ visualize the archaeological sequence with d3 and GraphViz."
               (length (graph:edges (archaeological-sequence-graph seq)))
               0)
           (if (archaeological-sequence-chronology-graph seq)
-              (length (graph:nodes (archaeological-sequence-chronology-graph
-                                    seq)))
+              (length (graph:nodes (archaeological-sequence-chronology-graph seq)))
               0)
           (if (archaeological-sequence-chronology-graph seq)
-              (length (graph:edges (archaeological-sequence-chronology-graph
-                                    seq)))
+              (length (graph:edges (archaeological-sequence-chronology-graph seq)))
               0)
           (if (archaeological-sequence-configuration seq) "yes" "no")
           (fset:size (archaeological-sequence-classifiers seq))))
@@ -172,18 +164,12 @@ discrepancies and errors out if it finds one."
   (let ((ret (copy-structure seq)))
     (setf (archaeological-sequence-configuration ret) cfg)
     (setf (archaeological-sequence-graph ret) (make-new-sequence-graph cfg verbose))
-    ;; (setf (archaeological-sequence-graph ret)
-    ;;       (add-missing-interfaces (archaeological-sequence-graph ret)
-    ;;                               cfg verbose))
-    ;; (setf (archaeological-sequence-graph ret)
-    ;;       (assume-correlations (archaeological-sequence-graph ret) cfg verbose))
     (setf (archaeological-sequence-chronology-graph ret)
           (create-chronology-graph ret verbose))
     (fset:do-set (classifier (classifiers))
                  (let ((class (sequence-classifier cfg classifier)))
                    (when class
-                     (when verbose
-                       (format t "Making classifier for ~a.~&" class))
+                     (when verbose (format t "Making classifier for ~a.~&" class))
                      (setf (archaeological-sequence-classifiers ret)
                            (fset:with
                             (archaeological-sequence-classifiers ret)
@@ -195,8 +181,7 @@ discrepancies and errors out if it finds one."
   "Returns a symbol for NODE or its correlated context."
   (let ((node-symbol (ensure-symbol node)))
     (if (and map (fset:domain-contains? map node-symbol))
-        (fset:@ map node-symbol)
-        node-symbol)))
+        (fset:@ map node-symbol) node-symbol)))
 
 (defun create-chronology-graph (seq &optional (verbose t))
   "If the user has requested a chronology graph, then create and return a
@@ -305,13 +290,12 @@ possibly modified directed acyclic GRAPH."
         (nodes (graph:nodes graph)))
     (map-permutations
      #'(lambda (x)
-         (when (and
-                (= (graph-matrix:matrix-ref a (fset:@ i (nth 0 x))
-                                            (fset:@ i (nth 1 x)))
-                   (graph-matrix:matrix-ref a (fset:@ i (nth 0 x))
-                                            (fset:@ i (nth 2 x)))
-                   1)
-                (graph-matrix:reachablep graph r (nth 1 x) (nth 2 x)))
+         (when
+             (and
+              (= (graph-matrix:matrix-ref a (fset:@ i (nth 0 x)) (fset:@ i (nth 1 x)))
+                 (graph-matrix:matrix-ref a (fset:@ i (nth 0 x)) (fset:@ i (nth 2 x)))
+                 1)
+              (graph-matrix:reachablep graph r (nth 1 x) (nth 2 x)))
            (graph:delete-edge ret (list (nth 0 x) (nth 2 x)))
            (when verbose
              (format t "Transitive reduction removed the edge from node ~a to node ~a.~&"
@@ -322,9 +306,8 @@ possibly modified directed acyclic GRAPH."
 (defun new-matrix (&optional (fast t))
   "Makes a matrix instance.  If FAST is t, then uses fast matrix
 routines.  If FAST is nil, then uses CL matrix routines."
-  (if fast
-      (make-instance 'graph-matrix:fast-matrix)
-    (make-instance 'graph-matrix:matrix)))
+  (if fast (make-instance 'graph-matrix:fast-matrix)
+      (make-instance 'graph-matrix:matrix)))
 
 ;; this function should calculate the missing interfaces, then write out revised
 ;; .ini and .csv files, but leave the working graph alone
@@ -340,24 +323,16 @@ routines.  If FAST is nil, then uses CL matrix routines."
                                   verbose))
             (context-lookup (fset:empty-map)))
         (dolist (context contexts)
-          (setf context-lookup (fset:with context-lookup
-                                          (ensure-symbol (nth 0 context))
-                                          (nth 1 context))))
+          (setf context-lookup
+                (fset:with context-lookup (ensure-symbol (nth 0 context))
+                           (nth 1 context))))
         (dolist (edge (graph:edges g))
-          (and (string= (fset:@ context-lookup
-                                (nth 0 edge))
-                        "deposit")
-               (string= (fset:@ context-lookup
-                                (nth 1 edge))
-                        "deposit")
+          (and (string= (fset:@ context-lookup (nth 0 edge)) "deposit")
+               (string= (fset:@ context-lookup (nth 1 edge)) "deposit")
                (push edge hiatus)))
-        (when verbose
-          (format t
-                  "Adding ~:d interfaces.~&"
-                  (list-length hiatus)))
+        (when verbose (format t "Adding ~:d interfaces.~&" (list-length hiatus)))
         (dolist (edge hiatus)
-          (let ((new-node (symbolicate (nth 1 edge)
-                                       "-*surface*")))
+          (let ((new-node (symbolicate (nth 1 edge) "-*surface*")))
             (graph:add-node g new-node)
             (graph:add-edge g (list (nth 0 edge) new-node))
             (graph:add-edge g (list new-node (nth 1 edge)))
@@ -372,12 +347,12 @@ routines.  If FAST is nil, then uses CL matrix routines."
 where the indicated nodes are to appear on the same rank of the graph
 picture."
   (let ((ranks))
-    (mapcar #'(lambda (x)
-                (push (graph-dot::make-rank :value "same"
-                                            :node-list (list (nth 0 x)
-                                                             (nth 1 x)))
-                      ranks))
-            table)
+    (mapcar
+     #'(lambda (x)
+         (push (graph-dot::make-rank
+                :value "same" :node-list (list (nth 0 x) (nth 1 x)))
+               ranks))
+     table)
     ranks))
 
 (defun set-other-ranks (table)
@@ -390,9 +365,8 @@ the graph picture."
          (let ((rank (nth 2 x)))
            (when (or (equal rank "basal") (equal rank "surface"))
              (push (graph-dot::make-rank
-                    :value (cond
-                             ((equal rank "basal") "sink")
-                             ((equal rank "surface") "source"))
+                    :value (cond ((equal rank "basal") "sink")
+                                 ((equal rank "surface") "source"))
                     :node-list (list (nth 0 x)))
                    ranks))))
      table)
@@ -401,118 +375,93 @@ the graph picture."
 (defun write-sequence-graph-to-dot-file (seq &optional (verbose t))
   "Write a sequence graph to a Graphviz dot file, based on the information in
 the archaeological sequence, SEQ."
-  (let* ((cfg (archaeological-sequence-configuration seq))
-         (graph (archaeological-sequence-graph seq))
-         (out-file (output-file-name cfg :sequence-dot)))
+  (let ((cfg (archaeological-sequence-configuration seq))
+        (graph (archaeological-sequence-graph seq)))
     (graph-dot:to-dot-file
-     graph out-file
-;;     :ranks (graphviz-make-ranks cfg verbose)
-     :attributes (list
-                  (cons :style (quotes-around
-                                (graphviz-sequence-graph-attribute cfg :style)))
-                  (cons :dpi (quotes-around
-                              (graphviz-sequence-graph-attribute cfg :dpi)))
-                  (cons :margin (quotes-around
-                                 (graphviz-sequence-graph-attribute cfg :margin)))
-                  (cons :bgcolor (quotes-around
-                                  (graphviz-sequence-graph-color cfg :bgcolor)))
-                  (cons :fontname (quotes-around
-                                   (graphviz-sequence-graph-attribute cfg :fontname)))
-                  (cons :fontsize (quotes-around
-                                   (graphviz-sequence-graph-attribute cfg :fontsize)))
-                  (cons :fontcolor (quotes-around
-                                    (graphviz-sequence-graph-color cfg :fontcolor)) )
-                  (cons :splines (quotes-around
-                                  (graphviz-sequence-graph-attribute cfg :splines)))
-                  (cons :page (quotes-around
-                               (graphviz-sequence-graph-attribute cfg :page)))
-                  (cons :size (quotes-around
-                               (graphviz-sequence-graph-attribute cfg :size)))
-                  (cons :ratio (quotes-around
-                                (graphviz-sequence-graph-attribute cfg :ratio)))
-                  (cons :label (quotes-around
-                                (graphviz-sequence-graph-attribute cfg :label)))
-                  (cons :labelloc (quotes-around
-                                   (graphviz-sequence-graph-attribute cfg :labelloc))))
-     :edge-attrs (list
-                  (cons :style (<-seq seq :edge :style :sequence verbose))
-                  (cons :arrowhead (<-seq seq :edge :arrowhead :sequence verbose))
-                  (cons :color (<-seq seq :edge :color :sequence verbose))
-                  (cons :fontname (graphviz-sequence-edge-attribute cfg :fontname))
-                  (cons :fontsize (<-seq seq :edge :fontsize :sequence verbose))
-                  (cons :fontcolor (<-seq seq :edge :fontcolor :sequence verbose))
-                  (cons :penwidth (<-seq seq :edge :penwidth :sequence verbose))
-                  ;; (cons :URL (<-seq seq :edge :url :sequence verbose))
-                  )
-     :node-attrs (list
-                  (cons :shape (<-seq seq :node :shape :sequence verbose))
-                  (cons :style (<-seq seq :node :style :sequence verbose))
-                  (cons :fontname (graphviz-sequence-node-attribute cfg :fontname))
-                  (cons :fontsize (graphviz-sequence-node-attribute cfg :fontsize))
-                  (cons :color (<-seq seq :node :color :sequence verbose))
-                  (cons :fillcolor (<-seq seq :node :fillcolor :sequence verbose))
-                  (cons :fontcolor (<-seq seq :node :fontcolor :sequence verbose))
-                  (cons :penwidth (<-seq seq :node :penwidth :sequence verbose))
-                  (cons :skew (<-seq seq :node :polygon-skew :sequence verbose))
-                  (cons :sides (<-seq seq :node :polygon-sides :sequence verbose))
-                  (cons :orientation
-                        (<-seq seq :node :polygon-orientation :sequence verbose))
-                  (cons :distortion
-                        (<-seq seq :node :polygon-distortion :sequence verbose))
-                  ;; (cons :URL (<-seq seq :node :url :sequence verbose))
-                  ))
+     graph (output-file-name cfg :sequence-dot)
+     :attributes
+     (list
+      (cons :style (quotes-around (graphviz-sequence-graph-attribute cfg :style)))
+      (cons :dpi (quotes-around (graphviz-sequence-graph-attribute cfg :dpi)))
+      (cons :margin (quotes-around (graphviz-sequence-graph-attribute cfg :margin)))
+      (cons :bgcolor (quotes-around (graphviz-sequence-graph-color cfg :bgcolor)))
+      (cons :fontname (quotes-around (graphviz-sequence-graph-attribute cfg :fontname)))
+      (cons :fontsize (quotes-around (graphviz-sequence-graph-attribute cfg :fontsize)))
+      (cons :fontcolor (quotes-around (graphviz-sequence-graph-color cfg :fontcolor)) )
+      (cons :splines (quotes-around (graphviz-sequence-graph-attribute cfg :splines)))
+      (cons :page (quotes-around (graphviz-sequence-graph-attribute cfg :page)))
+      (cons :size (quotes-around (graphviz-sequence-graph-attribute cfg :size)))
+      (cons :ratio (quotes-around (graphviz-sequence-graph-attribute cfg :ratio)))
+      (cons :label (quotes-around (graphviz-sequence-graph-attribute cfg :label)))
+      (cons :labelloc (quotes-around (graphviz-sequence-graph-attribute cfg :labelloc))))
+     :edge-attrs
+     (list
+      (cons :style (<-seq seq :edge :style :sequence verbose))
+      (cons :arrowhead (<-seq seq :edge :arrowhead :sequence verbose))
+      (cons :color (<-seq seq :edge :color :sequence verbose))
+      (cons :fontname (graphviz-sequence-edge-attribute cfg :fontname))
+      (cons :fontsize (<-seq seq :edge :fontsize :sequence verbose))
+      (cons :fontcolor (<-seq seq :edge :fontcolor :sequence verbose))
+      (cons :penwidth (<-seq seq :edge :penwidth :sequence verbose))
+      ;; (cons :URL (<-seq seq :edge :url :sequence verbose))
+      )
+     :node-attrs
+     (list
+      (cons :shape (<-seq seq :node :shape :sequence verbose))
+      (cons :style (<-seq seq :node :style :sequence verbose))
+      (cons :fontname (graphviz-sequence-node-attribute cfg :fontname))
+      (cons :fontsize (graphviz-sequence-node-attribute cfg :fontsize))
+      (cons :color (<-seq seq :node :color :sequence verbose))
+      (cons :fillcolor (<-seq seq :node :fillcolor :sequence verbose))
+      (cons :fontcolor (<-seq seq :node :fontcolor :sequence verbose))
+      (cons :penwidth (<-seq seq :node :penwidth :sequence verbose))
+      (cons :skew (<-seq seq :node :polygon-skew :sequence verbose))
+      (cons :sides (<-seq seq :node :polygon-sides :sequence verbose))
+      (cons :orientation (<-seq seq :node :polygon-orientation :sequence verbose))
+      (cons :distortion (<-seq seq :node :polygon-distortion :sequence verbose))
+      ;; (cons :URL (<-seq seq :node :url :sequence verbose))
+      ))
     (when verbose (format t "Wrote ~a.~%" out-file))))
 
 (defun write-chronology-graph-to-dot-file (seq &optional (verbose t))
   "Write a chronology graph to a Graphviz dot file, based on the information in
 the archaeological sequence, SEQ."
-  (let* ((cfg (archaeological-sequence-configuration seq))
-         (graph (archaeological-sequence-chronology-graph seq))
-         (out-file (output-file-name cfg :chronology-dot)))
+  (let ((cfg (archaeological-sequence-configuration seq))
+        (graph (archaeological-sequence-chronology-graph seq)))
     (graph-dot:to-dot-file
-     graph out-file
-;;     :ranks (graphviz-make-ranks cfg verbose)
-     :attributes (list
-                  (cons :style (quotes-around
-                                (graphviz-chronology-graph-attribute cfg :style)))
-                  (cons :dpi (quotes-around
-                              (graphviz-chronology-graph-attribute cfg :dpi)))
-                  (cons :margin (quotes-around
-                                 (graphviz-chronology-graph-attribute cfg :margin)))
-                  (cons :bgcolor (quotes-around
-                                  (graphviz-chronology-graph-color cfg :bgcolor)))
-                  (cons :fontname (quotes-around
-                                   (graphviz-chronology-graph-attribute cfg :fontname)))
-                  (cons :fontsize (quotes-around
-                                   (graphviz-chronology-graph-attribute cfg :fontsize)))
-                  (cons :fontcolor (quotes-around
-                                    (graphviz-chronology-graph-color cfg :fontcolor)) )
-                  (cons :splines (quotes-around
-                                  (graphviz-chronology-graph-attribute cfg :splines)))
-                  (cons :page (quotes-around
-                               (graphviz-chronology-graph-attribute cfg :page)))
-                  (cons :size (quotes-around
-                               (graphviz-chronology-graph-attribute cfg :size)))
-                  (cons :ratio (quotes-around
-                                (graphviz-chronology-graph-attribute cfg :ratio)))
-                  (cons :label (quotes-around
-                                (graphviz-chronology-graph-attribute cfg :label)))
-                  (cons :labelloc (quotes-around
-                                   (graphviz-chronology-graph-attribute cfg :labelloc))))
-     :edge-attrs (list
-                  (cons :style (<-chron seq :edge verbose))
-                  (cons :arrowhead (graphviz-chronology-edge-attribute cfg :arrowhead))
-                  (cons :color (graphviz-chronology-edge-attribute cfg :color))
-                  (cons :fontname (graphviz-chronology-edge-attribute cfg :fontname))
-                  (cons :fontsize (graphviz-chronology-edge-attribute cfg :fontsize))
-                  (cons :fontcolor (graphviz-chronology-edge-attribute cfg :fontcolor))
-                  (cons :label (constantly (quotes-around ""))))
-     :node-attrs (list
-                  (cons :label (graphviz-chronology-label-attribute))
-                  (cons :shape (<-chron seq :node verbose))
-                  (cons :fontname (graphviz-chronology-node-attribute cfg :fontname))
-                  (cons :fontsize (graphviz-chronology-node-attribute cfg :fontsize))
-                  (cons :color (graphviz-chronology-node-attribute cfg :color))
-                  (cons :fillcolor (graphviz-chronology-node-attribute cfg :fillcolor))
-                  (cons :fontcolor (graphviz-chronology-node-attribute cfg :fontcolor))))
+     graph (output-file-name cfg :chronology-dot)
+     :attributes
+     (list
+      (cons :style (quotes-around (graphviz-chronology-graph-attribute cfg :style)))
+      (cons :dpi (quotes-around (graphviz-chronology-graph-attribute cfg :dpi)))
+      (cons :margin (quotes-around (graphviz-chronology-graph-attribute cfg :margin)))
+      (cons :bgcolor (quotes-around (graphviz-chronology-graph-color cfg :bgcolor)))
+      (cons :fontname (quotes-around (graphviz-chronology-graph-attribute cfg :fontname)))
+      (cons :fontsize (quotes-around (graphviz-chronology-graph-attribute cfg :fontsize)))
+      (cons :fontcolor (quotes-around (graphviz-chronology-graph-color cfg :fontcolor)) )
+      (cons :splines (quotes-around (graphviz-chronology-graph-attribute cfg :splines)))
+      (cons :page (quotes-around (graphviz-chronology-graph-attribute cfg :page)))
+      (cons :size (quotes-around (graphviz-chronology-graph-attribute cfg :size)))
+      (cons :ratio (quotes-around (graphviz-chronology-graph-attribute cfg :ratio)))
+      (cons :label (quotes-around (graphviz-chronology-graph-attribute cfg :label)))
+      (cons :labelloc (quotes-around
+                       (graphviz-chronology-graph-attribute cfg :labelloc))))
+     :edge-attrs
+     (list
+      (cons :style (<-chron seq :edge verbose))
+      (cons :arrowhead (graphviz-chronology-edge-attribute cfg :arrowhead))
+      (cons :color (graphviz-chronology-edge-attribute cfg :color))
+      (cons :fontname (graphviz-chronology-edge-attribute cfg :fontname))
+      (cons :fontsize (graphviz-chronology-edge-attribute cfg :fontsize))
+      (cons :fontcolor (graphviz-chronology-edge-attribute cfg :fontcolor))
+      (cons :label (constantly (quotes-around ""))))
+     :node-attrs
+     (list
+      (cons :label (graphviz-chronology-label-attribute))
+      (cons :shape (<-chron seq :node verbose))
+      (cons :fontname (graphviz-chronology-node-attribute cfg :fontname))
+      (cons :fontsize (graphviz-chronology-node-attribute cfg :fontsize))
+      (cons :color (graphviz-chronology-node-attribute cfg :color))
+      (cons :fillcolor (graphviz-chronology-node-attribute cfg :fillcolor))
+      (cons :fontcolor (graphviz-chronology-node-attribute cfg :fontcolor))))
     (when verbose (format t "Wrote ~a.~%" out-file))))
