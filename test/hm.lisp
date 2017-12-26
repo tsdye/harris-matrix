@@ -25,6 +25,18 @@
 (defvar *sequence* nil
   "Variable to hold an archaeological-sequence for use in hm tests.")
 
+(defixture fig-12-urls
+  (:setup (setf *sequence*
+                (hm::configure-archaeological-sequence
+                 (hm::make-archaeological-sequence)
+                 (hm:read-configuration-from-files
+                  nil
+                  (uiop:merge-pathnames*
+                   "test/assets/examples/harris-fig-12-urls/fig-12.ini"
+                   (asdf:system-source-directory :hm-test)))
+                 nil)))
+  (:teardown (setf *sequence* nil)))
+
 (defixture fig-12-chronology
   (:setup (setf *sequence*
                 (hm::configure-archaeological-sequence
@@ -575,11 +587,6 @@ that it errors out when set to an invalid value."
 ;;     (with-expected-failures
 ;;       (is (hm::include-url-p *cfg*)))))
 
-(deftest test-default-url ()
-  "Test that DEFAULT-URL returns the value given in the default configuration."
-  (with-fixture default-config
-    (is (equal (hm::default-url *cfg*) "http://tsdye.github.io/harris-matrix/"))))
-
 (deftest test-sequence-classifier ()
   "Test that SEQUENCE-CLASSIFIER returns the values given in the default
   configuration."
@@ -999,6 +1006,18 @@ with dot, and opens the resulting pdf file for viewing."
       (hm::write-chronology-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "chronology-dot")))
       (hm::make-graphics-file cfg :chronology "pdf" "open"))))
+
+(deftest test-urls ()
+  "Test that urls are inserted properly in the sequence graph. Checks whether
+the dot file exists, compiles it with dot, and opens the resulting svg file for
+viewing."
+  (with-fixture fig-12-urls
+    (let* ((cfg (hm::archaeological-sequence-configuration *sequence*))
+           (old-file (probe-file (hm::output-file-name cfg "sequence-dot"))))
+      (uiop:delete-file-if-exists old-file)
+      (hm::write-sequence-graph-to-dot-file *sequence* nil)
+      (is (probe-file (hm::output-file-name cfg "sequence-dot")))
+      (hm::make-graphics-file cfg :sequence "svg" "open"))))
 
 ;; (deftest test-bldg-1-5 ()
 ;;   "Test that a large project actually runs, then writes a sequence graph dot
