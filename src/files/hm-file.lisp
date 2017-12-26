@@ -227,7 +227,8 @@ by the dot program."
                      (output-file-name
                       cfg (case graph (:sequence :sequence-dot)
                                 (:chronology :chronology-dot))))))
-         (can-open (fset:set "jpg" "jpe" "jp2" "jpeg" "png" "pdf" "tif" "tiff" "gif"))
+         (can-open
+           (fset:set "jpg" "jpe" "jp2" "jpeg" "png" "pdf" "tif" "tiff" "gif" "svg"))
          (two-outputs (fset:set "imap" "cmapx" "imap_np" "cmapx_np"))
          (output-file (ppcre:regex-replace "[.]dot" (copy-seq dot-file)
                                            (format nil ".~a" ext))))
