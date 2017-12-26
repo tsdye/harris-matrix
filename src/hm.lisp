@@ -71,8 +71,8 @@ VERBOSE, then advertise the activity. Returns the possibly modified GRAPH."
     ret))
 
 (defun make-new-sequence-graph (cfg &optional (verbose t))
-  "Given a configuration CFG, make a new digraph instance and populate it with
-  nodes and arcs from the files specified in the configuration."
+  "Given a configuration CFG, make a new digraph instance, populate it with
+  nodes and arcs from the files specified in the configuration, and return it."
   (let ((graph (new-graph)))
     (setf graph (add-nodes graph cfg verbose))
     (setf graph (add-arcs graph cfg verbose))
@@ -80,7 +80,8 @@ VERBOSE, then advertise the activity. Returns the possibly modified GRAPH."
     graph))
 
 (defun check-cycles (graph)
-  "Reports an error when cycles are present in GRAPH."
+  "Reports an error when cycles are present in GRAPH, or returns nil if no
+cycles are found."
   (and (graph:cycles graph) (error "Error: Graph contains a cycle")))
 
 (defun assume-correlations (graph cfg &optional (verbose t))
@@ -375,10 +376,11 @@ the graph picture."
 (defun write-sequence-graph-to-dot-file (seq &optional (verbose t))
   "Write a sequence graph to a Graphviz dot file, based on the information in
 the archaeological sequence, SEQ."
-  (let ((cfg (archaeological-sequence-configuration seq))
-        (graph (archaeological-sequence-graph seq)))
+  (let* ((cfg (archaeological-sequence-configuration seq))
+         (graph (archaeological-sequence-graph seq))
+         (out-file (output-file-name cfg :sequence-dot)))
     (graph-dot:to-dot-file
-     graph (output-file-name cfg :sequence-dot)
+     graph out-file
      :attributes
      (list
       (cons :style (quotes-around (graphviz-sequence-graph-attribute cfg :style)))
@@ -392,6 +394,7 @@ the archaeological sequence, SEQ."
       (cons :page (quotes-around (graphviz-sequence-graph-attribute cfg :page)))
       (cons :size (quotes-around (graphviz-sequence-graph-attribute cfg :size)))
       (cons :ratio (quotes-around (graphviz-sequence-graph-attribute cfg :ratio)))
+      (cons :url (quotes-around (graphviz-sequence-graph-attribute cfg :url)))
       (cons :label (quotes-around (graphviz-sequence-graph-attribute cfg :label)))
       (cons :labelloc (quotes-around (graphviz-sequence-graph-attribute cfg :labelloc))))
      :edge-attrs
@@ -399,18 +402,17 @@ the archaeological sequence, SEQ."
       (cons :style (<-seq seq :edge :style :sequence verbose))
       (cons :arrowhead (<-seq seq :edge :arrowhead :sequence verbose))
       (cons :color (<-seq seq :edge :color :sequence verbose))
-      (cons :fontname (graphviz-sequence-edge-attribute cfg :fontname))
+      (cons :fontname (graphviz-sequence-edge-attribute cfg :fontname verbose))
       (cons :fontsize (<-seq seq :edge :fontsize :sequence verbose))
       (cons :fontcolor (<-seq seq :edge :fontcolor :sequence verbose))
       (cons :penwidth (<-seq seq :edge :penwidth :sequence verbose))
-      ;; (cons :URL (<-seq seq :edge :url :sequence verbose))
-      )
+      (cons :URL (graphviz-sequence-edge-attribute cfg :url verbose)))
      :node-attrs
      (list
       (cons :shape (<-seq seq :node :shape :sequence verbose))
       (cons :style (<-seq seq :node :style :sequence verbose))
-      (cons :fontname (graphviz-sequence-node-attribute cfg :fontname))
-      (cons :fontsize (graphviz-sequence-node-attribute cfg :fontsize))
+      (cons :fontname (graphviz-sequence-node-attribute cfg :fontname verbose))
+      (cons :fontsize (graphviz-sequence-node-attribute cfg :fontsize verbose))
       (cons :color (<-seq seq :node :color :sequence verbose))
       (cons :fillcolor (<-seq seq :node :fillcolor :sequence verbose))
       (cons :fontcolor (<-seq seq :node :fontcolor :sequence verbose))
@@ -419,8 +421,7 @@ the archaeological sequence, SEQ."
       (cons :sides (<-seq seq :node :polygon-sides :sequence verbose))
       (cons :orientation (<-seq seq :node :polygon-orientation :sequence verbose))
       (cons :distortion (<-seq seq :node :polygon-distortion :sequence verbose))
-      ;; (cons :URL (<-seq seq :node :url :sequence verbose))
-      ))
+      (cons :URL (graphviz-sequence-node-attribute cfg :url verbose))))
     (when verbose (format t "Wrote ~a.~%" out-file))))
 
 (defun write-chronology-graph-to-dot-file (seq &optional (verbose t))
