@@ -36,7 +36,6 @@
 '("Input file headers" "event-order" :none :none :chronology :none :none :header "")
 '("General configuration" "chronology-graph-draw" :none :none :chronology :none :none :none "off")
 '("General configuration" "project-directory" :none :none :none :none :none :none "")
-'("General configuration" "url-default" :none :none :sequence :none :none :none "http://tsdye.github.io/harris-matrix/")
 '("General configuration" "legend" :none :none :all :none :none :none "off")
 '("General configuration" "assume-correlations" :none :none :sequence :none :none :none "no")
 '("General configuration" "fast-matrix" :none :none :sequence :none :none :none "on")
@@ -77,6 +76,7 @@
 '("Graphviz sequence graph attributes" "margin" :graph :margin :sequence :none :none :graph "0.5,0.5")
 '("Graphviz sequence graph attributes" "fontsize-subscript" :graph :fontsize-subscript :sequence :none :none :graph "10")
 '("Graphviz sequence graph attributes" "splines" :graph :splines :sequence :none :none :graph "ortho")
+'("Graphviz sequence graph attributes" "url" :graph :url :sequence :none :none :graph "http://tsdye.github.io/harris-matrix/")
 '("Graphviz sequence edge attributes" "edge-classify-by" :edge :none :sequence :none :none :edge "from")
 '("Graphviz sequence edge attributes" "colorscheme" :edge :colorscheme :sequence :none :none :edge "x11")
 '("Graphviz sequence edge attributes" "style" :edge :style :sequence :none :none :edge "solid")
@@ -90,6 +90,7 @@
 '("Graphviz sequence edge attributes" "penwidth" :edge :penwidth :sequence :none :none :edge "1.0")
 '("Graphviz sequence edge attributes" "penwidth-min" :edge :penwidth-min :sequence :none :none :edge "1.0")
 '("Graphviz sequence edge attributes" "penwidth-max" :edge :penwidth-max :sequence :none :none :edge "1.0")
+'("Graphviz sequence edge attributes" "url" :edge :url :sequence :none :none :edge "http://tsdye.github.io/harris-matrix/")
 '("Graphviz sequence edge font color schemes" "levels" :edge :colorscheme :sequence :edge-fontcolor-by :levels :levels "accent")
 '("Graphviz sequence edge font color schemes" "distance" :edge :colorscheme :sequence :edge-fontcolor-by :distance :distance "accent")
 '("Graphviz sequence edge font color schemes" "periods" :edge :colorscheme :sequence :edge-fontcolor-by :periods :periods "set1")
@@ -124,6 +125,7 @@
 '("Graphviz sequence node attributes" "polygon-skew" :node :polygon-skew :sequence :none :none :node "0.0")
 '("Graphviz sequence node attributes" "polygon-skew-min" :node :polygon-skew-min :sequence :none :none :node "-1.0")
 '("Graphviz sequence node attributes" "polygon-skew-max" :node :polygon-skew-max :sequence :none :none :node "1.0")
+'("Graphviz sequence node attributes" "url" :node :url :sequence :none :none :node "http://tsdye.github.io/harris-matrix/")
 '("Graphviz sequence node fill color schemes" "levels" :node :colorscheme :sequence :node-fillcolor-by :levels :levels "accent")
 '("Graphviz sequence node fill color schemes" "distance" :node :colorscheme :sequence :node-fillcolor-by :distance :distance "accent")
 '("Graphviz sequence node fill color schemes" "periods" :node :colorscheme :sequence :node-fillcolor-by :periods :periods "set1")
@@ -490,19 +492,48 @@ user's configuration, CFG."
   "Return the sequence graph attribute from the user's configuration, CFG."
   (get-option cfg "Graphviz sequence graph attributes" attribute))
 
-(defun graphviz-sequence-edge-attribute (cfg attribute)
-  "Return a function that returns the sequence graph edge attribute from the
-user's configuration, CFG."
-  (let ((attr (quotes-around
-               (get-option cfg "Graphviz sequence edge attributes" attribute))))
-    (constantly attr)))
+(defun make-edge-url-map (cfg &optional (verbose t))
+  (let ((url-list (read-table (input-file-name cfg "observations")
+                              (file-header-p cfg "observations") verbose))
+        (map (fset:empty-map)))
+    (dolist (edge url-list)
+      (setf map (fset:with map (list (ensure-symbol (nth 0 edge))
+                                     (ensure-symbol (nth 1 edge))) (nth 2 edge))))
+    map))
 
-(defun graphviz-sequence-node-attribute (cfg attribute)
+(defun make-node-url-map (cfg &optional (verbose t))
+  (let ((url-list (read-table (input-file-name cfg "contexts")
+                              (file-header-p cfg "contexts") verbose))
+        (map (fset:empty-map)))
+    (dolist (node url-list)
+      (setf map (fset:with map (ensure-symbol (nth 0 node)) (nth 5 node))))
+    map))
+
+(defun graphviz-sequence-edge-attribute (cfg attribute &optional (verbose t))
+  "Return a function that returns the sequence graph edge attribute from the
+user's configuration, CFG, or, in the case of an URL, from the URL field of the
+observations file."
+  (let ((attr (quotes-around (get-option cfg "Graphviz sequence edge attributes"
+                                         attribute))))
+    (if (eq attribute :url)
+        (let ((map (make-edge-url-map cfg verbose)))
+          #'(lambda (x)
+              (let ((url (fset:@ map x)))
+                (if (emptyp url) attr (quotes-around url)))))
+        (constantly attr))))
+
+(defun graphviz-sequence-node-attribute (cfg attribute &optional (verbose t))
   "Return a function that returns the sequence graph node attribute from the
-user's configuration, CFG."
-  (let ((attr (quotes-around
-               (get-option cfg "Graphviz sequence node attributes" attribute))))
-    (constantly attr)))
+user's configuration, CFG, or, in the case of an URL, from the URL field of the
+contexts file."
+  (let ((attr (quotes-around (get-option cfg "Graphviz sequence node attributes"
+                                         attribute))))
+    (if (eq attribute :url)
+        (let ((map (make-node-url-map cfg verbose)))
+          #'(lambda (x)
+              (let ((url (fset:@ map x)))
+                (if (emptyp url) attr (quotes-around url)))))
+        (constantly attr))))
 
 (defun graphviz-sequence-graph-color (cfg attribute)
   "Return a graphviz color string for the sequence graph ATTRIBUTE from the
@@ -589,18 +620,6 @@ not set."
         (get-option cfg "General configuration" "chronology-graph-draw" :type :boolean)
         (unless (emptyp value)
           (error "Error: ~s is not valid for chronology-graph-draw." value)))))
-
-;; (defun include-url-p (cfg)
-;;   "Return a boolean value read from the user's configuration, CFG, indicating whether or not to include an URL in the output."
-;;   (let ((value (get-option cfg "General configuration" "url-include")))
-;;     (if (fset:contains? (boolean-strings) value)
-;;         (get-option cfg "General configuration" "url-include" :type :boolean)
-;;         (unless (emptyp value)
-;;           (error "Error: ~s is not valid for url-include." value)))))
-
-(defun default-url (cfg)
-  "Return the default URL from the user's configuration, CFG, as a string"
-  (get-option cfg "General configuration" "url-default"))
 
 (defun sequence-classifier (cfg option)
   "Get the sequence classification, OPTION, from the user's configuration, CFG,
