@@ -287,8 +287,7 @@ possibly modified directed acyclic GRAPH."
   (let ((ret (graph:copy graph))
         (a (graph-matrix:to-adjacency-matrix graph (new-matrix)))
         (r (graph-matrix:to-reachability-matrix graph (new-matrix)))
-        (i (map-node-to-index graph))
-        (nodes (graph:nodes graph)))
+        (i (map-node-to-index graph)))
     (map-permutations
      #'(lambda (x)
          (when
@@ -301,7 +300,7 @@ possibly modified directed acyclic GRAPH."
            (when verbose
              (format t "Transitive reduction removed the edge from node ~a to node ~a.~&"
                      (nth 0 x) (nth 2 x)))))
-     nodes :length 3)
+     (graph:nodes graph) :length 3)
     ret))
 
 (defun new-matrix (&optional (fast t))
@@ -309,37 +308,6 @@ possibly modified directed acyclic GRAPH."
 routines.  If FAST is nil, then uses CL matrix routines."
   (if fast (make-instance 'graph-matrix:fast-matrix)
       (make-instance 'graph-matrix:matrix)))
-
-;; this function should calculate the missing interfaces, then write out revised
-;; .ini and .csv files, but leave the working graph alone
-(defun add-missing-interfaces (graph cfg &optional (verbose t))
-  "Check for edges in GRAPH that connect two depositional nodes and, if found,
-  insert an interfacial node between them.  Returns the possibly
-  modified GRAPH."
-  (if (missing-interfaces-p cfg)
-      (let ((hiatus)
-            (g (graph:copy graph))
-            (contexts (read-table (input-file-name cfg "contexts")
-                                  (file-header-p cfg "contexts")
-                                  verbose))
-            (context-lookup (fset:empty-map)))
-        (dolist (context contexts)
-          (setf context-lookup
-                (fset:with context-lookup (ensure-symbol (nth 0 context))
-                           (nth 1 context))))
-        (dolist (edge (graph:edges g))
-          (and (string= (fset:@ context-lookup (nth 0 edge)) "deposit")
-               (string= (fset:@ context-lookup (nth 1 edge)) "deposit")
-               (push edge hiatus)))
-        (when verbose (format t "Adding ~:d interfaces.~&" (list-length hiatus)))
-        (dolist (edge hiatus)
-          (let ((new-node (symbolicate (nth 1 edge) "-*surface*")))
-            (graph:add-node g new-node)
-            (graph:add-edge g (list (nth 0 edge) new-node))
-            (graph:add-edge g (list new-node (nth 1 edge)))
-            (graph:delete-edge g edge)))
-        g)
-    graph))
 
 ;; graph structure functions
 
@@ -427,10 +395,11 @@ the archaeological sequence, SEQ."
 (defun write-chronology-graph-to-dot-file (seq &optional (verbose t))
   "Write a chronology graph to a Graphviz dot file, based on the information in
 the archaeological sequence, SEQ."
-  (let ((cfg (archaeological-sequence-configuration seq))
-        (graph (archaeological-sequence-chronology-graph seq)))
+  (let* ((cfg (archaeological-sequence-configuration seq))
+         (graph (archaeological-sequence-chronology-graph seq))
+         (out-file (output-file-name cfg :chronology-dot)))
     (graph-dot:to-dot-file
-     graph (output-file-name cfg :chronology-dot)
+     graph out-file
      :attributes
      (list
       (cons :style (quotes-around (graphviz-chronology-graph-attribute cfg :style)))
@@ -466,3 +435,62 @@ the archaeological sequence, SEQ."
       (cons :fillcolor (graphviz-chronology-node-attribute cfg :fillcolor))
       (cons :fontcolor (graphviz-chronology-node-attribute cfg :fontcolor))))
     (when verbose (format t "Wrote ~a.~%" out-file))))
+
+(defun load-project (cfg-file &optional (verbose t))
+  "Given a path to the user's configuration file, CFG-FILE, read the file,
+configure the archaeological sequence, check it for errors, and return it."
+  (let ((seq (hm::make-archaeological-sequence))
+        (cfg (hm:read-configuration-from-files verbose cfg-file)))
+    (hm::configure-archaeological-sequence seq cfg verbose)))
+
+(defun run-sequence (seq &optional (verbose t) display (cmd "open"))
+  "Given an archaeological sequence, SEQ, carry out its instructions, and write
+  a dot file for the archaeological sequence. If the dot file for the
+  archaeological sequence already exists, it will be deleted. If VERBOSE,
+  advertise progress and check with the user whether or not to overwrite an
+  existing file. If DISPLAY is set to a string with a valid dot file format,
+  then run dot and display the resulting graphic file with the command, CMD."
+  (let* ((cfg (hm::archaeological-sequence-configuration seq))
+         (old-file (probe-file (hm::output-file-name cfg "sequence-dot"))))
+    (if verbose
+        (when (y-or-n-p "Overwrite ~s? " old-file)
+          (uiop:delete-file-if-exists old-file))
+        (uiop:delete-file-if-exists old-file))
+    (hm::write-sequence-graph-to-dot-file seq verbose)
+    (when display
+      (let ((map (dot-output-format-map)))
+        (unless (fset:domain-contains? map display)
+          (error "Error: Graphviz dot does not recognize ~s as an output format.~&"
+                 display))
+        (hm::make-graphics-file cfg :sequence display cmd)))))
+
+(defun run-chronology (seq &optional (verbose t) display (cmd "open"))
+  "Given an archaeological sequence, SEQ, carry out its instructions, and write
+  a dot file for the chronology graph. If the dot file for the
+  chronology graph already exists, it will be deleted. If VERBOSE,
+  advertise progress and check with the user whether or not to overwrite an
+  existing file. If DISPLAY is set to a string with a valid dot file format,
+  then run dot and display the resulting graphic file with the command, CMD."
+  (let* ((cfg (hm::archaeological-sequence-configuration seq))
+         (old-file (probe-file (hm::output-file-name cfg "chronology-dot"))))
+    (if verbose
+        (when (y-or-n-p "Overwrite ~s? " old-file)
+          (uiop:delete-file-if-exists old-file))
+        (uiop:delete-file-if-exists old-file))
+    (if (chronology-graph-p cfg)
+        (hm::write-chronology-graph-to-dot-file seq verbose)
+        (when verbose
+          (format t "The configuration does not ask for a chronology graph.~&")))
+    (when display
+      (let ((map (dot-output-format-map)))
+        (unless (fset:domain-contains? map display)
+          (error "Error: Graphviz dot does not recognize ~s as an output format.~&"
+                 display))
+        (hm::make-graphics-file cfg :chronology display cmd)))))
+
+(defun run-project (cfg-file &key (verbose t) (sequence-display "pdf")
+                               (chronology-display "pdf") (sequence-cmd "open")
+                               (chronology-cmd "open"))
+  (let ((seq (load-project cfg-file verbose)))
+    (run-sequence seq verbose sequence-display sequence-cmd)
+    (run-chronology seq verbose chronology-display chronology-cmd)))
