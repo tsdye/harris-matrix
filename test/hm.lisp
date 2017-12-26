@@ -409,11 +409,6 @@
     (is (not (hm:file-header-p *cfg* :events)))
     (is (not (hm:file-header-p *cfg* :event-order)))))
 
-(deftest test-missing-interfaces-p ()
-  "Test that MISSING-INTERFACES-P returns nil for the default configuration."
-  (with-fixture default-config
-    (is (not (hm::missing-interfaces-p *cfg*)))))
-
 (deftest test-graphviz-sequence-graph-attribute ()
   "Test that GRAPHVIZ-SEQUENCE-GRAPH-ATTRIBUTE returns correct values from the
 default configuration."
