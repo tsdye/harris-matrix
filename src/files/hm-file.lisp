@@ -84,7 +84,7 @@ out if one or more initialization files were not read. Prints a status message."
   (let ((config (make-default-or-empty-configuration (master-table))))
     (dolist (file file-names)
       (when (null (probe-file file))
-        (error "Error: unable to read file: ~s.~&" file)))
+        (error "Error: Unable to find file ~s.~&" file)))
     (when verbose
       (format t "Read ~r initialization file~:p: ~{~a~^, ~}.~&"
               (length file-names) file-names))
