@@ -1,0 +1,957 @@
+#VRML V2.0 utf8
+Group { children [
+  Transform {
+    scale 0.028 0.028 0.028
+    children [
+ Background { skyColor 1.000 1.000 1.000 }
+# node 1
+Shape {
+  appearance Appearance {
+    material Material {
+      ambientIntensity 0.33
+        diffuseColor 1 1 1
+    }
+    texture ImageTexture { url "node1.png" }
+  }
+  geometry Extrusion {
+    crossSection [ 93.988 145.293, 59.228 145.293, 46.849 105.614, 106.367 105.614, 93.988 145.293 ]
+    spine [ 279.97 758 -0.01, 279.97 758 0.01 ]
+  }
+}
+# node 2
+Transform {
+  translation 424.918 645.382 0.000
+  scale 29.759 19.839 1
+  children [
+    Transform {
+      rotation 1 0 0   1.57
+      children [
+        Shape {
+          geometry Cylinder { side FALSE }
+          appearance Appearance {
+            material Material {
+              ambientIntensity 0.33
+              diffuseColor 1 1 1
+            }
+            texture ImageTexture { url "node2.png" }
+          }
+        }
+      ]
+    }
+  ]
+}
+# edge 1 -> 2
+ Group { children [
+Shape { geometry Extrusion  {
+  spine [ 346.663 863.565 0.000 346.663 843.552 0.000 346.663 818.902 0.000 346.663 791.205 0.000 346.663 762.047 0.000 346.663 733.017 0.000 346.663 705.704 0.000 346.663 681.696 0.000 346.663 662.580 0.000 346.663 649.947 0.000 346.663 645.382 0.000 346.663 645.382 0.000 347.705 645.382 0.000 350.532 645.382 0.000 354.699 645.382 0.000 359.758 645.382 0.000 365.264 645.382 0.000 370.770 645.382 0.000 375.829 645.382 0.000 379.996 645.382 0.000 382.823 645.382 0.000 383.865 645.382 0.000 ]
+  crossSection [ 1.500 1.500, -1.500 1.500, -1.500 -1.500, 1.500 -1.500 ]
+}
+ appearance DEF E1 Appearance {
+   material Material {
+   ambientIntensity 0.33
+   diffuseColor 0.714 0.796 0.914
+   }
+ }
+}
+Transform {
+  translation 390.478 645.382 0.000
+  children [
+    Transform {
+      rotation 0 0 1 -0.785
+      children [
+        Shape {
+          geometry Cone {bottomRadius 3.750 height 15.000 }
+          appearance USE E1
+        }
+      ]
+    }
+  ]
+}
+] }
+# node 11=14
+Transform {
+  translation 608.982 566.025 0.000
+  scale 32.840 19.839 1
+  children [
+    Transform {
+      rotation 1 0 0   1.57
+      children [
+        Shape {
+          geometry Cylinder { side FALSE }
+          appearance Appearance {
+            material Material {
+              ambientIntensity 0.33
+              diffuseColor 1 1 1
+            }
+            texture ImageTexture { url "node11.png" }
+          }
+        }
+      ]
+    }
+  ]
+}
+# edge 1 -> 11=14
+ Group { children [
+Shape { geometry Extrusion  {
+  spine [ 380.328 883.454 0.000 401.998 883.454 0.000 428.235 883.454 0.000 457.426 883.454 0.000 487.957 883.454 0.000 518.217 883.454 0.000 546.591 883.454 0.000 571.468 883.454 0.000 591.234 883.454 0.000 604.276 883.454 0.000 608.982 883.454 0.000 608.982 883.454 0.000 608.982 875.430 0.000 608.982 853.652 0.000 608.982 821.559 0.000 608.982 782.588 0.000 608.982 740.179 0.000 608.982 697.769 0.000 608.982 658.798 0.000 608.982 626.705 0.000 608.982 604.927 0.000 608.982 596.904 0.000 ]
+  crossSection [ 1.500 1.500, -1.500 1.500, -1.500 -1.500, 1.500 -1.500 ]
+}
+ appearance DEF E11 Appearance {
+   material Material {
+   ambientIntensity 0.33
+   diffuseColor 0.714 0.796 0.914
+   }
+ }
+}
+Transform {
+  translation 608.982 590.291 0.000
+  children [
+    Transform {
+      rotation 0 0 1 3.927
+      children [
+        Shape {
+          geometry Cone {bottomRadius 3.750 height 15.000 }
+          appearance USE E11
+        }
+      ]
+    }
+  ]
+}
+] }
+# node 12
+Transform {
+  translation 290.452 804.096 0.000
+  scale 29.759 19.839 1
+  children [
+    Transform {
+      rotation 1 0 0   1.57
+      children [
+        Shape {
+          geometry Cylinder { side FALSE }
+          appearance Appearance {
+            material Material {
+              ambientIntensity 0.33
+              diffuseColor 1 1 1
+            }
+            texture ImageTexture { url "node12.png" }
+          }
+        }
+      ]
+    }
+  ]
+}
+# edge 1 -> 12
+ Group { children [
+Shape { geometry Extrusion  {
+  spine [ 330.825 876.840 0.000 325.183 876.840 0.000 319.496 876.840 0.000 313.916 876.840 0.000 308.592 876.840 0.000 303.675 876.840 0.000 299.316 876.840 0.000 295.663 876.840 0.000 292.868 876.840 0.000 291.081 876.840 0.000 290.452 876.840 0.000 290.452 876.840 0.000 290.452 875.669 0.000 290.452 872.489 0.000 290.452 867.802 0.000 290.452 862.111 0.000 290.452 855.918 0.000 290.452 849.725 0.000 290.452 844.034 0.000 290.452 839.348 0.000 290.452 836.168 0.000 290.452 834.996 0.000 ]
+  crossSection [ 1.500 1.500, -1.500 1.500, -1.500 -1.500, 1.500 -1.500 ]
+}
+ appearance DEF E3 Appearance {
+   material Material {
+   ambientIntensity 0.33
+   diffuseColor 0.714 0.796 0.914
+   }
+ }
+}
+Transform {
+  translation 290.452 828.383 0.000
+  children [
+    Transform {
+      rotation 0 0 1 3.927
+      children [
+        Shape {
+          geometry Cone {bottomRadius 3.750 height 15.000 }
+          appearance USE E3
+        }
+      ]
+    }
+  ]
+}
+] }
+# node 13
+Transform {
+  translation 114.103 804.096 0.000
+  scale 29.759 19.839 1
+  children [
+    Transform {
+      rotation 1 0 0   1.57
+      children [
+        Shape {
+          geometry Cylinder { side FALSE }
+          appearance Appearance {
+            material Material {
+              ambientIntensity 0.33
+              diffuseColor 1 1 1
+            }
+            texture ImageTexture { url "node13.png" }
+          }
+        }
+      ]
+    }
+  ]
+}
+# edge 1 -> 13
+ Group { children [
+Shape { geometry Extrusion  {
+  spine [ 335.064 890.067 0.000 314.457 890.067 0.000 289.296 890.067 0.000 261.166 890.067 0.000 231.649 890.067 0.000 202.330 890.067 0.000 174.790 890.067 0.000 150.614 890.067 0.000 131.386 890.067 0.000 118.687 890.067 0.000 114.103 890.067 0.000 114.103 890.067 0.000 114.103 888.526 0.000 114.103 884.346 0.000 114.103 878.185 0.000 114.103 870.703 0.000 114.103 862.562 0.000 114.103 854.421 0.000 114.103 846.940 0.000 114.103 840.779 0.000 114.103 836.598 0.000 114.103 835.058 0.000 ]
+  crossSection [ 1.500 1.500, -1.500 1.500, -1.500 -1.500, 1.500 -1.500 ]
+}
+ appearance DEF E4 Appearance {
+   material Material {
+   ambientIntensity 0.33
+   diffuseColor 0.714 0.796 0.914
+   }
+ }
+}
+Transform {
+  translation 114.103 828.445 0.000
+  children [
+    Transform {
+      rotation 0 0 1 3.927
+      children [
+        Shape {
+          geometry Cone {bottomRadius 3.750 height 15.000 }
+          appearance USE E4
+        }
+      ]
+    }
+  ]
+}
+] }
+# node 5
+Transform {
+  translation 424.918 566.025 0.000
+  scale 29.759 19.839 1
+  children [
+    Transform {
+      rotation 1 0 0   1.57
+      children [
+        Shape {
+          geometry Cylinder { side FALSE }
+          appearance Appearance {
+            material Material {
+              ambientIntensity 0.33
+              diffuseColor 1 1 1
+            }
+            texture ImageTexture { url "node5.png" }
+          }
+        }
+      ]
+    }
+  ]
+}
+# edge 2 -> 5
+ Group { children [
+Transform {
+  children [
+    Shape {
+      geometry Cylinder {
+        bottom FALSE top FALSE
+        height 28.015 radius 2.000 }
+      appearance Appearance {
+        material Material {
+          ambientIntensity 0.33
+          diffuseColor 0.576 0.710 0.863
+        }
+      }
+    }
+Transform {
+  translation 0 16.472 0
+  children [
+    Shape {
+      geometry Cone {bottomRadius 4.929 height 4.929 }
+      appearance Appearance {
+        material Material {
+          ambientIntensity 0.33
+          diffuseColor 0.576 0.710 0.863
+        }
+      }
+    }
+  ]
+}
+      ]
+      center 0 2.465 0
+      rotation -0.000 0 1.000 -3.142
+      translation 424.918 603.239 0.000
+    }
+] }
+# node 3
+Transform {
+  translation 290.452 724.739 0.000
+  scale 29.759 19.839 1
+  children [
+    Transform {
+      rotation 1 0 0   1.57
+      children [
+        Shape {
+          geometry Cylinder { side FALSE }
+          appearance Appearance {
+            material Material {
+              ambientIntensity 0.33
+              diffuseColor 1 1 1
+            }
+            texture ImageTexture { url "node3.png" }
+          }
+        }
+      ]
+    }
+  ]
+}
+# node 6
+Transform {
+  translation 356.583 486.668 0.000
+  scale 29.759 19.839 1
+  children [
+    Transform {
+      rotation 1 0 0   1.57
+      children [
+        Shape {
+          geometry Cylinder { side FALSE }
+          appearance Appearance {
+            material Material {
+              ambientIntensity 0.33
+              diffuseColor 1 1 1
+            }
+            texture ImageTexture { url "node6.png" }
+          }
+        }
+      ]
+    }
+  ]
+}
+# edge 3 -> 6
+ Group { children [
+Shape { geometry Extrusion  {
+  spine [ 313.713 712.295 0.000 313.713 694.480 0.000 313.713 671.056 0.000 313.713 643.787 0.000 313.713 614.433 0.000 313.713 584.760 0.000 313.713 556.528 0.000 313.713 531.502 0.000 313.713 511.443 0.000 313.713 498.116 0.000 313.713 493.281 0.000 313.713 493.281 0.000 313.811 493.281 0.000 314.076 493.281 0.000 314.468 493.281 0.000 314.942 493.281 0.000 315.459 493.281 0.000 315.976 493.281 0.000 316.451 493.281 0.000 316.842 493.281 0.000 317.107 493.281 0.000 317.205 493.281 0.000 ]
+  crossSection [ 2.000 2.000, -2.000 2.000, -2.000 -2.000, 2.000 -2.000 ]
+}
+ appearance DEF E6 Appearance {
+   material Material {
+   ambientIntensity 0.33
+   diffuseColor 0.576 0.710 0.863
+   }
+ }
+}
+Transform {
+  translation 323.818 495.486 0.000
+  children [
+    Transform {
+      rotation 0 0 1 -1.107
+      children [
+        Shape {
+          geometry Cone {bottomRadius 5.000 height 20.000 }
+          appearance USE E6
+        }
+      ]
+    }
+  ]
+}
+] }
+# node 17
+Transform {
+  translation 155.986 645.382 0.000
+  scale 29.759 19.839 1
+  children [
+    Transform {
+      rotation 1 0 0   1.57
+      children [
+        Shape {
+          geometry Cylinder { side FALSE }
+          appearance Appearance {
+            material Material {
+              ambientIntensity 0.33
+              diffuseColor 1 1 1
+            }
+            texture ImageTexture { url "node15.png" }
+          }
+        }
+      ]
+    }
+  ]
+}
+# edge 3 -> 17
+ Group { children [
+Shape { geometry Extrusion  {
+  spine [ 260.675 724.739 0.000 248.962 724.739 0.000 236.436 724.739 0.000 223.581 724.739 0.000 210.877 724.739 0.000 198.806 724.739 0.000 187.849 724.739 0.000 178.489 724.739 0.000 171.207 724.739 0.000 166.484 724.739 0.000 164.803 724.739 0.000 164.803 724.739 0.000 164.803 723.364 0.000 164.803 719.630 0.000 164.803 714.128 0.000 164.803 707.447 0.000 164.803 700.177 0.000 164.803 692.906 0.000 164.803 686.225 0.000 164.803 680.723 0.000 164.803 676.990 0.000 164.803 675.614 0.000 ]
+  crossSection [ 2.000 2.000, -2.000 2.000, -2.000 -2.000, 2.000 -2.000 ]
+}
+ appearance DEF E7 Appearance {
+   material Material {
+   ambientIntensity 0.33
+   diffuseColor 0.576 0.710 0.863
+   }
+ }
+}
+Transform {
+  translation 167.008 669.001 0.000
+  children [
+    Transform {
+      rotation 0 0 1 3.605
+      children [
+        Shape {
+          geometry Cone {bottomRadius 5.000 height 20.000 }
+          appearance USE E7
+        }
+      ]
+    }
+  ]
+}
+] }
+# node 4
+Transform {
+  translation 114.103 724.739 0.000
+  scale 29.759 19.839 1
+  children [
+    Transform {
+      rotation 1 0 0   1.57
+      children [
+        Shape {
+          geometry Cylinder { side FALSE }
+          appearance Appearance {
+            material Material {
+              ambientIntensity 0.33
+              diffuseColor 1 1 1
+            }
+            texture ImageTexture { url "node4.png" }
+          }
+        }
+      ]
+    }
+  ]
+}
+# edge 4 -> 6
+ Group { children [
+Shape { geometry Extrusion  {
+  spine [ 105.285 705.539 0.000 105.285 685.209 0.000 105.285 659.939 0.000 105.285 631.397 0.000 105.285 601.250 0.000 105.285 571.167 0.000 105.285 542.813 0.000 105.285 517.858 0.000 105.285 497.968 0.000 105.285 484.811 0.000 105.285 480.055 0.000 105.285 480.055 0.000 111.220 480.055 0.000 127.327 480.055 0.000 151.064 480.055 0.000 179.887 480.055 0.000 211.254 480.055 0.000 242.621 480.055 0.000 271.444 480.055 0.000 295.181 480.055 0.000 311.288 480.055 0.000 317.222 480.055 0.000 ]
+  crossSection [ 2.000 2.000, -2.000 2.000, -2.000 -2.000, 2.000 -2.000 ]
+}
+ appearance DEF E8 Appearance {
+   material Material {
+   ambientIntensity 0.33
+   diffuseColor 0.576 0.710 0.863
+   }
+ }
+}
+Transform {
+  translation 323.836 482.260 0.000
+  children [
+    Transform {
+      rotation 0 0 1 -1.107
+      children [
+        Shape {
+          geometry Cone {bottomRadius 5.000 height 20.000 }
+          appearance USE E8
+        }
+      ]
+    }
+  ]
+}
+] }
+# edge 4 -> 17
+ Group { children [
+Transform {
+  children [
+    Shape {
+      geometry Cylinder {
+        bottom FALSE top FALSE
+        height 31.344 radius 2.000 }
+      appearance Appearance {
+        material Material {
+          ambientIntensity 0.33
+          diffuseColor 0.576 0.710 0.863
+        }
+      }
+    }
+Transform {
+  translation 0 18.137 0
+  children [
+    Shape {
+      geometry Cone {bottomRadius 4.929 height 4.929 }
+      appearance Appearance {
+        material Material {
+          ambientIntensity 0.33
+          diffuseColor 0.576 0.710 0.863
+        }
+      }
+    }
+  ]
+}
+      ]
+      center 0 2.465 0
+      rotation -0.000 0 -20.941 -3.627
+      translation 135.044 682.596 0.000
+    }
+] }
+# edge 5 -> 6
+ Group { children [
+Shape { geometry Extrusion  {
+  spine [ 396.737 559.412 0.000 392.260 559.412 0.000 387.856 559.412 0.000 383.619 559.412 0.000 379.641 559.412 0.000 376.018 559.412 0.000 372.843 559.412 0.000 370.210 559.412 0.000 368.213 559.412 0.000 366.946 559.412 0.000 366.502 559.412 0.000 366.502 559.412 0.000 366.502 558.208 0.000 366.502 554.941 0.000 366.502 550.127 0.000 366.502 544.280 0.000 366.502 537.918 0.000 366.502 531.555 0.000 366.502 525.709 0.000 366.502 520.894 0.000 366.502 517.627 0.000 366.502 516.423 0.000 ]
+  crossSection [ 2.000 2.000, -2.000 2.000, -2.000 -2.000, 2.000 -2.000 ]
+}
+ appearance DEF E10 Appearance {
+   material Material {
+   ambientIntensity 0.33
+   diffuseColor 0.576 0.710 0.863
+   }
+ }
+}
+Transform {
+  translation 368.707 509.810 0.000
+  children [
+    Transform {
+      rotation 0 0 1 3.605
+      children [
+        Shape {
+          geometry Cone {bottomRadius 5.000 height 20.000 }
+          appearance USE E10
+        }
+      ]
+    }
+  ]
+}
+] }
+# node 7=8
+Transform {
+  translation 504.275 407.311 0.000
+  scale 29.759 19.839 1
+  children [
+    Transform {
+      rotation 1 0 0   1.57
+      children [
+        Shape {
+          geometry Cylinder { side FALSE }
+          appearance Appearance {
+            material Material {
+              ambientIntensity 0.33
+              diffuseColor 1 1 1
+            }
+            texture ImageTexture { url "node7.png" }
+          }
+        }
+      ]
+    }
+  ]
+}
+# edge 6 -> 7=8
+ Group { children [
+Shape { geometry Extrusion  {
+  spine [ 356.583 466.643 0.000 356.583 459.269 0.000 356.583 451.445 0.000 356.583 443.460 0.000 356.583 435.602 0.000 356.583 428.161 0.000 356.583 421.425 0.000 356.583 415.684 0.000 356.583 411.225 0.000 356.583 408.338 0.000 356.583 407.311 0.000 356.583 407.311 0.000 359.573 407.311 0.000 367.688 407.311 0.000 379.648 407.311 0.000 394.170 407.311 0.000 409.974 407.311 0.000 425.778 407.311 0.000 440.300 407.311 0.000 452.260 407.311 0.000 460.376 407.311 0.000 463.365 407.311 0.000 ]
+  crossSection [ 2.000 2.000, -2.000 2.000, -2.000 -2.000, 2.000 -2.000 ]
+}
+ appearance DEF E16 Appearance {
+   material Material {
+   ambientIntensity 0.33
+   diffuseColor 0.576 0.710 0.863
+   }
+ }
+}
+Transform {
+  translation 469.979 409.516 0.000
+  children [
+    Transform {
+      rotation 0 0 1 -1.107
+      children [
+        Shape {
+          geometry Cone {bottomRadius 5.000 height 20.000 }
+          appearance USE E16
+        }
+      ]
+    }
+  ]
+}
+] }
+# node 9
+Shape {
+  appearance Appearance {
+    material Material {
+      ambientIntensity 0.33
+        diffuseColor 1 1 1
+    }
+    texture ImageTexture { url "node8.png" }
+  }
+  geometry Extrusion {
+    crossSection [ 86.411 46.812, 88.369 46.921, 90.306 47.083, 92.215 47.299, 94.088 47.568, 95.918 47.889, 97.697 48.262, 99.419 48.684, 101.077 49.156, 102.664 49.675, 104.175 50.241, 105.606 50.852, 106.950 51.506, 108.204 52.201, 109.364 52.936, 110.427 53.708, 111.390 54.515, 112.251 55.356, 113.009 56.227, 113.662 57.127, 114.211 58.053, 114.655 59.002, 114.996 59.972, 115.233 60.960, 115.369 61.964, 115.405 62.980, 115.345 64.007, 115.190 65.040, 114.945 66.078, 114.612 67.117, 114.194 68.154, 113.697 69.187, 113.123 70.214, 112.477 71.230, 111.764 72.234, 110.988 73.222, 110.152 74.192, 109.262 75.141, 108.321 76.067, 107.334 76.967, 106.305 77.838, 105.238 78.679, 104.136 79.486, 103.004 80.258, 101.844 80.993, 100.659 81.688, 99.454 82.342, 98.230 82.953, 96.989 83.519, 95.735 84.038, 94.469 84.510, 93.194 84.932, 91.910 85.305, 90.619 85.626, 89.324 85.895, 88.023 86.111, 86.720 86.273, 85.415 86.382, 84.108 86.436, 82.801 86.436, 81.494 86.382, 80.189 86.273, 78.885 86.111, 77.585 85.895, 76.289 85.626, 74.999 85.305, 73.715 84.932, 72.439 84.510, 71.173 84.038, 69.919 83.519, 68.679 82.953, 67.455 82.342, 66.249 81.688, 65.065 80.993, 63.905 80.258, 62.773 79.486, 61.671 78.679, 60.604 77.838, 59.575 76.967, 58.588 76.067, 57.647 75.141, 56.757 74.192, 55.921 73.222, 55.145 72.234, 54.431 71.230, 53.786 70.214, 53.212 69.187, 52.715 68.154, 52.297 67.117, 51.964 66.078, 51.718 65.040, 51.564 64.007, 51.503 62.980, 51.540 61.964, 51.676 60.960, 51.913 59.972, 52.253 59.002, 52.697 58.053, 53.246 57.127, 53.900 56.227, 54.658 55.356, 55.519 54.515, 56.482 53.708, 57.545 52.936, 58.705 52.201, 59.959 51.506, 61.303 50.852, 62.733 50.241, 64.245 49.675, 65.832 49.156, 67.490 48.684, 69.211 48.262, 70.991 47.889, 72.820 47.568, 74.694 47.299, 76.603 47.083, 78.540 46.921, 80.498 46.812, 82.467 46.758, 84.441 46.758, 86.411 46.812 ]
+    spine [ 346.97 182 -0.01, 346.97 182 0.01 ]
+  }
+}
+# edge 6 -> 9
+ Group { children [
+Shape { geometry Extrusion  {
+  spine [ 386.631 486.668 0.000 391.215 486.668 0.000 395.713 486.668 0.000 400.031 486.668 0.000 404.077 486.668 0.000 407.756 486.668 0.000 410.976 486.668 0.000 413.642 486.668 0.000 415.663 486.668 0.000 416.944 486.668 0.000 417.391 486.668 0.000 417.391 486.668 0.000 417.391 480.801 0.000 417.391 464.876 0.000 417.391 441.407 0.000 417.391 412.909 0.000 417.391 381.896 0.000 417.391 350.884 0.000 417.391 322.386 0.000 417.391 298.917 0.000 417.391 282.992 0.000 417.391 277.125 0.000 ]
+  crossSection [ 2.000 2.000, -2.000 2.000, -2.000 -2.000, 2.000 -2.000 ]
+}
+ appearance DEF E12 Appearance {
+   material Material {
+   ambientIntensity 0.33
+   diffuseColor 0.576 0.710 0.863
+   }
+ }
+}
+Transform {
+  translation 419.596 270.512 0.000
+  children [
+    Transform {
+      rotation 0 0 1 3.605
+      children [
+        Shape {
+          geometry Cone {bottomRadius 5.000 height 20.000 }
+          appearance USE E12
+        }
+      ]
+    }
+  ]
+}
+] }
+# node 15=16
+Shape {
+  appearance Appearance {
+    material Material {
+      ambientIntensity 0.33
+        diffuseColor 1 1 1
+    }
+    texture ImageTexture { url "node14.png" }
+  }
+  geometry Extrusion {
+    crossSection [ 93.531 54.169, 95.671 54.278, 97.788 54.440, 99.874 54.656, 101.921 54.925, 103.921 55.246, 105.865 55.619, 107.746 56.041, 109.558 56.513, 111.292 57.033, 112.944 57.598, 114.507 58.209, 115.976 58.863, 117.346 59.558, 118.614 60.293, 119.775 61.065, 120.828 61.873, 121.769 62.713, 122.597 63.585, 123.311 64.484, 123.911 65.410, 124.396 66.359, 124.768 67.329, 125.027 68.317, 125.176 69.321, 125.216 70.337, 125.150 71.364, 124.981 72.397, 124.713 73.435, 124.348 74.474, 123.892 75.511, 123.349 76.545, 122.722 77.571, 122.016 78.587, 121.237 79.591, 120.388 80.579, 119.475 81.549, 118.502 82.498, 117.474 83.424, 116.396 84.324, 115.271 85.195, 114.105 86.036, 112.901 86.843, 111.663 87.615, 110.396 88.350, 109.102 89.045, 107.784 89.699, 106.446 90.310, 105.091 90.876, 103.721 91.395, 102.338 91.867, 100.944 92.289, 99.541 92.662, 98.130 92.983, 96.714 93.252, 95.293 93.468, 93.869 93.630, 92.443 93.739, 91.015 93.793, 89.586 93.793, 88.158 93.739, 86.732 93.630, 85.308 93.468, 83.887 93.252, 82.471 92.983, 81.060 92.662, 79.657 92.289, 78.263 91.867, 76.880 91.395, 75.510 90.876, 74.155 90.310, 72.817 89.699, 71.499 89.045, 70.205 88.350, 68.938 87.615, 67.700 86.843, 66.496 86.036, 65.330 85.195, 64.205 84.324, 63.127 83.424, 62.099 82.498, 61.126 81.549, 60.213 80.579, 59.364 79.591, 58.585 78.587, 57.879 77.571, 57.252 76.545, 56.709 75.511, 56.253 74.474, 55.888 73.435, 55.620 72.397, 55.451 71.364, 55.385 70.337, 55.425 69.321, 55.574 68.317, 55.833 67.329, 56.205 66.359, 56.690 65.410, 57.290 64.484, 58.004 63.585, 58.832 62.713, 59.773 61.873, 60.826 61.065, 61.987 60.293, 63.255 59.558, 64.625 58.863, 66.094 58.209, 67.657 57.598, 69.309 57.033, 71.043 56.513, 72.855 56.041, 74.736 55.619, 76.680 55.246, 78.680 54.925, 80.727 54.656, 82.813 54.440, 84.930 54.278, 87.070 54.169, 89.222 54.115, 91.379 54.115, 93.531 54.169 ]
+    spine [ 413.97 254 -0.01, 413.97 254 0.01 ]
+  }
+}
+# edge 7=8 -> 15=16
+ Group { children [
+Transform {
+  children [
+    Shape {
+      geometry Cylinder {
+        bottom FALSE top FALSE
+        height 28.015 radius 2.000 }
+      appearance Appearance {
+        material Material {
+          ambientIntensity 0.33
+          diffuseColor 0.576 0.710 0.863
+        }
+      }
+    }
+Transform {
+  translation 0 16.472 0
+  children [
+    Shape {
+      geometry Cone {bottomRadius 4.929 height 4.929 }
+      appearance Appearance {
+        material Material {
+          ambientIntensity 0.33
+          diffuseColor 0.576 0.710 0.863
+        }
+      }
+    }
+  ]
+}
+      ]
+      center 0 2.465 0
+      rotation -0.000 0 1.000 -3.142
+      translation 504.275 365.168 0.000
+    }
+] }
+# node 18
+Shape {
+  appearance Appearance {
+    material Material {
+      ambientIntensity 0.33
+        diffuseColor 1 1 1
+    }
+    texture ImageTexture { url "node16.png" }
+  }
+  geometry Extrusion {
+    crossSection [ 83.454 84.079, 43.452 46.054, 123.457 46.054, 83.454 84.079 ]
+    spine [ 346.97 105 -0.01, 346.97 105 0.01 ]
+  }
+}
+# edge 9 -> 18
+ Group { children [
+Transform {
+  children [
+    Shape {
+      geometry Cylinder {
+        bottom FALSE top FALSE
+        height 28.285 radius 2.500 }
+      appearance Appearance {
+        material Material {
+          ambientIntensity 0.33
+          diffuseColor 0.467 0.612 0.773
+        }
+      }
+    }
+Transform {
+  translation 0 16.607 0
+  children [
+    Shape {
+      geometry Cone {bottomRadius 4.929 height 4.929 }
+      appearance Appearance {
+        material Material {
+          ambientIntensity 0.33
+          diffuseColor 0.467 0.612 0.773
+        }
+      }
+    }
+  ]
+}
+      ]
+      center 0 2.465 0
+      rotation -0.000 0 1.000 nan
+      translation 430.429 203.698 0.000
+    }
+] }
+# node Natural ground
+Shape {
+  appearance Appearance {
+    material Material {
+      ambientIntensity 0.33
+        diffuseColor 1 1 1
+    }
+    texture ImageTexture { url "node9.png" }
+  }
+  geometry Extrusion {
+    crossSection [ 83.454 75.700, -39.528 37.675, 206.436 37.675, 83.454 75.700 ]
+    spine [ 346.97 23 -0.01, 346.97 23 0.01 ]
+  }
+}
+# node 10
+Shape {
+  appearance Appearance {
+    material Material {
+      ambientIntensity 0.33
+        diffuseColor 1 1 1
+    }
+    texture ImageTexture { url "node10.png" }
+  }
+  geometry Extrusion {
+    crossSection [ 93.988 152.650, 59.228 152.650, 46.849 112.971, 106.367 112.971, 93.988 152.650 ]
+    spine [ 279.97 830 -0.01, 279.97 830 0.01 ]
+  }
+}
+# edge 10 -> 1
+ Group { children [
+Transform {
+  children [
+    Shape {
+      geometry Cylinder {
+        bottom FALSE top FALSE
+        height 28.015 radius 1.500 }
+      appearance Appearance {
+        material Material {
+          ambientIntensity 0.33
+          diffuseColor 0.714 0.796 0.914
+        }
+      }
+    }
+Transform {
+  translation 0 17.125 0
+  children [
+    Shape {
+      geometry Cone {bottomRadius 6.235 height 6.235 }
+      appearance Appearance {
+        material Material {
+          ambientIntensity 0.33
+          diffuseColor 0.714 0.796 0.914
+        }
+      }
+    }
+  ]
+}
+      ]
+      center 0 3.117 0
+      rotation -0.000 0 1.000 -3.142
+      translation 356.583 920.015 0.000
+    }
+] }
+# edge 11=14 -> 7=8
+ Group { children [
+Shape { geometry Extrusion  {
+  spine [ 575.852 566.025 0.000 566.394 566.025 0.000 556.629 566.025 0.000 546.863 566.025 0.000 537.405 566.025 0.000 528.560 566.025 0.000 520.636 566.025 0.000 513.938 566.025 0.000 508.774 566.025 0.000 505.451 566.025 0.000 504.275 566.025 0.000 504.275 566.025 0.000 504.275 562.453 0.000 504.275 552.756 0.000 504.275 538.466 0.000 504.275 521.113 0.000 504.275 502.230 0.000 504.275 483.346 0.000 504.275 465.994 0.000 504.275 451.704 0.000 504.275 442.007 0.000 504.275 438.434 0.000 ]
+  crossSection [ 2.000 2.000, -2.000 2.000, -2.000 -2.000, 2.000 -2.000 ]
+}
+ appearance DEF E2 Appearance {
+   material Material {
+   ambientIntensity 0.33
+   diffuseColor 0.576 0.710 0.863
+   }
+ }
+}
+Transform {
+  translation 506.479 431.821 0.000
+  children [
+    Transform {
+      rotation 0 0 1 3.605
+      children [
+        Shape {
+          geometry Cone {bottomRadius 5.000 height 20.000 }
+          appearance USE E2
+        }
+      ]
+    }
+  ]
+}
+] }
+# edge 12 -> 3
+ Group { children [
+Transform {
+  children [
+    Shape {
+      geometry Cylinder {
+        bottom FALSE top FALSE
+        height 28.015 radius 2.000 }
+      appearance Appearance {
+        material Material {
+          ambientIntensity 0.33
+          diffuseColor 0.576 0.710 0.863
+        }
+      }
+    }
+Transform {
+  translation 0 16.472 0
+  children [
+    Shape {
+      geometry Cone {bottomRadius 4.929 height 4.929 }
+      appearance Appearance {
+        material Material {
+          ambientIntensity 0.33
+          diffuseColor 0.576 0.710 0.863
+        }
+      }
+    }
+  ]
+}
+      ]
+      center 0 2.465 0
+      rotation -0.000 0 1.000 -3.142
+      translation 290.452 761.953 0.000
+    }
+] }
+# edge 13 -> 4
+ Group { children [
+Transform {
+  children [
+    Shape {
+      geometry Cylinder {
+        bottom FALSE top FALSE
+        height 28.015 radius 2.000 }
+      appearance Appearance {
+        material Material {
+          ambientIntensity 0.33
+          diffuseColor 0.576 0.710 0.863
+        }
+      }
+    }
+Transform {
+  translation 0 16.472 0
+  children [
+    Shape {
+      geometry Cone {bottomRadius 4.929 height 4.929 }
+      appearance Appearance {
+        material Material {
+          ambientIntensity 0.33
+          diffuseColor 0.576 0.710 0.863
+        }
+      }
+    }
+  ]
+}
+      ]
+      center 0 2.465 0
+      rotation -0.000 0 1.000 -3.142
+      translation 114.103 761.953 0.000
+    }
+] }
+# edge 15=16 -> 9
+ Group { children [
+Shape { geometry Extrusion  {
+  spine [ 469.755 327.954 0.000 464.698 327.954 0.000 459.748 327.954 0.000 455.007 327.954 0.000 450.573 327.954 0.000 446.547 327.954 0.000 443.029 327.954 0.000 440.119 327.954 0.000 437.916 327.954 0.000 436.521 327.954 0.000 436.034 327.954 0.000 436.034 327.954 0.000 436.034 326.590 0.000 436.034 322.887 0.000 436.034 317.431 0.000 436.034 310.805 0.000 436.034 303.595 0.000 436.034 296.384 0.000 436.034 289.758 0.000 436.034 284.302 0.000 436.034 280.599 0.000 436.034 279.235 0.000 ]
+  crossSection [ 2.500 2.500, -2.500 2.500, -2.500 -2.500, 2.500 -2.500 ]
+}
+ appearance DEF E13 Appearance {
+   material Material {
+   ambientIntensity 0.33
+   diffuseColor 0.467 0.612 0.773
+   }
+ }
+}
+Transform {
+  translation 433.830 272.622 0.000
+  children [
+    Transform {
+      rotation 0 0 1 3.605
+      children [
+        Shape {
+          geometry Cone {bottomRadius 6.250 height 25.000 }
+          appearance USE E13
+        }
+      ]
+    }
+  ]
+}
+] }
+# edge 17 -> 5
+ Group { children [
+Shape { geometry Extrusion  {
+  spine [ 155.986 625.505 0.000 155.986 618.791 0.000 155.986 611.736 0.000 155.986 604.587 0.000 155.986 597.591 0.000 155.986 590.995 0.000 155.986 585.044 0.000 155.986 579.987 0.000 155.986 576.069 0.000 155.986 573.537 0.000 155.986 572.638 0.000 155.986 572.638 0.000 162.416 572.638 0.000 179.868 572.638 0.000 205.588 572.638 0.000 236.818 572.638 0.000 270.805 572.638 0.000 304.791 572.638 0.000 336.022 572.638 0.000 361.742 572.638 0.000 379.194 572.638 0.000 385.624 572.638 0.000 ]
+  crossSection [ 2.000 2.000, -2.000 2.000, -2.000 -2.000, 2.000 -2.000 ]
+}
+ appearance DEF E20 Appearance {
+   material Material {
+   ambientIntensity 0.33
+   diffuseColor 0.576 0.710 0.863
+   }
+ }
+}
+Transform {
+  translation 392.237 574.843 0.000
+  children [
+    Transform {
+      rotation 0 0 1 -1.107
+      children [
+        Shape {
+          geometry Cone {bottomRadius 5.000 height 20.000 }
+          appearance USE E20
+        }
+      ]
+    }
+  ]
+}
+] }
+# edge 18 -> Natural ground
+ Group { children [
+Transform {
+  children [
+    Shape {
+      geometry Cylinder {
+        bottom FALSE top FALSE
+        height 40.807 radius 3.000 }
+      appearance Appearance {
+        material Material {
+          ambientIntensity 0.33
+          diffuseColor 0.329 0.525 0.718
+        }
+      }
+    }
+Transform {
+  translation 0 23.521 0
+  children [
+    Shape {
+      geometry Cone {bottomRadius 6.235 height 6.235 }
+      appearance Appearance {
+        material Material {
+          ambientIntensity 0.33
+          diffuseColor 0.329 0.525 0.718
+        }
+      }
+    }
+  ]
+}
+      ]
+      center 0 3.117 0
+      rotation -0.000 0 1.000 -3.142
+      translation 430.429 115.422 0.000
+    }
+] }
+  ] }
+  Viewpoint {position 13.926 19.556 57.229}
+] }

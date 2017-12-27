@@ -1,0 +1,28 @@
+digraph to_dot {
+  style="filled";
+  dpi="96";
+  margin="0.5,0.5";
+  bgcolor="/x11/darkslategray";
+  fontname="Helvetica";
+  fontsize="14.0";
+  fontcolor="/x11/linen";
+  splines="ortho";
+  page="7,5";
+  size="6,4!";
+  ratio="auto";
+  URL="http://tsdye.github.io/harris-matrix/";
+  label="Sequence Diagram";
+  labelloc="t";
+  "1" [shape="trapezium"] [style="filled"] [fontname="Helvetica"] [fontsize="14.0"] [color="/x11/dimgray"] [fillcolor="/accent3/1"] [fontcolor="/x11/black"] [penwidth="1.0"] [skew="0.0"] [sides="4"] [orientation="0.0"] [distortion="0.0"] [URL="http://tsdye.github.io/harris-matrix/"];
+  "2" [shape="trapezium"] [style="filled"] [fontname="Helvetica"] [fontsize="14.0"] [color="/x11/dimgray"] [fillcolor="/accent3/3"] [fontcolor="/x11/black"] [penwidth="1.0"] [skew="0.0"] [sides="4"] [orientation="0.0"] [distortion="0.0"] [URL="http://tsdye.github.io/harris-matrix/"];
+  "3" [shape="box"] [style="filled"] [fontname="Helvetica"] [fontsize="14.0"] [color="/x11/dimgray"] [fillcolor="/accent3/2"] [fontcolor="/x11/black"] [penwidth="1.0"] [skew="0.0"] [sides="4"] [orientation="0.0"] [distortion="0.0"] [URL="http://tsdye.github.io/harris-matrix/"];
+  "4" [shape="box"] [style="filled"] [fontname="Helvetica"] [fontsize="14.0"] [color="/x11/dimgray"] [fillcolor="/accent3/2"] [fontcolor="/x11/black"] [penwidth="1.0"] [skew="0.0"] [sides="4"] [orientation="0.0"] [distortion="0.0"] [URL="http://tsdye.github.io/harris-matrix/"];
+  "5" [shape="box"] [style="filled"] [fontname="Helvetica"] [fontsize="14.0"] [color="/x11/dimgray"] [fillcolor="/accent3/2"] [fontcolor="/x11/black"] [penwidth="1.0"] [skew="0.0"] [sides="4"] [orientation="0.0"] [distortion="0.0"] [URL="http://tsdye.github.io/harris-matrix/"];
+ "1" -> "3"  [style="solid"] [arrowhead="none"] [color="/rdylbu3/1"] [fontname="Helvetica"] [fontsize="14.0"] [fontcolor="/x11/black"] [penwidth="1.0"] [URL="http://tsdye.github.io/harris-matrix/"];
+ "1" -> "4"  [style="solid"] [arrowhead="none"] [color="/rdylbu3/1"] [fontname="Helvetica"] [fontsize="14.0"] [fontcolor="/x11/black"] [penwidth="1.0"] [URL="http://tsdye.github.io/harris-matrix/"];
+ "1" -> "5"  [style="solid"] [arrowhead="none"] [color="/rdylbu3/1"] [fontname="Helvetica"] [fontsize="14.0"] [fontcolor="/x11/black"] [penwidth="1.0"] [URL="http://tsdye.github.io/harris-matrix/"];
+ "2" -> "3"  [style="solid"] [arrowhead="none"] [color="/rdylbu3/3"] [fontname="Helvetica"] [fontsize="14.0"] [fontcolor="/x11/black"] [penwidth="1.0"] [URL="http://tsdye.github.io/harris-matrix/"];
+ "2" -> "5"  [style="solid"] [arrowhead="none"] [color="/rdylbu3/3"] [fontname="Helvetica"] [fontsize="14.0"] [fontcolor="/x11/black"] [penwidth="1.0"] [URL="http://tsdye.github.io/harris-matrix/"];
+ "3" -> "5"  [style="solid"] [arrowhead="none"] [color="/rdylbu3/2"] [fontname="Helvetica"] [fontsize="14.0"] [fontcolor="/x11/black"] [penwidth="1.0"] [URL="http://tsdye.github.io/harris-matrix/"];
+ "4" -> "5"  [style="solid"] [arrowhead="none"] [color="/rdylbu3/2"] [fontname="Helvetica"] [fontsize="14.0"] [fontcolor="/x11/black"] [penwidth="1.0"] [URL="http://tsdye.github.io/harris-matrix/"];
+}
