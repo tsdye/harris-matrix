@@ -35,4 +35,8 @@
    :output-file-name
    :write-levels
    :memoize-functions
-   :unmemoize-functions))
+   :unmemoize-functions
+   :run-project
+   :load-project
+   :run-sequence
+   :run-chronology))
