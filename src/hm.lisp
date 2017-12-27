@@ -453,7 +453,7 @@ configure the archaeological sequence, check it for errors, and return it."
   (let* ((cfg (hm::archaeological-sequence-configuration seq))
          (old-file (probe-file (hm::output-file-name cfg "sequence-dot"))))
     (if verbose
-        (when (y-or-n-p "Overwrite ~s? " old-file)
+        (when (y-or-n-p "Overwrite ~s? " (enough-namestring old-file))
           (uiop:delete-file-if-exists old-file))
         (uiop:delete-file-if-exists old-file))
     (hm::write-sequence-graph-to-dot-file seq verbose)
@@ -474,7 +474,7 @@ configure the archaeological sequence, check it for errors, and return it."
   (let* ((cfg (hm::archaeological-sequence-configuration seq))
          (old-file (probe-file (hm::output-file-name cfg "chronology-dot"))))
     (if verbose
-        (when (y-or-n-p "Overwrite ~s? " old-file)
+        (when (y-or-n-p "Overwrite ~s? " (enough-namestring old-file))
           (uiop:delete-file-if-exists old-file))
         (uiop:delete-file-if-exists old-file))
     (if (chronology-graph-p cfg)
@@ -492,5 +492,6 @@ configure the archaeological sequence, check it for errors, and return it."
                                (chronology-display "pdf") (sequence-cmd "open")
                                (chronology-cmd "open"))
   (let ((seq (load-project cfg-file verbose)))
+    (memoize-functions)
     (run-sequence seq verbose sequence-display sequence-cmd)
     (run-chronology seq verbose chronology-display chronology-cmd)))
