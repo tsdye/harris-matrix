@@ -11,8 +11,8 @@
   :version "0.2"
   :license "GPL V3"
   :depends-on (#:graph
-               #:graph-matrix
-               #:graph-dot
+               #:graph/matrix
+               #:graph/dot
                #:cl-csv
                #:fset
                #:py-configparser
