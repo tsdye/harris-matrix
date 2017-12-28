@@ -1,6 +1,6 @@
 ;;; hm.lisp
 
-;; Copyright (C) Thomas Dye 2017
+;; Copyright (C) Thomas Dye 2017-2018
 
 ;; Licensed under the Gnu Public License Version 3 or later
 
