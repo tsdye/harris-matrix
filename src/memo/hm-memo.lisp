@@ -9,7 +9,6 @@
 
 (defun memoize-functions ()
   "Called for its side-effects."
-  (unmemoize-functions)
   (fmemo:memoize 'create-distance-matrix)
   (fmemo:memoize 'create-reachability-matrix)
   (fmemo:memoize 'create-adjacency-matrix)
@@ -22,7 +21,9 @@
   (fmemo:memoize 'graphviz-edge-style-map)
   (fmemo:memoize 'graphviz-node-shape-map)
   (fmemo:memoize 'graphviz-arrow-shape-map)
-  (fmemo:memoize 'dot-output-format-map))
+  (fmemo:memoize 'dot-output-format-map)
+  (fmemo:memoize 'x11-colors)
+  (fmemo:memoize 'make-classifier))
 
 (defun unmemoize-functions ()
   "Called for its side-effects."
@@ -38,4 +39,6 @@
   (fmemo:unmemoize 'graphviz-edge-style-map)
   (fmemo:unmemoize 'graphviz-node-shape-map)
   (fmemo:unmemoize 'graphviz-arrow-shape-map)
-  (fmemo:unmemoize 'dot-output-format-map))
+  (fmemo:unmemoize 'dot-output-format-map)
+  (fmemo:unmemoize 'x11-colors)
+  (fmemo:unmemoize 'make-classifier))
