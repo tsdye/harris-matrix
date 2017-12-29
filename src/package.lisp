@@ -39,4 +39,5 @@
    :run-project
    :load-project
    :run-sequence
-   :run-chronology))
+   :run-chronology
+   :run-project/example))
