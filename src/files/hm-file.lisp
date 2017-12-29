@@ -210,7 +210,20 @@ can't be found, nil otherwise."
         (fset:lookup map format))
       (error "Error: ~s is not a valid Graphviz dot image file format.~&" format)))
 
-(defun make-graphics-file (cfg graph format &optional open)
+(defun delete-graphics-file (cfg graph format)
+  "Delete a graphics file in the project specified by the user's configuration,
+CFG. GRAPH is one of :chronology :sequence, and FORMAT is a string that
+specifies an output graphics file format recognized by Graphviz dot."
+  (let ((ext (image-file-extension format))
+        (dot-file (namestring
+                   (truename
+                    (output-file-name
+                     cfg (case graph (:sequence :sequence-dot)
+                               (:chronology :chronology-dot)))))))
+    (uiop:delete-file-if-exists (ppcre:regex-replace "[.]dot" dot-file
+                                                     (format nil ".~a" ext)))))
+
+(defun make-graphics-file (cfg graph format &key open (verbose t))
   "Run the dot program to make a graphics file of type, FORMAT, based on
 information in the user's configuration, CFG, for the specified GRAPH type.
 GRAPH is one of :sequence, :chronology. FORMAT is any output format recognized
@@ -232,6 +245,7 @@ by the dot program."
          (two-outputs (fset:set "imap" "cmapx" "imap_np" "cmapx_np"))
          (output-file (ppcre:regex-replace "[.]dot" (copy-seq dot-file)
                                            (format nil ".~a" ext))))
+    (when verbose (format t "Creating ~a.~&" output-file))
     (if (fset:contains? two-outputs format)
         (let ((gif-file (ppcre:regex-replace "[.]dot" (copy-seq dot-file) ".gif")))
           (run (format nil "dot -T~a -o~a -Tgif -o~a ~a"
