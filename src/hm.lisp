@@ -296,8 +296,9 @@ possibly modified directed acyclic GRAPH."
                  1)
               (graph/matrix:reachablep graph r (nth 1 x) (nth 2 x)))
            (setf (graph/matrix:matrix-ref
-                  a (fset:@ i (nth 0 x)) (fset:@ i (nth 2 x))) (etypecase a (graph/matrix::fast-matrix 0s0)
-                                                                          (graph/matrix::matrix 0)))
+                  a (fset:@ i (nth 0 x)) (fset:@ i (nth 2 x)))
+                 (etypecase a (graph/matrix::fast-matrix 0s0)
+                            (graph/matrix::matrix 0)))
            (graph:delete-edge ret (list (nth 0 x) (nth 2 x)))
            (when verbose
              (format t "Transitive reduction removed the edge from node ~a to node ~a.~&"
