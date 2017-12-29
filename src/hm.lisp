@@ -170,7 +170,6 @@ discrepancies and errors out if it finds one."
     (fset:do-set (classifier (classifiers))
                  (let ((class (sequence-classifier cfg classifier)))
                    (when class
-                     (when verbose (format t "Making classifier for ~a.~&" class))
                      (setf (archaeological-sequence-classifiers ret)
                            (fset:with
                             (archaeological-sequence-classifiers ret)
@@ -264,10 +263,10 @@ empty graph. If VERBOSE, then advertise progress."
                         2))
       (map-permutations
        #'(lambda (pair)
-           (let ((distance (graph-matrix:matrix-ref distance-matrix
+           (let ((distance (graph/matrix:matrix-ref distance-matrix
                                                     (fset:@ i (nth 0 pair))
                                                     (fset:@ i (nth 1 pair)))))
-             (unless (graph-matrix:infinitep distance distance-matrix)
+             (unless (graph/matrix:infinitep distance distance-matrix)
                (graph:add-edge ret
                                (list (symbolicate "alpha-" (nth 0 pair))
                                      (symbolicate "beta-" (nth 1 pair)))
@@ -285,17 +284,20 @@ empty graph. If VERBOSE, then advertise progress."
   "Perform transitive reduction on the directed acyclic GRAPH. Returns the
 possibly modified directed acyclic GRAPH."
   (let ((ret (graph:copy graph))
-        (a (graph-matrix:to-adjacency-matrix graph (new-matrix)))
-        (r (graph-matrix:to-reachability-matrix graph (new-matrix)))
+        (a (graph/matrix:to-adjacency-matrix graph (new-matrix)))
+        (r (graph/matrix:to-reachability-matrix graph (new-matrix)))
         (i (map-node-to-index graph)))
     (map-permutations
      #'(lambda (x)
          (when
              (and
-              (= (graph-matrix:matrix-ref a (fset:@ i (nth 0 x)) (fset:@ i (nth 1 x)))
-                 (graph-matrix:matrix-ref a (fset:@ i (nth 0 x)) (fset:@ i (nth 2 x)))
+              (= (graph/matrix:matrix-ref a (fset:@ i (nth 0 x)) (fset:@ i (nth 1 x)))
+                 (graph/matrix:matrix-ref a (fset:@ i (nth 0 x)) (fset:@ i (nth 2 x)))
                  1)
-              (graph-matrix:reachablep graph r (nth 1 x) (nth 2 x)))
+              (graph/matrix:reachablep graph r (nth 1 x) (nth 2 x)))
+           (setf (graph/matrix:matrix-ref
+                  a (fset:@ i (nth 0 x)) (fset:@ i (nth 2 x))) (etypecase a (graph/matrix::fast-matrix 0s0)
+                                                                          (graph/matrix::matrix 0)))
            (graph:delete-edge ret (list (nth 0 x) (nth 2 x)))
            (when verbose
              (format t "Transitive reduction removed the edge from node ~a to node ~a.~&"
@@ -306,8 +308,8 @@ possibly modified directed acyclic GRAPH."
 (defun new-matrix (&optional (fast t))
   "Makes a matrix instance.  If FAST is t, then uses fast matrix
 routines.  If FAST is nil, then uses CL matrix routines."
-  (if fast (make-instance 'graph-matrix:fast-matrix)
-      (make-instance 'graph-matrix:matrix)))
+  (if fast (make-instance 'graph/matrix:fast-matrix)
+      (make-instance 'graph/matrix:matrix)))
 
 ;; graph structure functions
 
@@ -318,7 +320,7 @@ picture."
   (let ((ranks))
     (mapcar
      #'(lambda (x)
-         (push (graph-dot::make-rank
+         (push (graph/dot::make-rank
                 :value "same" :node-list (list (nth 0 x) (nth 1 x)))
                ranks))
      table)
@@ -333,7 +335,7 @@ the graph picture."
      #'(lambda (x)
          (let ((rank (nth 2 x)))
            (when (or (equal rank "basal") (equal rank "surface"))
-             (push (graph-dot::make-rank
+             (push (graph/dot::make-rank
                     :value (cond ((equal rank "basal") "sink")
                                  ((equal rank "surface") "source"))
                     :node-list (list (nth 0 x)))
@@ -347,7 +349,7 @@ the archaeological sequence, SEQ."
   (let* ((cfg (archaeological-sequence-configuration seq))
          (graph (archaeological-sequence-graph seq))
          (out-file (output-file-name cfg :sequence-dot)))
-    (graph-dot:to-dot-file
+    (graph/dot:to-dot-file
      graph out-file
      :attributes
      (list
@@ -398,7 +400,7 @@ the archaeological sequence, SEQ."
   (let* ((cfg (archaeological-sequence-configuration seq))
          (graph (archaeological-sequence-chronology-graph seq))
          (out-file (output-file-name cfg :chronology-dot)))
-    (graph-dot:to-dot-file
+    (graph/dot:to-dot-file
      graph out-file
      :attributes
      (list
@@ -453,7 +455,7 @@ configure the archaeological sequence, check it for errors, and return it."
   (let* ((cfg (hm::archaeological-sequence-configuration seq))
          (old-file (probe-file (hm::output-file-name cfg "sequence-dot"))))
     (if verbose
-        (when (y-or-n-p "Overwrite ~s? " (enough-namestring old-file))
+        (when (and old-file (y-or-n-p "Overwrite ~a?" (enough-namestring old-file)))
           (uiop:delete-file-if-exists old-file))
         (uiop:delete-file-if-exists old-file))
     (hm::write-sequence-graph-to-dot-file seq verbose)
@@ -462,7 +464,7 @@ configure the archaeological sequence, check it for errors, and return it."
         (unless (fset:domain-contains? map display)
           (error "Error: Graphviz dot does not recognize ~s as an output format.~&"
                  display))
-        (hm::make-graphics-file cfg :sequence display cmd)))))
+        (hm::make-graphics-file cfg :sequence display :open cmd :verbose verbose)))))
 
 (defun run-chronology (seq &optional (verbose t) display (cmd "open"))
   "Given an archaeological sequence, SEQ, carry out its instructions, and write
@@ -474,7 +476,7 @@ configure the archaeological sequence, check it for errors, and return it."
   (let* ((cfg (hm::archaeological-sequence-configuration seq))
          (old-file (probe-file (hm::output-file-name cfg "chronology-dot"))))
     (if verbose
-        (when (y-or-n-p "Overwrite ~s? " (enough-namestring old-file))
+        (when (and old-file (y-or-n-p "Overwrite ~a?" (enough-namestring old-file)))
           (uiop:delete-file-if-exists old-file))
         (uiop:delete-file-if-exists old-file))
     (if (chronology-graph-p cfg)
@@ -486,12 +488,50 @@ configure the archaeological sequence, check it for errors, and return it."
         (unless (fset:domain-contains? map display)
           (error "Error: Graphviz dot does not recognize ~s as an output format.~&"
                  display))
-        (hm::make-graphics-file cfg :chronology display cmd)))))
+        (make-graphics-file cfg :chronology display :open cmd :verbose verbose)))))
 
 (defun run-project (cfg-file &key (verbose t) (sequence-display "pdf")
                                (chronology-display "pdf") (sequence-cmd "open")
-                               (chronology-cmd "open"))
-  (let ((seq (load-project cfg-file verbose)))
-    (memoize-functions)
-    (run-sequence seq verbose sequence-display sequence-cmd)
-    (run-chronology seq verbose chronology-display chronology-cmd)))
+                               (chronology-cmd "open") (draw-sequence t)
+                               (draw-chronology t) (delete-sequence nil)
+                               (delete-chronology nil))
+  "Run the project specified in the user's configuration file, CFG-FILE. If
+DRAW-SEQUENCE is non-nil, then create a sequence graph in the format indicated
+by SEQUENCE-DISPLAY and open the graphics file with the shell command,
+SEQUENCE-CMD. If DELETE-SEQUENCE is non-nil, then delete the graphics file after
+it is displayed. If DRAW-CHRONOLOGY is non-nil, then create a sequence graph in
+the format indicated by CHRONOLOGY-DISPLAY and open the graphics file with the
+shell command, CHRONOLOGY-CMD. If DELETE-CHRONOLOGY is non-nil, then delete the
+graphics file after it is displayed. If VERBOSE is non-nil, then advertise
+progress."
+  (memoize-functions)
+  (let* ((seq (load-project cfg-file verbose))
+         (cfg (archaeological-sequence-configuration seq)))
+    (when draw-sequence
+      (run-sequence seq verbose sequence-display sequence-cmd)
+      (when (and delete-sequence (y-or-n-p "Delete graphics file?"))
+        (delete-graphics-file cfg :sequence sequence-display)))
+    (when (and draw-chronology (chronology-graph-p cfg))
+      (run-chronology seq verbose chronology-display chronology-cmd)
+      (when (and delete-chronology (y-or-n-p "Delete graphics file?"))
+        (delete-graphics-file cfg :chronology chronology-display))))
+  (unmemoize-functions))
+
+(defun run-project/example (example &key (verbose t) (sequence-display "pdf")
+                                      (chronology-display "pdf") (sequence-cmd "open")
+                                      (chronology-cmd "open") (draw-sequence t)
+                                      (draw-chronology t) (delete-sequence t)
+                                      (delete-chronology t))
+  "Given a keyword, EXAMPLE, that indicates one of the example projects defined
+for the hm package, run the project described by the appropriate .ini file."
+  (let ((cfg-file (case example
+                    (:catal-hoyuk (uiop:merge-pathnames*
+                                   "examples/bldg-1-5/bldg-1-5.ini"
+                                   (asdf:system-source-directory :hm)))
+                    (t (error "Error: The ~s project is not known." example)))))
+    (run-project cfg-file :verbose verbose :sequence-display sequence-display
+                          :chronology-display chronology-display
+                          :sequence-cmd sequence-cmd :chronology-cmd chronology-cmd
+                          :draw-sequence draw-sequence :draw-chronology draw-chronology
+                          :delete-sequence delete-sequence
+                          :delete-chronology delete-chronology)))
