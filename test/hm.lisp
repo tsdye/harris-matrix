@@ -850,7 +850,7 @@ resulting pdf file for viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
-      (hm::make-graphics-file cfg :sequence "pdf" "open"))))
+      (hm::make-graphics-file cfg :sequence "pdf" :open "open" :verbose nil))))
 
 (deftest test-adjacent ()
   "Test that adjacent classifies node fill color, shape, and pen width, and edge
@@ -863,7 +863,7 @@ resulting pdf file for viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
-      (hm::make-graphics-file cfg :sequence "pdf" "open"))))
+      (hm::make-graphics-file cfg :sequence "pdf" :open "open" :verbose nil))))
 
 (deftest test-distance ()
   "Test that distance classifies node fill color, shape, and pen width, and edge
@@ -876,7 +876,7 @@ resulting pdf file for viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
-      (hm::make-graphics-file cfg :sequence "pdf" "open"))))
+      (hm::make-graphics-file cfg :sequence "pdf" :open "open" :verbose nil))))
 
 (deftest test-levels ()
   "Test that levels classifies node fill color, shape, and pen width, and edge
@@ -889,7 +889,7 @@ resulting pdf file for viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
-      (hm::make-graphics-file cfg :sequence "pdf" "open"))))
+      (hm::make-graphics-file cfg :sequence "pdf" :open "open" :verbose nil))))
 
 
 (deftest test-periods ()
@@ -903,7 +903,7 @@ resulting pdf file for viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
-      (hm::make-graphics-file cfg :sequence "pdf" "open"))))
+      (hm::make-graphics-file cfg :sequence "pdf" :open "open" :verbose nil))))
 
 (deftest test-phases ()
   "Test that phases classifies node fill color, shape, and pen width, and edge
@@ -916,7 +916,7 @@ resulting pdf file for viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
-      (hm::make-graphics-file cfg :sequence "pdf" "open"))))
+      (hm::make-graphics-file cfg :sequence "pdf" :open "open" :verbose nil))))
 
 (deftest test-units ()
   "Test that units classifies node fill color, shape, and pen width, and edge
@@ -929,7 +929,7 @@ resulting pdf file for viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
-      (hm::make-graphics-file cfg :sequence "pdf" "open"))))
+      (hm::make-graphics-file cfg :sequence "pdf" :open "open" :verbose nil))))
 
 (deftest test-polygon-distortion ()
   "Test that distance classifies polygon distortion, then writes a sequence
@@ -941,7 +941,7 @@ opens the resulting pdf file for viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
-      (hm::make-graphics-file cfg :sequence "pdf" "open"))))
+      (hm::make-graphics-file cfg :sequence "pdf" :open "open" :verbose nil))))
 
 (deftest test-polygon-orientation ()
   "Test that distance classifies polygon orientation, then writes a sequence
@@ -953,7 +953,7 @@ opens the resulting pdf file for viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
-      (hm::make-graphics-file cfg :sequence "pdf" "open"))))
+      (hm::make-graphics-file cfg :sequence "pdf" :open "open" :verbose nil))))
 
 (deftest test-polygon-sides ()
   "Test that distance classifies polygon sides, then writes a sequence graph dot
@@ -965,7 +965,7 @@ resulting pdf file for viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
-      (hm::make-graphics-file cfg :sequence "pdf" "open"))))
+      (hm::make-graphics-file cfg :sequence "pdf" :open "open" :verbose nil))))
 
 (deftest test-polygon-skew ()
   "Test that distance classifies polygon skew, then writes a sequence graph dot
@@ -977,7 +977,7 @@ resulting pdf file for viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
-      (hm::make-graphics-file cfg :sequence "pdf" "open"))))
+      (hm::make-graphics-file cfg :sequence "pdf" :open "open" :verbose nil))))
 
 (deftest test-correlations ()
   "Test that correlations are made correctly for periods, then writes a sequence
@@ -989,7 +989,7 @@ opens the resulting pdf file for viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
-      (hm::make-graphics-file cfg :sequence "pdf" "open"))))
+      (hm::make-graphics-file cfg :sequence "pdf" :open "open" :verbose nil))))
 
 (deftest test-chronology ()
   "Test the chronology graph. Checks whether the dot file exists, compiles it
@@ -1000,7 +1000,7 @@ with dot, and opens the resulting pdf file for viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-chronology-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "chronology-dot")))
-      (hm::make-graphics-file cfg :chronology "pdf" "open"))))
+      (hm::make-graphics-file cfg :chronology "pdf" :open "open" :verbose nil))))
 
 (deftest test-urls ()
   "Test that urls are inserted properly in the sequence graph. Checks whether
@@ -1012,7 +1012,7 @@ viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
-      (hm::make-graphics-file cfg :sequence "svg" "open"))))
+      (hm::make-graphics-file cfg :sequence "svg" :open "open" :verbose nil))))
 
 ;; (deftest test-bldg-1-5 ()
 ;;   "Test that a large project actually runs, then writes a sequence graph dot
