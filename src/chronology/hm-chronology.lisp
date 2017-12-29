@@ -112,11 +112,11 @@ progress."
                               (symbolicate "alpha-" (nth 1 row))) 2))
       (dolist (pair (append (unique-pairs events)
                             (unique-pairs (reverse events))))
-        (let ((distance (graph-matrix::matrix-ref
+        (let ((distance (graph/matrix::matrix-ref
                          distance-matrix
                          (fset:@ node-index (nth 0 pair))
                          (fset:@ node-index (nth 1 pair)))))
-          (unless (graph-matrix:infinitep distance distance-matrix)
+          (unless (graph/matrix:infinitep distance distance-matrix)
             (graph:add-edge ret
                             (list (symbolicate "alpha-" (nth 0 pair))
                                   (symbolicate "beta-" (nth 1 pair)))
@@ -130,7 +130,7 @@ progress."
 according to information in the configuration CFG.  Returns the
 possibly modified directed acyclic graph."
   (let ((ret (graph:copy graph))
-        (reach (graph-matrix:to-reachability-matrix
+        (reach (graph/matrix:to-reachability-matrix
                 graph (new-matrix
                        (get-option cfg "General configuration" "fast-matrix"
                                    :type :boolean))))
@@ -139,13 +139,13 @@ possibly modified directed acyclic graph."
       (mapc (lambda (node)
               (setf node-index (fset:with node-index (incf counter) node)))
             (graph:nodes ret)))
-    (let ((n (graph-matrix:matrix-n-cols reach)))
+    (let ((n (graph/matrix:matrix-n-cols reach)))
       (loop for j below n do
            (loop for i below n do
-                (when (graph-matrix:reachablep ret reach i j)
+                (when (graph/matrix:reachablep ret reach i j)
                   (loop for k below n do
-                       (when (graph-matrix:reachablep ret reach j k)
-                         (setf (graph-matrix:matrix-ref reach i k) 0)
+                       (when (graph/matrix:reachablep ret reach j k)
+                         (setf (graph/matrix:matrix-ref reach i k) 0)
                          (when (graph:has-edge-p ret
                                                  (list (fset:@ node-index j)
                                                        (fset:@ node-index k)))
