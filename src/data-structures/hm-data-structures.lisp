@@ -41,7 +41,7 @@ configuration."
 configured sequence, SEQ."
   (let ((graph (archaeological-sequence-graph seq))
         (cfg (archaeological-sequence-configuration seq)))
-    (graph-matrix:to-distance-matrix graph (new-matrix (fast-matrix-p cfg)))))
+    (graph/matrix:to-distance-matrix graph (new-matrix (fast-matrix-p cfg)))))
 
 (defun create-reachability-matrix (seq)
   "Returns a reachability matrix of the directed graph, GRAPH, using the
@@ -50,9 +50,9 @@ configured sequence, SEQ."
         (graph (archaeological-sequence-graph seq))
         (cfg (archaeological-sequence-configuration seq)))
     (if (or (not limit) (< limit 2))
-        (graph-matrix:to-reachability-matrix
+        (graph/matrix:to-reachability-matrix
          graph (new-matrix (fast-matrix-p cfg)))
-        (graph-matrix:to-reachability-matrix
+        (graph/matrix:to-reachability-matrix
          graph (new-matrix (fast-matrix-p cfg)) :limit limit))))
 
 (defun create-adjacency-matrix (seq)
@@ -60,25 +60,25 @@ configured sequence, SEQ."
 instructions in the user's configuration, CFG."
   (let ((graph (archaeological-sequence-graph seq))
           (cfg (archaeological-sequence-configuration seq)))
-    (graph-matrix:to-adjacency-matrix graph (new-matrix (fast-matrix-p cfg)))))
+    (graph/matrix:to-adjacency-matrix graph (new-matrix (fast-matrix-p cfg)))))
 
 ;; (defun create-strong-component-matrix (seq)
 ;;   "Returns a strong-component-matrix of the directed graph, GRAPH, using
 ;;   instructions in the user's configuration, CFG."
 ;;   (let ((graph (archaeological-sequence-graph seq))
 ;;         (cfg (archaeological-sequence-configuration seq)))
-;;     (graph-matrix:to-strong-component-matrix
+;;     (graph/matrix:to-strong-component-matrix
 ;;      graph (new-matrix (fast-matrix-p cfg)))))
 
 (defun max-value (matrix)
   "Return the maximum value in a matrix."
-  (let ((rows (graph-matrix:matrix-n-rows matrix))
-        (cols (graph-matrix:matrix-n-cols matrix))
+  (let ((rows (graph/matrix:matrix-n-rows matrix))
+        (cols (graph/matrix:matrix-n-cols matrix))
         (max-val 0))
     (loop :for i :below rows :do
       (loop :for j :below cols :do
-        (let ((this-val (graph-matrix:matrix-ref matrix i j)))
-          (when (and (not (graph-matrix:infinitep this-val matrix))
+        (let ((this-val (graph/matrix:matrix-ref matrix i j)))
+          (when (and (not (graph/matrix:infinitep this-val matrix))
                      (> this-val max-val))
             (setf max-val this-val)))))
     max-val))
@@ -186,10 +186,10 @@ non-negative integer."
              (map (fset:empty-map)))
          (unless origin (error "Error: Configuration lacks distance from node."))
          (dolist (node nodes)
-           (let ((to (graph-matrix:distance-from-to graph m origin node))
-                 (from (graph-matrix:distance-from-to graph m node origin)))
-             (if (graph-matrix:infinitep to m)
-                 (if (graph-matrix:infinitep from m)
+           (let ((to (graph/matrix:distance-from-to graph m origin node))
+                 (from (graph/matrix:distance-from-to graph m node origin)))
+             (if (graph/matrix:infinitep to m)
+                 (if (graph/matrix:infinitep from m)
                      (setf map (fset:with map node unreachable))
                      (setf map (fset:with map node (truncate from))))
                  (setf map (fset:with map node (truncate to))))))
@@ -206,8 +206,8 @@ non-negative integer."
          (dolist (node (graph:nodes graph))
            (if (eq node origin)
                (setf map (fset:with map node :origin))
-               (if (or (graph-matrix:reachablep graph m origin node)
-                       (graph-matrix:reachablep graph m node origin))
+               (if (or (graph/matrix:reachablep graph m origin node)
+                       (graph/matrix:reachablep graph m node origin))
                    (setf map (fset:with map node :reachable))
                    (setf map (fset:with map node :not-reachable)))))
          map))
@@ -221,9 +221,9 @@ non-negative integer."
            (if (eq key origin)
                (setf map (fset:with map key :origin))
                (let ((to (truncate
-                          (graph-matrix:matrix-ref m (fset:@ i origin) index)))
+                          (graph/matrix:matrix-ref m (fset:@ i origin) index)))
                      (from (truncate
-                            (graph-matrix:matrix-ref m index (fset:@ i origin)))))
+                            (graph/matrix:matrix-ref m index (fset:@ i origin)))))
                  (if (or (eq to 1) (eq from 1))
                      (setf map (fset:with map key :adjacent))
                      (setf map (fset:with map key :not-adjacent))))))
@@ -277,7 +277,7 @@ of GRAPH and the value is a node of graph GRAPH."
 
 (defun make-map (seq element dot-attr graph-type user-class &optional (verbose t))
   "Return a closure for the classification, USER-CLASS, that can be passed
-directly to graph-dot for the attribute, DOT-ATTR, of the graph ELEMENT. ELEMENT
+directly to graph/dot for the attribute, DOT-ATTR, of the graph ELEMENT. ELEMENT
 is one of :node :edge."
   (cond
     ((eq user-class :distance)
