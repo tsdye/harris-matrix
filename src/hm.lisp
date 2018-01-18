@@ -515,8 +515,9 @@ progress."
     (when (and draw-chronology (chronology-graph-p cfg))
       (run-chronology seq verbose chronology-display chronology-cmd)
       (when (and delete-chronology (y-or-n-p "Delete graphics file?"))
-        (delete-graphics-file cfg :chronology chronology-display))))
-  (unmemoize-functions))
+        (delete-graphics-file cfg :chronology chronology-display)))
+    (unmemoize-functions)
+    seq))
 
 (defun run-project/example (example &key (verbose t) (sequence-display "pdf")
                                       (chronology-display "pdf") (sequence-cmd "open")
@@ -529,7 +530,18 @@ for the hm package, run the project described by the appropriate .ini file."
                     (:catal-hoyuk (uiop:merge-pathnames*
                                    "examples/bldg-1-5/bldg-1-5.ini"
                                    (asdf:system-source-directory :hm)))
-                    (t (error "Error: The ~s project is not known." example)))))
+                    (:roskams-h (uiop:merge-pathnames*
+                                 "examples/roskams-h/roskams-h.ini"
+                                 (asdf:system-source-directory :hm)))
+                    (:roskams-h-solarized-light
+                     (uiop:merge-pathnames*
+                      "examples/roskams-h/roskams-h-solarized-light.ini"
+                      (asdf:system-source-directory :hm)))
+                    (:roskams-h-solarized-dark
+                     (uiop:merge-pathnames*
+                      "examples/roskams-h/roskams-h-solarized-dark.ini"
+                      (asdf:system-source-directory :hm)))
+                    (t (error "Error: The ~s project is not known.~&" example)))))
     (run-project cfg-file :verbose verbose :sequence-display sequence-display
                           :chronology-display chronology-display
                           :sequence-cmd sequence-cmd :chronology-cmd chronology-cmd
