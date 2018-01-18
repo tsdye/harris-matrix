@@ -97,7 +97,8 @@ out if one or more initialization files were not read. Prints a status message."
 (defun write-levels (graph out-file cfg)
   "Write levels of GRAPH to OUT-FILE in the project directory specified in CFG."
   (let ((levels (graph:levels graph))
-        (out-file-path (uiop:merge-pathnames* out-file (get-project-directory cfg))))
+        (out-file-path (uiop:merge-pathnames* out-file
+                                              (get-project-directory cfg))))
     (with-open-file (stream out-file-path :direction :output
                                           :if-exists :overwrite
                                           :if-does-not-exist :create)
@@ -105,6 +106,25 @@ out if one or more initialization files were not read. Prints a status message."
                  (cl-csv:write-csv-row (list key value)
                                        :stream stream))
                levels))))
+
+(defun write-classifier (classifier-type seq &optional (verbose t))
+  "Write the classifier, CLASSIFIER-TYPE, to a file specified in the user's
+configuration stored in the archaeological sequence, SEQ. If verbose, indicate
+that a file was written."
+  (let ((classifier (make-classifier classifier-type seq verbose))
+        (cfg (archaeological-sequence-configuration seq))
+        (out-file (classifier-out-file classifier-type seq verbose)))
+    (with-open-file (stream out-file :direction :output
+                                     :if-exists :overwrite
+                                     :if-does-not-exist :create)
+      (when (out-file-header-p classifier-type cfg)
+        (cl-csv:write-csv-row (list "node" (string-downcase classifier-type))
+                              :stream stream))
+      (fset:do-map (key val classifier)
+        (cl-csv:write-csv-row
+         (list key (if (numberp val) val (string val)))
+         :stream stream)))
+    (when verbose (format t "Wrote ~a.~&" out-file))))
 
 (defun get-project-directory (cfg)
   "Check if the user's project directory exists, if so, return a path to it. If
@@ -137,8 +157,11 @@ can't be found, nil otherwise."
     (dolist (option option-list)
       (let ((file-name (get-option cfg "Input files" option))
             (dir (project-directory cfg)))
-        (when file-name (unless (probe-file (uiop:merge-pathnames* dir file-name))
-                          (push file-name missing)))))
+        (unless (or (emptyp file-name) (not file-name))
+          (let ((in-file (uiop:merge-pathnames* file-name dir)))
+            (unless (probe-file in-file)
+              (push file-name missing)
+              (format t "Warning: The file ~s is missimg from ~s.~&" in-file dir))))))
     missing))
 
 (defun dot-output-format-map ()
