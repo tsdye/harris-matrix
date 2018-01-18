@@ -19,6 +19,20 @@
 (defun master-table ()
 (list '("Output files" "sequence-dot" :none :none :sequence :none :none "")
 '("Output files" "chronology-dot" :none :none :chronology :none :none "")
+'("Output files" "distance" :none :none :none :none :none "")
+'("Output files" "reachable" :none :none :none :none :none "")
+'("Output files" "adjacent" :none :none :none :none :none "")
+'("Output files" "phases" :none :none :none :none :none "")
+'("Output files" "periods" :none :none :none :none :none "")
+'("Output files" "units" :none :none :none :none :none "")
+'("Output files" "levels" :none :none :none :none :none "")
+'("Output file headers" "distance" :none :none :none :none :none "yes")
+'("Output file headers" "reachable" :none :none :none :none :none "yes")
+'("Output file headers" "adjacent" :none :none :none :none :none "yes")
+'("Output file headers" "phases" :none :none :none :none :none "yes")
+'("Output file headers" "periods" :none :none :none :none :none "yes")
+'("Output file headers" "units" :none :none :none :none :none "yes")
+'("Output file headers" "levels" :none :none :none :none :none "yes")
 '("Input files" "contexts" :none :none :sequence :none :none "")
 '("Input files" "observations" :none :none :sequence :none :none "")
 '("Input files" "inferences" :none :none :sequence :none :none "")
@@ -663,6 +677,34 @@ configuration section and option."
   (let ((map (make-lookup-map (master-table))))
     (nth 1 (fset:lookup
             map (fset:set element dot-attr graph-type classification graph-attr)))))
+
+(defun out-file-header-p (classifier-type cfg)
+  (let ((value (get-option cfg "Output files" (string-downcase classifier-type))))
+    (cond ((fset:contains? (boolean-strings) value)
+           (get-option cfg "Output files"
+                       (string-downcase classifier-type) :type :boolean))
+          ((emptyp value) nil)
+          (t (error "Error: ~s is not a valid value for Output files, ~s.~&"
+                    value classifier-type)))))
+
+(defun classifier-out-file (classifier-type seq &optional (verbose t))
+  "Get the output file name for the classifier, CLASSIFIER-TYPE from the user's
+configuration stored in the archaeological sequence, SEQ. If verbose, then
+advertise the output file name."
+  (let ((cfg (archaeological-sequence-configuration seq))
+        (section "Output files")
+        (ret))
+    (setf ret (case classifier-type
+                (:distance (get-option cfg section "distance"))
+                (:reachable (get-option cfg section "reachable"))
+                (:adjacent (get-option cfg section "adjacent"))
+                (:phases (get-option cfg section "phases"))
+                (:periods (get-option cfg section "periods"))
+                (:units (get-option cfg section "units"))
+                (:levels (get-option cfg section "levels"))
+                (t (error "Error: ~a is not a classifier.~&" classifier-type))))
+    (when verbose (format t "Writing to ~a.~&" ret))
+    ret))
 
 (defun lookup-graphviz-option
     (cfg element dot-attr graph-type
