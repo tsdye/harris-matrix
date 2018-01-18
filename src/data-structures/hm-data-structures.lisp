@@ -152,12 +152,12 @@ and the value is either the period or phase of the context."
 return an fset map where the key is a symbol for a node in the directed graph of
 the archaeological sequence and whose value is a number or keyword depending on
 CLASSIFIER-TYPE. CLASSIFIER-TYPE is one of: :distance, in which case the value
-is a non-negative integer; :reachable, in which case value is one
-of :origin, :reachable, or :not-reachable; :adjacent, in which case value is
-one of :origin, :adjacent, or :not-adjacent; :periods, in which case value is
-an integer; :phases, in which case value is an integer; :units, in which case
-value is one of :deposit or :interface; or :levels, in which case value is a
-non-negative integer."
+is a non-negative integer; :reachable, in which case value is a keyword, one
+of :origin, :reachable, or :not-reachable; :adjacent, in which case value is a
+keyword, one of :origin, :adjacent, or :not-adjacent; :periods, in which case
+value is an integer; :phases, in which case value is an integer; :units, in
+which case value is a keyword, one of :deposit or :interface; or :levels, in
+which case value is a non-negative integer."
   (let ((cfg (archaeological-sequence-configuration seq))
         (graph (archaeological-sequence-graph seq)))
     (when verbose (format t "Creating ~a classification.~&" classifier-type))
