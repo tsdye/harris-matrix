@@ -81,10 +81,10 @@
 '("Graphviz sequence graph attributes" "label" :graph :label :sequence :none :none "Sequence Diagram")
 '("Graphviz sequence graph attributes" "labelloc" :graph :labelloc :sequence :none :none "t")
 '("Graphviz sequence graph attributes" "style" :graph :style :sequence :none :none "filled")
-'("Graphviz sequence graph attributes" "size" :graph :size :sequence :none :none "6,4!")
-'("Graphviz sequence graph attributes" "ratio" :graph :ratio :sequence :none :none "auto")
-'("Graphviz sequence graph attributes" "page" :graph :page :sequence :none :none "7,5")
-'("Graphviz sequence graph attributes" "dpi" :graph :dpi :sequence :none :none "96")
+'("Graphviz sequence graph attributes" "size" :graph :size :sequence :none :none "")
+'("Graphviz sequence graph attributes" "ratio" :graph :ratio :sequence :none :none "")
+'("Graphviz sequence graph attributes" "page" :graph :page :sequence :none :none "")
+'("Graphviz sequence graph attributes" "dpi" :graph :dpi :sequence :none :none "")
 '("Graphviz sequence graph attributes" "margin" :graph :margin :sequence :none :none "0.5,0.5")
 '("Graphviz sequence graph attributes" "fontsize-subscript" :graph :fontsize-subscript :sequence :none :none "10")
 '("Graphviz sequence graph attributes" "splines" :graph :splines :sequence :none :none "ortho")
@@ -679,31 +679,31 @@ configuration section and option."
             map (fset:set element dot-attr graph-type classification graph-attr)))))
 
 (defun out-file-header-p (classifier-type cfg)
-  (let ((value (get-option cfg "Output files" (string-downcase classifier-type))))
+  (let ((value (get-option cfg "Output file headers" (string-downcase classifier-type))))
     (cond ((fset:contains? (boolean-strings) value)
-           (get-option cfg "Output files"
+           (get-option cfg "Output file headers"
                        (string-downcase classifier-type) :type :boolean))
           ((emptyp value) nil)
           (t (error "Error: ~s is not a valid value for Output files, ~s.~&"
-                    value classifier-type)))))
+                    value (string-downcase classifier-type))))))
 
 (defun classifier-out-file (classifier-type seq &optional (verbose t))
   "Get the output file name for the classifier, CLASSIFIER-TYPE from the user's
 configuration stored in the archaeological sequence, SEQ. If verbose, then
 advertise the output file name."
-  (let ((cfg (archaeological-sequence-configuration seq))
-        (section "Output files")
-        (ret))
-    (setf ret (case classifier-type
-                (:distance (get-option cfg section "distance"))
-                (:reachable (get-option cfg section "reachable"))
-                (:adjacent (get-option cfg section "adjacent"))
-                (:phases (get-option cfg section "phases"))
-                (:periods (get-option cfg section "periods"))
-                (:units (get-option cfg section "units"))
-                (:levels (get-option cfg section "levels"))
-                (t (error "Error: ~a is not a classifier.~&" classifier-type))))
-    (when verbose (format t "Writing to ~a.~&" ret))
+  (let* ((cfg (archaeological-sequence-configuration seq))
+         (section "Output files")
+         (file (case classifier-type
+                 (:distance (get-option cfg section "distance"))
+                 (:reachable (get-option cfg section "reachable"))
+                 (:adjacent (get-option cfg section "adjacent"))
+                 (:phases (get-option cfg section "phases"))
+                 (:periods (get-option cfg section "periods"))
+                 (:units (get-option cfg section "units"))
+                 (:levels (get-option cfg section "levels"))
+                 (t (error "Error: ~a is not a classifier.~&" classifier-type))))
+         (ret (uiop:merge-pathnames* file (get-project-directory cfg))))
+    (when verbose (format t "Writing to ~a.~&" (enough-namestring ret)))
     ret))
 
 (defun lookup-graphviz-option
@@ -767,18 +767,21 @@ the configuration CFG, nil otherwise."
 restrictions, nil otherwise."
   (and (chronology-graph-p cfg) (assume-correlations-p cfg)))
 
-(defun reset-option (cfg section-name option-name value)
-  "Ensure option names are not inadvertently created when setting an
-option."
-  (let ((section-list (sections cfg)))
-    (assert (member section-name section-list :test #'equal)
-            (section-name) "Error: \"~a\" is not one of ~a."
-            section-name section-list))
-  (let ((option-list (options cfg section-name)))
-    (assert (member option-name option-list :test #'equal)
-            (option-name) "Error: \"~a\" in not one of ~a."
-            option-name option-list))
-  (set-option cfg section-name option-name value))
+(defun reset-option (seq section-name option-name value)
+  "Assign value, VALUE, to option, OPTION-NAME, in configurations section,
+SECTION-NAME, in the configuration associated with the archaeological sequence,
+SEQ. Ensures section and option names are not inadvertently created when resetting
+an option."
+  (let ((cfg (archaeological-sequence-configuration seq)))
+    (let ((section-list (sections cfg)))
+      (assert (member section-name section-list :test #'equal)
+              (section-name) "Error: \"~a\" is not one of ~a."
+              section-name section-list))
+    (let ((option-list (options cfg section-name)))
+      (assert (member option-name option-list :test #'equal)
+              (option-name) "Error: \"~a\" in not one of ~a."
+              option-name option-list))
+    (set-option cfg section-name option-name value)))
 
 (defun configuration-errors? (cfg)
   "Checks for problems in the configuration CFG, errors out if it
@@ -829,27 +832,31 @@ periods, or phases."
         (error "Error: Contexts ~s and ~s must be assigned to the same phase."
                (nth 0 correlation) (nth 1 correlation))))))
 
-(defun set-input-file (cfg option file-name header)
+(defun set-input-file (seq option file-name header)
   "If OPTION is recognized, then FILE-NAME and HEADER are registered with the
-configuration, CFG.  HEADER is interpreted as a boolean."
-  (let ((option-list (options cfg "Input files")))
+configuration associated with the archaeological sequence, SEQ. HEADER is
+interpreted as a boolean."
+  (let* ((cfg (archaeological-sequence-configuration seq))
+         (option-list (options cfg "Input files")))
     (assert (member option option-list :test #'equal)
             (option) "Error: \"~a\" is not one of ~a"
             option option-list)
     (set-option cfg "Input files" option file-name)
     (set-option cfg "Input file headers" option (if header "yes" "no"))))
 
-(defun set-dot-file (cfg option name &optional (verbose t))
-  "Registers the chronology output file, NAME, with the OPTION in the
-configuration CFG.  Checks if OPTION is known and errors out if not.
-If NAME exists and VERBOSE is non-nil, then asks about overwriting it."
-  (let ((option-list (options cfg "Output files")))
+(defun set-output-file (seq option name &optional (verbose t))
+  "Registers the output file, NAME, with the OPTION in the
+configuration associated with the archaeological sequence, SEQ. Checks if OPTION
+is known and errors out if not. If NAME exists and VERBOSE is non-nil, then asks
+about overwriting it."
+  (let* ((cfg (archaeological-sequence-configuration seq))
+         (option-list (options cfg "Output files")))
     (assert (member option option-list :test #'equal)
             (option) "Error: \"~a\" is not one of ~a"
             option option-list)
     (when (and (probe-file name) verbose)
       (unless (yes-or-no-p "Overwrite ~a?" name))
-      (return-from set-dot-file))
+      (return-from set-output-file))
     (set-option cfg "Output files" option name)))
 
 (defun toggle-chronology-graph (cfg &optional (verbose t))
@@ -867,16 +874,18 @@ If NAME exists and VERBOSE is non-nil, then asks about overwriting it."
           (set-option cfg section option "yes")
           (when verbose (format t "Option ~s set to `yes'.~&" option))))))
 
-(defun show-configuration-options (cfg section-name)
-  "Print the options in section SECTION-NAME of configuration CFG.
-Error out if CFG is not a configuration.  If SECTION-NAME isn't found
-in CFG, then let the user try another SECTION-NAME."
-  (unless (typep cfg 'config) (error "Error: ~a is not a configuration." cfg))
-  (assert (has-section-p cfg section-name) (section-name)
-          "Error: Unable to find ~a." section-name)
-  (let ((key-val-list (items cfg section-name)))
-    (dolist (pair key-val-list)
-      (format t "~a = ~a~&" (car pair) (cdr pair)))))
+(defun show-configuration-options (seq section-name)
+  "Print the options in section SECTION-NAME of configuration associated with
+the archaeological sequence, SEQ. Errors out if the configuration is not valid.
+If SECTION-NAME isn't found in the configuration, then let the user enter
+another SECTION-NAME."
+  (let ((cfg (archaeological-sequence-configuration seq)))
+    (unless (typep cfg 'config) (error "Error: ~a is not a configuration." cfg))
+    (assert (has-section-p cfg section-name) (section-name)
+            "Error: Unable to find ~a." section-name)
+    (let ((key-val-list (items cfg section-name)))
+      (dolist (pair key-val-list)
+        (format t "~a = ~a~&" (car pair) (cdr pair))))))
 
 (defun get-configuration-sections (cfg &optional (sort nil))
   "Return a list of sections in the configuration CFG, sorted alphabetically if
@@ -885,14 +894,16 @@ SORT is non-nil, or unsorted otherwise.  Assumes that CFG is a configuration."
     (when sort (setf section-list (sort section-list #'string<)))
     section-list))
 
-(defun show-configuration-sections (cfg &optional (sort t))
-  "Print out the sections in configuration CFG, by default in sorted
-order.  If SORT is nil, then print out the unsorted section list.
-Errors out if CFG is not a configuration."
-  (unless (typep cfg 'config) (error "Error: ~a is not a configuration." cfg))
-  (let ((section-list (get-configuration-sections cfg sort)))
-    (dolist (section section-list)
-      (format t "~a~&" section))))
+(defun show-configuration-sections (seq &optional (sort t))
+  "Print out the sections in the configuration associated with the
+archaeological sequence, SE, by default in sorted order. If SORT is nil, then
+print out the unsorted section list. Errors out if the configuration associated
+with SEQ is not valid."
+  (let ((cfg (archaeological-sequence-configuration seq)))
+    (unless (typep cfg 'config) (error "Error: ~a is not a configuration." cfg))
+    (let ((section-list (get-configuration-sections cfg sort)))
+      (dolist (section section-list)
+        (format t "~a~&" section)))))
 
 (defun get-all-configuration-options (cfg)
   "Return a list of the options in all sections of the configuration, CFG.  Assumest that CFG is a configuration."
