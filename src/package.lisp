@@ -8,36 +8,16 @@
    :alexandria
    :inferior-shell)
   (:export
-   :configure-archaeological-sequence
-   :default-configuration
-   :empty-configuration
    :write-default-configuration
    :write-configuration
    :write-Graphviz-style-configuration
    :write-general-configuration
-   :configuration-errors?
    :reset-option
    :set-input-file
-   :set-dot-file
+   :set-output-file
    :read-configuration-from-files
    :show-configuration-options
    :show-configuration-sections
-   :get-configuration-sections
-   :get-all-configuration-options
-   :create-chronology-graph
-   :lookup-option
-   :master-table
-   :fast-matrix-p
-   :assume-correlations-p
-   :input-file-name
-   :input-file-name-p
-   :file-header-p
-   :output-file-name
-   :write-levels
-   :memoize-functions
-   :unmemoize-functions
    :run-project
-   :load-project
-   :run-sequence
-   :run-chronology
-   :run-project/example))
+   :run-project/example
+   :write-classifier))
