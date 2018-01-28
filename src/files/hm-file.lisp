@@ -49,34 +49,43 @@ give notice."
       (cl-csv:read-csv in-file :skip-first-p header))
     (error "Unable to read ~a.~&" in-file)))
 
-(defun write-default-configuration (path-name)
-  "Write the default configuration to path-name."
-  (let ((config (make-default-or-empty-configuration (master-table))))
-    (with-open-file (stream path-name :direction :output :if-exists :supersede)
-      (write-stream config stream))))
+(defun write-default-configuration (seq file-name)
+  "Write the default configuration to the file, FILE-NAME, in the project
+directory associated with SEQ."
+  (let* ((cfg (make-default-or-empty-configuration (master-table)))
+         (out-file (uiop:merge-pathnames* (project-directory cfg) file-name)))
+    (with-open-file (stream out-file :direction :output :if-exists :supersede)
+      (write-stream cfg stream))))
 
-(defun write-configuration (cfg file-name)
-  "Write configuration, CFG, to the file, FILE-NAME."
-  (with-open-file (stream file-name :direction :output :if-exists :supersede)
-    (write-stream cfg stream)))
+(defun write-configuration (seq file-name)
+  "Write configuration associated with the archaeological sequence, SEQ, to the
+file, FILE-NAME, in the project directory associated with SEQ."
+  (let* ((cfg (archaeological-sequence-configuration seq))
+         (out-file (uiop:merge-pathnames* (project-directory cfg) file-name)))
+    (with-open-file (stream out-file :direction :output :if-exists :supersede)
+      (write-stream cfg stream))))
 
-(defun write-Graphviz-style-configuration (config path-name)
-  "Write the Graphviz style portion of CONFIG to PATH-NAME."
-  (let ((cfg (copy-structure config))
-        (file-sections (sections config)))
-    (dolist (section file-sections)
-      (when (not (Graphviz-section-p section))
-        (remove-section cfg section)))
-    (write-configuration cfg path-name)))
+(defun write-Graphviz-style-configuration (seq file-name)
+  "Write the Graphviz style portion of the configuration associated with the
+archaeological sequence, SEQ, to the file, FILE-NAME, in the project directory
+associated with SEQ."
+  (let* ((cfg (copy-structure (archaeological-sequence-configuration seq)))
+         (out-file (uiop:merge-pathnames* (project-directory cfg) file-name)))
+    (dolist (section (sections cfg))
+      (unless (Graphviz-section-p section) (remove-section cfg section)))
+    (with-open-file (stream out-file :direction :output :if-exists :supersede)
+      (write-stream cfg stream))))
 
-(defun write-general-configuration (config path-name)
-  "Write the non-Graphviz portion of CONFIG to PATH-NAME."
-  (let ((cfg (copy-structure config))
-        (file-sections (sections config)))
-    (dolist (section file-sections)
-      (when (Graphviz-section-p section)
-        (remove-section cfg section)))
-    (write-configuration cfg path-name)))
+(defun write-general-configuration (seq file-name)
+  "Write the non-Graphviz portion of the configuration associated with the
+archaeological sequence, SEQ, to the file, FILE-NAME, in the project directory
+associated with SEQ."
+  (let* ((cfg (copy-structure (archaeological-sequence-configuration seq)))
+         (out-file (uiop:merge-pathnames* (project-directory cfg) file-name)))
+    (dolist (section (sections cfg))
+      (when (Graphviz-section-p section) (remove-section cfg section)))
+    (with-open-file (stream out-file :direction :output :if-exists :supersede)
+      (write-stream cfg stream))))
 
 (defun read-configuration-from-files (verbose &rest file-names)
   "Reads the initialization files FILE-NAMES and returns a configuration. Errors
@@ -94,19 +103,6 @@ out if one or more initialization files were not read. Prints a status message."
 
 ;; output files
 
-(defun write-levels (graph out-file cfg)
-  "Write levels of GRAPH to OUT-FILE in the project directory specified in CFG."
-  (let ((levels (graph:levels graph))
-        (out-file-path (uiop:merge-pathnames* out-file
-                                              (get-project-directory cfg))))
-    (with-open-file (stream out-file-path :direction :output
-                                          :if-exists :overwrite
-                                          :if-does-not-exist :create)
-      (maphash (lambda (key value)
-                 (cl-csv:write-csv-row (list key value)
-                                       :stream stream))
-               levels))))
-
 (defun write-classifier (classifier-type seq &optional (verbose t))
   "Write the classifier, CLASSIFIER-TYPE, to a file specified in the user's
 configuration stored in the archaeological sequence, SEQ. If verbose, indicate
@@ -122,9 +118,9 @@ that a file was written."
                               :stream stream))
       (fset:do-map (key val classifier)
         (cl-csv:write-csv-row
-         (list key (if (numberp val) val (string val)))
+         (list key (if (numberp val) val (string-downcase val)))
          :stream stream)))
-    (when verbose (format t "Wrote ~a.~&" out-file))))
+    (when verbose (format t "Wrote ~a.~&" (enough-namestring out-file)))))
 
 (defun get-project-directory (cfg)
   "Check if the user's project directory exists, if so, return a path to it. If
