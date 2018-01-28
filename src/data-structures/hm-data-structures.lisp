@@ -160,7 +160,8 @@ which case value is a keyword, one of :deposit or :interface; or :levels, in
 which case value is a non-negative integer."
   (let ((cfg (archaeological-sequence-configuration seq))
         (graph (archaeological-sequence-graph seq)))
-    (when verbose (format t "Creating ~a classification.~&" classifier-type))
+    (when verbose (format t "Creating ~a classification.~&"
+                          (string-downcase classifier-type)))
     (cond
       ((eq classifier-type :units)
        (let ((map (context-type-to-map (read-table (input-file-name cfg "contexts")
