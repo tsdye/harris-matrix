@@ -77,6 +77,7 @@ VERBOSE, then advertise the activity. Returns the possibly modified GRAPH."
     (setf graph (add-nodes graph cfg verbose))
     (setf graph (add-arcs graph cfg verbose))
     (setf graph (assume-correlations graph cfg verbose))
+    (setf graph (transitive-reduction graph verbose))
     graph))
 
 (defun check-cycles (graph)
@@ -167,8 +168,8 @@ discrepancies and errors out if it finds one."
     (setf (archaeological-sequence-graph ret) (make-new-sequence-graph cfg verbose))
     (setf (archaeological-sequence-chronology-graph ret)
           (create-chronology-graph ret verbose))
-    (fset:do-set (classifier (classifiers))
-                 (let ((class (sequence-classifier cfg classifier)))
+    (fset:do-set (attribute (classifiable-attributes))
+                 (let ((class (sequence-classifier cfg attribute)))
                    (when class
                      (setf (archaeological-sequence-classifiers ret)
                            (fset:with
@@ -278,7 +279,8 @@ empty graph. If VERBOSE, then advertise progress."
       (error "Error: The chronology graph is cyclical.~&Nodes: ~a~&Edges: ~a~&"
              (graph:nodes ret) (graph:edges ret)))
     (when verbose (format t "Performing transitive reduction of the chronology graph.~&"))
-    (transitive-reduction ret verbose)))
+    (setq ret (transitive-reduction ret verbose))
+    ret))
 
 (defun transitive-reduction (graph &optional (verbose t))
   "Perform transitive reduction on the directed acyclic GRAPH. Returns the
@@ -287,6 +289,8 @@ possibly modified directed acyclic GRAPH."
         (a (graph/matrix:to-adjacency-matrix graph (new-matrix)))
         (r (graph/matrix:to-reachability-matrix graph (new-matrix)))
         (i (map-node-to-index graph)))
+    (when verbose
+      (format t "Transitive reduction started.~&"))
     (map-permutations
      #'(lambda (x)
          (when
@@ -304,6 +308,8 @@ possibly modified directed acyclic GRAPH."
              (format t "Transitive reduction removed the edge from node ~a to node ~a.~&"
                      (nth 0 x) (nth 2 x)))))
      (graph:nodes graph) :length 3)
+    (when verbose
+      (format t "Transitive reduction finished.~&"))
     ret))
 
 (defun new-matrix (&optional (fast t))
@@ -496,7 +502,21 @@ configure the archaeological sequence, check it for errors, and return it."
                                (chronology-cmd "open") (draw-sequence t)
                                (draw-chronology t) (delete-sequence nil)
                                (delete-chronology nil))
-  "Run the project specified in the user's configuration file, CFG-FILE. If
+  "* Arguments
+ - cfg-file :: A string or pathname.
+ - verbose :: Boolean.
+ - sequence-display :: A string indicating a Graphviz =dot= output file format.
+ - chronology-display :: A string indicating a Graphviz =dot= output file format.
+ - sequence-cmd :: A string naming the application used to open the sequence graph.
+ - chronology-cmd :: A string naming the application used to open the chronology graph.
+ - draw-sequence :: Boolean.
+ - draw-chronology :: Boolean.
+ - delete-sequence :: Boolean.  Delete the sequence graph file after it is displayed.
+ - delete-chronology :: Boolean. Delete the chronology graph file after it is displayed.
+* Returns
+An archaeological sequence.
+* Description
+Run the project specified in the user's configuration file, CFG-FILE. If
 DRAW-SEQUENCE is non-nil, then create a sequence graph in the format indicated
 by SEQUENCE-DISPLAY and open the graphics file with the shell command,
 SEQUENCE-CMD. If DELETE-SEQUENCE is non-nil, then delete the graphics file after
@@ -504,7 +524,11 @@ it is displayed. If DRAW-CHRONOLOGY is non-nil, then create a sequence graph in
 the format indicated by CHRONOLOGY-DISPLAY and open the graphics file with the
 shell command, CHRONOLOGY-CMD. If DELETE-CHRONOLOGY is non-nil, then delete the
 graphics file after it is displayed. If VERBOSE is non-nil, then advertise
-progress."
+progress.
+* Example
+#+begin_src lisp
+(run-project \"my-config.ini\" :verbose nil :sequence-cmd \"evince\")
+#+end_src"
   (memoize-functions)
   (let* ((seq (load-project cfg-file verbose))
          (cfg (archaeological-sequence-configuration seq)))
@@ -524,8 +548,28 @@ progress."
                                       (chronology-cmd "open") (draw-sequence t)
                                       (draw-chronology t) (delete-sequence t)
                                       (delete-chronology t))
-  "Given a keyword, EXAMPLE, that indicates one of the example projects defined
-for the hm package, run the project described by the appropriate .ini file."
+  "* Arguments
+ - example :: A keyword, one of :catal-hoyuk, :roskams-h, :roskams-h-solarized-light, :roskams-h-solarized-dark.
+ - verbose :: Boolean.
+ - sequence-display :: A string indicating a Graphviz =dot= output file format.
+ - chronology-display :: A string indicating a Graphviz =dot= output file format.
+ - sequence-cmd :: A string naming the application used to open the sequence graph.
+ - chronology-cmd :: A string naming the application used to open the chronology graph.
+ - draw-sequence :: Boolean.
+ - draw-chronology :: Boolean.
+ - delete-sequence :: Boolean.  Delete the sequence graph file after it is displayed.
+ - delete-chronology :: Boolean. Delete the chronology graph file after it is displayed.
+* Returns
+An archaeological sequence.
+* Description
+Given a keyword, EXAMPLE, that indicates one of the example projects defined
+for the =hm= package, run the project described by the appropriate =.ini= file.
+* Example
+#+begin_src lisp
+  (run-project/example :roskams-h :delete-sequence nil)
+#+end_src
+"
+
   (let ((cfg-file (case example
                     (:catal-hoyuk (uiop:merge-pathnames*
                                    "examples/bldg-1-5/bldg-1-5.ini"

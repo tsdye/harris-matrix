@@ -50,16 +50,36 @@ give notice."
     (error "Unable to read ~a.~&" in-file)))
 
 (defun write-default-configuration (seq file-name)
-  "Write the default configuration to the file, FILE-NAME, in the project
-directory associated with SEQ."
+  "* Arguments
+ - seq :: An archaeological sequence.
+ - file-name :: A string or pathname.
+* Returns
+Nothing.  Called for its side-effects.\
+*Description
+Write the default configuration to the file, FILE-NAME, in the project
+directory associated with SEQ.
+* Example
+#+begin_src lisp
+(write-default-configuration *my-sequence* \"default-config.ini\")
+#+end_src"
   (let* ((cfg (make-default-or-empty-configuration (master-table)))
          (out-file (uiop:merge-pathnames* (project-directory cfg) file-name)))
     (with-open-file (stream out-file :direction :output :if-exists :supersede)
       (write-stream cfg stream))))
 
 (defun write-configuration (seq file-name)
-  "Write configuration associated with the archaeological sequence, SEQ, to the
-file, FILE-NAME, in the project directory associated with SEQ."
+  "* Arguments
+ - seq :: An archaeological sequence.
+ - file-name :: A string or pathname.
+* Returns
+Nothing.  Called for its side-effects.
+* Description
+Write configuration associated with the archaeological sequence, SEQ, to the
+file, FILE-NAME, in the project directory associated with SEQ.
+* Example
+#+begin_src lisp
+(write-configuration *my-sequence* \"my-config.ini\")
+#+end_src"
   (let* ((cfg (archaeological-sequence-configuration seq))
          (out-file (uiop:merge-pathnames* (project-directory cfg) file-name)))
     (with-open-file (stream out-file :direction :output :if-exists :supersede)
@@ -88,8 +108,19 @@ associated with SEQ."
       (write-stream cfg stream))))
 
 (defun read-configuration-from-files (verbose &rest file-names)
-  "Reads the initialization files FILE-NAMES and returns a configuration. Errors
-out if one or more initialization files were not read. Prints a status message."
+  "* Arguments
+ - verbose :: Boolean.
+ - file-names :: One or more strings or pathnames.
+* Returns
+A configuration.
+* Description
+Reads the initialization files FILE-NAMES and returns a configuration. Errors
+out if one or more initialization files were not read. If VERBOSE is non-nil,
+prints a status message.
+* Example
+#+begin_src lisp
+(read-configuration-from-files t \"my-config.ini\")
+#+end_src"
   (let ((config (make-default-or-empty-configuration (master-table))))
     (dolist (file file-names)
       (when (null (probe-file file))
@@ -104,9 +135,20 @@ out if one or more initialization files were not read. Prints a status message."
 ;; output files
 
 (defun write-classifier (classifier-type seq &optional (verbose t))
-  "Write the classifier, CLASSIFIER-TYPE, to a file specified in the user's
+  "* Arguments
+ - classifier-type :: A keyword.
+ - seq :: An archaeological sequence.
+ - verbose :: Boolean.
+* Returns
+Nothing.  Called for its side-effects.
+* Description
+Write the classifier, CLASSIFIER-TYPE, to a file specified in the user's
 configuration stored in the archaeological sequence, SEQ. If verbose, indicate
-that a file was written."
+that a file was written.
+* Example
+#+begin_src lisp
+(write-classifier :levels *my-sequence* nil)
+#+end_src"
   (let ((classifier (make-classifier classifier-type seq verbose))
         (cfg (archaeological-sequence-configuration seq))
         (out-file (classifier-out-file classifier-type seq verbose)))
@@ -268,7 +310,8 @@ by the dot program."
     (if (fset:contains? two-outputs format)
         (let ((gif-file (ppcre:regex-replace "[.]dot" (copy-seq dot-file) ".gif")))
           (run (format nil "dot -T~a -o~a -Tgif -o~a ~a"
-                       format output-file gif-file dot-file)))
+                       format output
+                       -file gif-file dot-file)))
         (run (format nil "dot -T~a ~a -o~a" format dot-file output-file)))
     (when (and open (fset:contains? can-open format))
-      (run (format nil "open ~a" output-file)))))
+      (run (format nil "~a ~a" open output-file)))))
