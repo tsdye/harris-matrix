@@ -6,9 +6,18 @@
 
 (in-package #:hm)
 
-(defun classifiers ()
-  "Returns an fset set of strings that are the hm classifiers in the standard hm
-configuration."
+(defun classifiable-attributes ()
+  "* Arguments
+None.
+* Returns
+A set of strings.
+* Description
+Returns a set of strings that are the classifiable graph attributes in the
+standard =hm= configuration.
+* Example
+#+begin_src lisp
+(classifiable-attributes)
+#+end_src"
   (let ((opts (options (empty-configuration) "Graphviz sequence classification"))
         (ret (fset:empty-set)))
     (dolist (opt opts)
@@ -22,6 +31,19 @@ configuration."
 (defun vector-classes ()
   "hm classifications that require a vector."
   (fset:set :levels :units :periods :phases))
+
+(defun classifiers ()
+  "* Arguments
+None.
+* Returns
+A set of keywords.
+* Description
+Returns a set of keywords that are the names of the =hm= classifiers.
+* Example
+#+begin_src lisp
+(classifiers)
+#+end_src"
+  (fset:union (vector-classes) (matrix-classes)))
 
 (defun color-attributes ()
   "Graphviz attributes that expect a color string."
