@@ -59,7 +59,7 @@ give notice."
   the directory part of FILE-NAME cannot be found.
 * Example
 #+begin_src lisp
-(write-default-configuration *my-sequence* \"default-config.ini\")
+(write-default-configuration \"default-config.ini\")
 #+end_src
 "
   (let* ((cfg (make-default-or-empty-configuration (master-table)))
