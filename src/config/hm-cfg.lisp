@@ -845,7 +845,7 @@ periods, or phases."
                (nth 0 correlation) (nth 1 correlation))))))
 
 (defun set-input-file (seq option file-name header)
-  "*Arguments
+  "* Arguments
  - seq :: An archaeological sequence.
  - option :: A string.
  - file-name :: A string or pathname.
@@ -859,7 +859,8 @@ interpreted as a boolean.
 * Example
 #+begin_src lisp
 (set-input-file \"contexts\" \"roskams-h-contexts.ini\" t)
-#+end_src"
+#+end_src
+"
   (let* ((cfg (archaeological-sequence-configuration seq))
          (option-list (options cfg "Input files")))
     (assert (member option option-list :test #'equal)
@@ -874,13 +875,18 @@ interpreted as a boolean.
   - option :: A string.
   - file-name :: A string or pathname.
   - verbose :: Boolean.
-  * Returns
+* Returns
   Nothing.  Called for its side-effects.
-  * Description
+* Description
   Registers the output file, FILE-NAME, with the OPTION in the
 configuration associated with the archaeological sequence, SEQ. Checks if OPTION
 is known and errors out if not. If FILE-NAME exists and VERBOSE is non-nil, then asks
-about overwriting it."
+about overwriting it.
+* Example
+#+begin_src lisp
+(set-output-file *my-seq* \"observations\" \"my-observations.csv\")
+#+end_src
+"
   (let* ((cfg (archaeological-sequence-configuration seq))
          (option-list (options cfg "Output files")))
     (assert (member option option-list :test #'equal)

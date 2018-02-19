@@ -49,22 +49,27 @@ give notice."
       (cl-csv:read-csv in-file :skip-first-p header))
     (error "Unable to read ~a.~&" in-file)))
 
-(defun write-default-configuration (seq file-name)
-  "* Arguments
- - seq :: An archaeological sequence.
+(defun write-default-configuration (file-name)
+  "* Argument
  - file-name :: A string or pathname.
 * Returns
-Nothing.  Called for its side-effects.\
-*Description
-Write the default configuration to the file, FILE-NAME, in the project
-directory associated with SEQ.
+ Nothing.  Called for its side-effects.
+* Description
+ Write the default configuration to the file, FILE-NAME.  Returns an error if
+  the directory part of FILE-NAME cannot be found.
 * Example
 #+begin_src lisp
 (write-default-configuration *my-sequence* \"default-config.ini\")
-#+end_src"
+#+end_src
+"
   (let* ((cfg (make-default-or-empty-configuration (master-table)))
-         (out-file (uiop:merge-pathnames* (project-directory cfg) file-name)))
-    (with-open-file (stream out-file :direction :output :if-exists :supersede)
+         (out-dir (directory-namestring file-name))
+         (out-file (file-namestring file-name)))
+    (unless (directory out-dir) (error "The directory ~s cannot be found.~&"
+            out-dir))
+    (with-open-file
+      (stream (uiop:merge-pathnames* out-file out-dir)
+        :direction :output :if-exists :supersede)
       (write-stream cfg stream))))
 
 (defun write-configuration (seq file-name)
@@ -78,8 +83,9 @@ Write configuration associated with the archaeological sequence, SEQ, to the
 file, FILE-NAME, in the project directory associated with SEQ.
 * Example
 #+begin_src lisp
-(write-configuration *my-sequence* \"my-config.ini\")
-#+end_src"
+ (write-configuration *my-sequence* \"my-config.ini\")
+#+end_src
+"
   (let* ((cfg (archaeological-sequence-configuration seq))
          (out-file (uiop:merge-pathnames* (project-directory cfg) file-name)))
     (with-open-file (stream out-file :direction :output :if-exists :supersede)

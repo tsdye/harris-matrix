@@ -52,10 +52,13 @@ configuration CFG.  If VERBOSE, then advertise the activity.  Returns
 the possibly modified GRAPH."
   (let ((ret (graph:copy graph))
         (contexts (read-table (input-file-name cfg "contexts")
-                              (file-header-p cfg "contexts") verbose)))
+                              (file-header-p cfg "contexts") verbose))
+        (count 0))
+    (when verbose (format t "Adding nodes to the sequence graph.~&"))
     (dolist (node contexts)
+      (incf count)
       (graph:add-node ret (ensure-symbol (nth 0 node))))
-    (when verbose (format t "Nodes added to the sequence graph.~&"))
+    (when verbose (format t "~:d nodes added to the sequence graph.~&" count))
     ret))
 
 (defun add-arcs (graph cfg &optional (verbose t))
@@ -63,11 +66,14 @@ the possibly modified GRAPH."
 VERBOSE, then advertise the activity. Returns the possibly modified GRAPH."
   (let ((ret (graph:copy graph))
         (obs (read-table (input-file-name cfg "observations")
-                         (file-header-p cfg "observations") verbose)))
+                         (file-header-p cfg "observations") verbose))
+        (count 0))
+    (when verbose (format t "Adding arcs to the sequence graph.~&"))
     (dolist (arc obs)
+      (incf count)
       (graph:add-edge ret (list (ensure-symbol (nth 0 arc))
                                 (ensure-symbol (nth 1 arc)))))
-    (when verbose (format t "Arcs added to the sequence graph.~&"))
+    (when verbose (format t "~:d arcs added to the sequence graph.~&" count))
     ret))
 
 (defun make-new-sequence-graph (cfg &optional (verbose t))
@@ -76,34 +82,38 @@ VERBOSE, then advertise the activity. Returns the possibly modified GRAPH."
   (let ((graph (new-graph)))
     (setf graph (add-nodes graph cfg verbose))
     (setf graph (add-arcs graph cfg verbose))
-    (setf graph (assume-correlations graph cfg verbose))
+    (check-cycles graph verbose)
+    (when (assume-correlations-p cfg)
+      (setf graph (assume-correlations graph cfg verbose)))
     (setf graph (transitive-reduction graph verbose))
     graph))
 
-(defun check-cycles (graph)
+(defun check-cycles (graph &optional (verbose t))
   "Reports an error when cycles are present in GRAPH, or returns nil if no
 cycles are found."
-  (and (graph:cycles graph) (error "Error: Graph contains a cycle")))
+  (when verbose (format t "Checking graph for cycles.~&"))
+  (and (graph:cycles graph) (error "Error: Graph contains a cycle."))
+  (when verbose (format t "No cycles found.~&")))
 
 (defun assume-correlations (graph cfg &optional (verbose t))
   "Given the information in a configuration CFG, possibly merge and rename the
   nodes of GRAPH. Check for cycles and error out if present, otherwise return
   the possibly modified GRAPH."
-  (if (assume-correlations-p cfg)
-      (let ((ret (graph:copy graph))
-            (input-file-name (input-file-name cfg "inferences"))
-            (file-header (file-header-p cfg "inferences"))
-            (inferences))
-        (if input-file-name
-            (setf inferences (read-table input-file-name file-header verbose))
-            (error "Error: No inference table specified."))
-        (dolist (part inferences)
-          (graph:merge-nodes ret (ensure-symbol (nth 1 part))
-                             (ensure-symbol (nth 0 part))
-                             :new (correlated-node (nth 0 part) (nth 1 part))))
-        (check-cycles ret)
-        ret)
-      graph))
+  (let ((ret (graph:copy graph))
+        (input-file-name (input-file-name cfg "inferences"))
+        (file-header (file-header-p cfg "inferences"))
+        (inferences))
+    (if input-file-name
+        (setf inferences (read-table input-file-name file-header verbose))
+        (error "Error: No inference table specified."))
+    (when verbose (format t "Making inferences.~&"))
+    (dolist (part inferences)
+      (graph:merge-nodes ret (ensure-symbol (nth 1 part))
+                         (ensure-symbol (nth 0 part))
+                         :new (correlated-node (nth 0 part) (nth 1 part))))
+    (when verbose (format t "Made ~:d inferences.~&" (length inferences)))
+    (check-cycles ret verbose)
+    ret))
 
 (defun correlated-node (node-1 node-2 &optional (as-string nil))
   "Given two correlated node symbols, NODE-1 and NODE-2, return a new
@@ -285,27 +295,29 @@ empty graph. If VERBOSE, then advertise progress."
 (defun transitive-reduction (graph &optional (verbose t))
   "Perform transitive reduction on the directed acyclic GRAPH. Returns the
 possibly modified directed acyclic GRAPH."
+  (when verbose
+    (format t "Starting transitive reduction.~&"))
   (let ((ret (graph:copy graph))
-        (a (graph/matrix:to-adjacency-matrix graph (new-matrix)))
-        (r (graph/matrix:to-reachability-matrix graph (new-matrix)))
-        (i (map-node-to-index graph)))
-    (when verbose
-      (format t "Transitive reduction started.~&"))
+        ;; (a (graph/matrix:to-adjacency-matrix graph (new-matrix)))
+        ;; (i (map-node-to-index graph))
+        (r (graph/matrix:to-reachability-matrix graph (new-matrix))))
     (map-permutations
      #'(lambda (x)
          (when
              (and
-              (= (graph/matrix:matrix-ref a (fset:@ i (nth 0 x)) (fset:@ i (nth 1 x)))
-                 (graph/matrix:matrix-ref a (fset:@ i (nth 0 x)) (fset:@ i (nth 2 x)))
-                 1)
+              (graph:has-edge-p ret (list (nth 0 x) (nth 1 x)))
+              (graph:has-edge-p ret (list (nth 0 x) (nth 2 x)))
+              ;; (= (graph/matrix:matrix-ref a (fset:@ i (nth 0 x)) (fset:@ i (nth 1 x)))
+              ;;    (graph/matrix:matrix-ref a (fset:@ i (nth 0 x)) (fset:@ i (nth 2 x)))
+              ;;    1)
               (graph/matrix:reachablep graph r (nth 1 x) (nth 2 x)))
-           (setf (graph/matrix:matrix-ref
-                  a (fset:@ i (nth 0 x)) (fset:@ i (nth 2 x)))
-                 (etypecase a (graph/matrix::fast-matrix 0s0)
-                            (graph/matrix::matrix 0)))
+           ;; (setf (graph/matrix:matrix-ref
+           ;;        a (fset:@ i (nth 0 x)) (fset:@ i (nth 2 x)))
+           ;;       (etypecase a (graph/matrix::fast-matrix 0s0)
+           ;;                  (graph/matrix::matrix 0)))
            (graph:delete-edge ret (list (nth 0 x) (nth 2 x)))
            (when verbose
-             (format t "Transitive reduction removed the edge from node ~a to node ~a.~&"
+             (format t "Transitive reduction removed the arc from node ~a to node ~a.~&"
                      (nth 0 x) (nth 2 x)))))
      (graph:nodes graph) :length 3)
     (when verbose
@@ -497,9 +509,9 @@ configure the archaeological sequence, check it for errors, and return it."
                  display))
         (make-graphics-file cfg :chronology display :open cmd :verbose verbose)))))
 
-(defun run-project (cfg-file &key (verbose t) (sequence-display "pdf")
-                               (chronology-display "pdf") (sequence-cmd "open")
-                               (chronology-cmd "open") (draw-sequence t)
+(defun run-project (cfg-file &key (verbose t) (sequence-display "png")
+                               (chronology-display "png") (sequence-cmd "xdg-open")
+                               (chronology-cmd "xdg-open") (draw-sequence t)
                                (draw-chronology t) (delete-sequence nil)
                                (delete-chronology nil))
   "* Arguments
@@ -543,9 +555,9 @@ progress.
     (unmemoize-functions)
     seq))
 
-(defun run-project/example (example &key (verbose t) (sequence-display "pdf")
-                                      (chronology-display "pdf") (sequence-cmd "open")
-                                      (chronology-cmd "open") (draw-sequence t)
+(defun run-project/example (example &key (verbose t) (sequence-display "png")
+                                      (chronology-display "png") (sequence-cmd "xdg-open")
+                                      (chronology-cmd "xdg-open") (draw-sequence t)
                                       (draw-chronology t) (delete-sequence t)
                                       (delete-chronology t))
   "* Arguments
