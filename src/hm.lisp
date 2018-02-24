@@ -308,7 +308,7 @@ possibly modified directed acyclic GRAPH."
               (graph/matrix:reachablep graph r (nth 1 x) (nth 2 x)))
            (graph:delete-edge ret (list (nth 0 x) (nth 2 x)))
            (when verbose
-             (format t "Transitive reduction removed the arc from node ~a to node ~a.~&"
+             (format t "Removed transitive arc from node ~a to node ~a.~&"
                      (nth 0 x) (nth 2 x)))))
      (graph:nodes graph) :length 3)
     (when verbose
