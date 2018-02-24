@@ -298,8 +298,6 @@ possibly modified directed acyclic GRAPH."
   (when verbose
     (format t "Starting transitive reduction.~&"))
   (let ((ret (graph:copy graph))
-        ;; (a (graph/matrix:to-adjacency-matrix graph (new-matrix)))
-        ;; (i (map-node-to-index graph))
         (r (graph/matrix:to-reachability-matrix graph (new-matrix))))
     (map-permutations
      #'(lambda (x)
@@ -307,14 +305,7 @@ possibly modified directed acyclic GRAPH."
              (and
               (graph:has-edge-p ret (list (nth 0 x) (nth 1 x)))
               (graph:has-edge-p ret (list (nth 0 x) (nth 2 x)))
-              ;; (= (graph/matrix:matrix-ref a (fset:@ i (nth 0 x)) (fset:@ i (nth 1 x)))
-              ;;    (graph/matrix:matrix-ref a (fset:@ i (nth 0 x)) (fset:@ i (nth 2 x)))
-              ;;    1)
               (graph/matrix:reachablep graph r (nth 1 x) (nth 2 x)))
-           ;; (setf (graph/matrix:matrix-ref
-           ;;        a (fset:@ i (nth 0 x)) (fset:@ i (nth 2 x)))
-           ;;       (etypecase a (graph/matrix::fast-matrix 0s0)
-           ;;                  (graph/matrix::matrix 0)))
            (graph:delete-edge ret (list (nth 0 x) (nth 2 x)))
            (when verbose
              (format t "Transitive reduction removed the arc from node ~a to node ~a.~&"
