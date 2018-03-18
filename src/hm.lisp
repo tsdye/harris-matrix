@@ -552,7 +552,7 @@ progress.
                                       (draw-chronology t) (delete-sequence t)
                                       (delete-chronology t))
   "* Arguments
- - example :: A keyword, one of :catal-hoyuk, :roskams-h, :roskams-h-solarized-light, :roskams-h-solarized-dark.
+ - example :: A keyword, one of :catal-hoyuk, :catal-hoyuk-levels, :catal-hoyuk-distance, :roskams-h, :roskams-h-solarized-light, :roskams-h-solarized-dark, :roskams-jumps, :complex-h-structure, :complex-h-structure-reachable.
  - verbose :: Boolean.
  - sequence-display :: A string indicating a Graphviz =dot= output file format.
  - chronology-display :: A string indicating a Graphviz =dot= output file format.
@@ -574,12 +574,34 @@ for the =hm= package, run the project described by the appropriate =.ini= file.
 "
 
   (let ((cfg-file (case example
-                    (:catal-hoyuk (uiop:merge-pathnames*
-                                   "examples/bldg-1-5/bldg-1-5.ini"
-                                   (asdf:system-source-directory :hm)))
-                    (:roskams-h (uiop:merge-pathnames*
-                                 "examples/roskams-h/roskams-h.ini"
-                                 (asdf:system-source-directory :hm)))
+                    (:fig-12
+                     (uiop:merge-pathnames*
+                      "examples/fig-12-chronology/fig-12-chronology.ini"
+                      (asdf:system-source-directory :hm)))
+                    (:fig-12-correlations
+                     (uiop:merge-pathnames*
+                      "examples/fig-12-chronology/fig-12-correlations.ini"
+                      (asdf:system-source-directory :hm)))
+                    (:catal-hoyuk-levels
+                     (uiop:merge-pathnames*
+                      "examples/bldg-1-5/bldg-1-5-levels.ini"
+                      (asdf:system-source-directory :hm)))
+                    (:catal-hoyuk-reachable
+                     (uiop:merge-pathnames*
+                      "examples/bldg-1-5/bldg-1-5-reachable-1332+.ini"
+                      (asdf:system-source-directory :hm)))
+                    (:catal-hoyuk-distance
+                     (uiop:merge-pathnames*
+                      "examples/bldg-1-5/bldg-1-5-distance-1332+.ini"
+                      (asdf:system-source-directory :hm)))
+                    (:catal-hoyuk
+                     (uiop:merge-pathnames*
+                      "examples/bldg-1-5/bldg-1-5-plain.ini"
+                      (asdf:system-source-directory :hm)))
+                    (:roskams-h
+                     (uiop:merge-pathnames*
+                      "examples/roskams-h/roskams-h.ini"
+                      (asdf:system-source-directory :hm)))
                     (:roskams-h-solarized-light
                      (uiop:merge-pathnames*
                       "examples/roskams-h/roskams-h-solarized-light.ini"
@@ -587,6 +609,18 @@ for the =hm= package, run the project described by the appropriate =.ini= file.
                     (:roskams-h-solarized-dark
                      (uiop:merge-pathnames*
                       "examples/roskams-h/roskams-h-solarized-dark.ini"
+                      (asdf:system-source-directory :hm)))
+                    (:roskams-jumps
+                     (uiop:merge-pathnames*
+                      "examples/roskams-jumps/roskams-jumps.ini"
+                      (asdf:system-source-directory :hm)))
+                    (:complex-h-structure
+                     (uiop:merge-pathnames*
+                      "examples/h-structure/complex-h-structure.ini"
+                      (asdf:system-source-directory :hm)))
+                    (:complex-h-structure-reachable
+                     (uiop:merge-pathnames*
+                      "examples/h-structure/complex-h-structure-reachable-2.ini"
                       (asdf:system-source-directory :hm)))
                     (t (error "Error: The ~s project is not known.~&" example)))))
     (run-project cfg-file :verbose verbose :sequence-display sequence-display
