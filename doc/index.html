@@ -1,0 +1,3590 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2018-03-24 Sat 14:31 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>HM: Directed Graph Representation of Archaeology's Harris Matrix</title>
+<meta name="generator" content="Org mode" />
+<meta name="author" content="Thomas S. Dye" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  /* Languages per Org manual */
+  pre.src-asymptote:before { content: 'Asymptote'; }
+  pre.src-awk:before { content: 'Awk'; }
+  pre.src-C:before { content: 'C'; }
+  /* pre.src-C++ doesn't work in CSS */
+  pre.src-clojure:before { content: 'Clojure'; }
+  pre.src-css:before { content: 'CSS'; }
+  pre.src-D:before { content: 'D'; }
+  pre.src-ditaa:before { content: 'ditaa'; }
+  pre.src-dot:before { content: 'Graphviz'; }
+  pre.src-calc:before { content: 'Emacs Calc'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-fortran:before { content: 'Fortran'; }
+  pre.src-gnuplot:before { content: 'gnuplot'; }
+  pre.src-haskell:before { content: 'Haskell'; }
+  pre.src-hledger:before { content: 'hledger'; }
+  pre.src-java:before { content: 'Java'; }
+  pre.src-js:before { content: 'Javascript'; }
+  pre.src-latex:before { content: 'LaTeX'; }
+  pre.src-ledger:before { content: 'Ledger'; }
+  pre.src-lisp:before { content: 'Lisp'; }
+  pre.src-lilypond:before { content: 'Lilypond'; }
+  pre.src-lua:before { content: 'Lua'; }
+  pre.src-matlab:before { content: 'MATLAB'; }
+  pre.src-mscgen:before { content: 'Mscgen'; }
+  pre.src-ocaml:before { content: 'Objective Caml'; }
+  pre.src-octave:before { content: 'Octave'; }
+  pre.src-org:before { content: 'Org mode'; }
+  pre.src-oz:before { content: 'OZ'; }
+  pre.src-plantuml:before { content: 'Plantuml'; }
+  pre.src-processing:before { content: 'Processing.js'; }
+  pre.src-python:before { content: 'Python'; }
+  pre.src-R:before { content: 'R'; }
+  pre.src-ruby:before { content: 'Ruby'; }
+  pre.src-sass:before { content: 'Sass'; }
+  pre.src-scheme:before { content: 'Scheme'; }
+  pre.src-screen:before { content: 'Gnu Screen'; }
+  pre.src-sed:before { content: 'Sed'; }
+  pre.src-sh:before { content: 'shell'; }
+  pre.src-sql:before { content: 'SQL'; }
+  pre.src-sqlite:before { content: 'SQLite'; }
+  /* additional languages in org.el's org-babel-load-languages alist */
+  pre.src-forth:before { content: 'Forth'; }
+  pre.src-io:before { content: 'IO'; }
+  pre.src-J:before { content: 'J'; }
+  pre.src-makefile:before { content: 'Makefile'; }
+  pre.src-maxima:before { content: 'Maxima'; }
+  pre.src-perl:before { content: 'Perl'; }
+  pre.src-picolisp:before { content: 'Pico Lisp'; }
+  pre.src-scala:before { content: 'Scala'; }
+  pre.src-shell:before { content: 'Shell Script'; }
+  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
+  /* additional language identifiers per "defun org-babel-execute"
+       in ob-*.el */
+  pre.src-cpp:before  { content: 'C++'; }
+  pre.src-abc:before  { content: 'ABC'; }
+  pre.src-coq:before  { content: 'Coq'; }
+  pre.src-groovy:before  { content: 'Groovy'; }
+  /* additional language identifiers from org-babel-shell-names in
+     ob-shell.el: ob-shell is the only babel language using a lambda to put
+     the execution function name together. */
+  pre.src-bash:before  { content: 'bash'; }
+  pre.src-csh:before  { content: 'csh'; }
+  pre.src-ash:before  { content: 'ash'; }
+  pre.src-dash:before  { content: 'dash'; }
+  pre.src-ksh:before  { content: 'ksh'; }
+  pre.src-mksh:before  { content: 'mksh'; }
+  pre.src-posh:before  { content: 'posh'; }
+  /* Additional Emacs modes also supported by the LaTeX listings package */
+  pre.src-ada:before { content: 'Ada'; }
+  pre.src-asm:before { content: 'Assembler'; }
+  pre.src-caml:before { content: 'Caml'; }
+  pre.src-delphi:before { content: 'Delphi'; }
+  pre.src-html:before { content: 'HTML'; }
+  pre.src-idl:before { content: 'IDL'; }
+  pre.src-mercury:before { content: 'Mercury'; }
+  pre.src-metapost:before { content: 'MetaPost'; }
+  pre.src-modula-2:before { content: 'Modula-2'; }
+  pre.src-pascal:before { content: 'Pascal'; }
+  pre.src-ps:before { content: 'PostScript'; }
+  pre.src-prolog:before { content: 'Prolog'; }
+  pre.src-simula:before { content: 'Simula'; }
+  pre.src-tcl:before { content: 'tcl'; }
+  pre.src-tex:before { content: 'TeX'; }
+  pre.src-plain-tex:before { content: 'Plain TeX'; }
+  pre.src-verilog:before { content: 'Verilog'; }
+  pre.src-vhdl:before { content: 'VHDL'; }
+  pre.src-xml:before { content: 'XML'; }
+  pre.src-nxml:before { content: 'XML'; }
+  /* add a generic configuration mode; LaTeX export needs an additional
+     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
+  pre.src-conf:before { content: 'Configuration File'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  .org-svg { width: 90%; }
+  /*]]>*/-->
+</style>
+<link rel="stylesheet" type="text/css" href="http://www.pirilampo.org/styles/readtheorg/css/htmlize.css"/>
+<link rel="stylesheet" type="text/css" href="http://www.pirilampo.org/styles/readtheorg/css/readtheorg.css"/>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="http://www.pirilampo.org/styles/lib/js/jquery.stickytableheaders.js"></script>
+<script type="text/javascript" src="http://www.pirilampo.org/styles/readtheorg/js/readtheorg.js"></script>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2018 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">HM: Directed Graph Representation of Archaeology's Harris Matrix</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#hm">1. The <code>hm</code> Package</a></li>
+<li><a href="#requirements">2. Software Requirements and Installation</a>
+<ul>
+<li><a href="#install">2.1. Install <code>hm</code></a></li>
+<li><a href="#load">2.2. Load <code>hm</code></a></li>
+<li><a href="#orgf39ae75">2.3. Use the <code>hm</code> name space</a></li>
+</ul>
+</li>
+<li><a href="#example-projects">3. Example Projects</a>
+<ul>
+<li><a href="#orgc4cd93a">3.1. Harris' Figure 12</a></li>
+<li><a href="#orgce92508">3.2. Roskams' H-structure</a></li>
+<li><a href="#org5fcae79">3.3. Roskams' Jumps</a></li>
+<li><a href="#org43e33d3">3.4. Herzog and Scollar's Complex H-structure</a></li>
+<li><a href="#orgfd2da48">3.5. Çatalhöyük</a></li>
+</ul>
+</li>
+<li><a href="#orgba5cecc">4. Classifiers</a>
+<ul>
+<li><a href="#orgd2a2a89">4.1. Archaeological Classifiers</a>
+<ul>
+<li><a href="#org340f3ce">4.1.1. Units</a></li>
+<li><a href="#org5a946a1">4.1.2. Periods and Phases</a></li>
+</ul>
+</li>
+<li><a href="#org1fadaed">4.2. Graph Theoretical Classifiers</a>
+<ul>
+<li><a href="#org0792793">4.2.1. Adjacent</a></li>
+<li><a href="#org2549068">4.2.2. Reachable</a></li>
+<li><a href="#org8be14c7">4.2.3. Distance</a></li>
+<li><a href="#orgd228a68">4.2.4. Levels</a></li>
+</ul>
+</li>
+<li><a href="#org95f7949">4.3. Write a Classification to a File</a></li>
+</ul>
+</li>
+<li><a href="#org922dfe4">5. Classifiable Graph Attributes</a>
+<ul>
+<li><a href="#org11547f5">5.1. Colors</a>
+<ul>
+<li><a href="#orgeb8fd1f">5.1.1. Named Color Palettes</a></li>
+<li><a href="#org7a1828b">5.1.2. Indexed Color Palettes</a></li>
+</ul>
+</li>
+<li><a href="#org51ca5f9">5.2. Nodes</a>
+<ul>
+<li><a href="#orga1ecfa6">5.2.1. Shapes</a></li>
+<li><a href="#org29799c6">5.2.2. Polygons</a></li>
+<li><a href="#org0f9dc81">5.2.3. Styles</a></li>
+</ul>
+</li>
+<li><a href="#org035bcb6">5.3. Arcs</a>
+<ul>
+<li><a href="#org6c544b8">5.3.1. Styles</a></li>
+<li><a href="#orgfe16af2">5.3.2. Arrowheads</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orge40cfeb">6. The Configuration File</a></li>
+<li><a href="#data-tables">7. Input Files</a>
+<ul>
+<li><a href="#units-of-stratification">7.1. Units of Stratification, or Contexts</a></li>
+<li><a href="#observed-stratigraphic-relations">7.2. Observed Stratigraphic Relations</a></li>
+<li><a href="#inferred-parity-relations">7.3. Inferences of once-whole contexts</a></li>
+<li><a href="#periods">7.4. Periods</a></li>
+<li><a href="#phases">7.5. Phases</a></li>
+<li><a href="#events">7.6. Events</a></li>
+<li><a href="#event-order">7.7. Event Order</a></li>
+</ul>
+</li>
+<li><a href="#org2039164">8. Technical Description</a>
+<ul>
+<li><a href="#org0a3a785">8.1. External Symbols</a>
+<ul>
+<li><a href="#org1c4beeb">8.1.1. External Functions</a></li>
+</ul>
+</li>
+<li><a href="#orged2c5d0">8.2. Index</a>
+<ul>
+<li><a href="#orgbb56fd2">8.2.1. R</a></li>
+<li><a href="#org302433a">8.2.2. S</a></li>
+<li><a href="#org2973528">8.2.3. W</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgb97f5ef">9. Colophon</a></li>
+</ul>
+</div>
+</div>
+<meta http-equiv='Content-Type' content='text/html; charset=utf-8' />
+<div id="outline-container-orgecd3409" class="outline-2">
+<h2 id="hm"><a id="orgecd3409"></a><span class="section-number-2">1</span> The <code>hm</code> Package</h2>
+<div class="outline-text-2" id="text-hm">
+<p>
+The <code>hm</code> package is an open-source Common Lisp package for investigating the
+chronological structure of archaeological stratigraphy.
+</p>
+
+<p>
+With <code>hm</code> you can:
+</p>
+<ul class="org-ul">
+<li>represent the <a href="http://harrismatrix.com/">Harris matrix</a> as a stratigraphic acyclic directed graph (DAG)
+as described by <a href="https://www.sciencedirect.com/science/article/pii/S0305440315002459">Dye and Buck (2015)</a></li>
+<li>investigate and analyze the structure of the <a href="http://harrismatrix.com/">Harris matrix</a> using graph
+theoretic functions and characteristics of the archaeological data</li>
+<li>generate a chronological DAG that can guide data input for Bayesian
+calibration software such as <a href="http://bcal.shef.ac.uk/">BCal</a>, <a href="https://c14.arch.ox.ac.uk/oxcal.html">OxCal</a>, or <a href="https://chronomodel.com/">Chronomodel</a></li>
+<li>create a graphic visualization of a stratigraphic DAG or a chronological DAG
+in any one of the graphics formats supported by the open-source <a href="https://graphviz.gitlab.io/">Graphviz dot</a>
+software</li>
+</ul>
+
+<p>
+A central organizing principle of the <code>hm</code> software is the self-contained
+<i>project.</i> An <code>hm</code> project has its own file directory that includes:
+</p>
+<ul class="org-ul">
+<li>two or more input files with information on
+<ul class="org-ul">
+<li>units of archaeological stratification, or contexts</li>
+<li>observations of stratigraphic superposition</li>
+<li>inferences of once-whole contexts</li>
+<li>periods</li>
+<li>phases</li>
+<li>dated events</li>
+<li>event order</li>
+</ul></li>
+<li>one or more initialization files that specify
+<ul class="org-ul">
+<li>input files</li>
+<li>classifiers that are mathematical functions on the stratigraphic DAG or
+archaeological constructs specified by the excavator</li>
+<li>output files</li>
+<li>parameters to configure the  <a href="https://graphviz.gitlab.io/">Graphviz dot</a> software</li>
+</ul></li>
+<li>zero or more output files generated during investigation and analysis</li>
+</ul>
+
+<p>
+The <code>hm</code> software is designed to be collaborative:
+</p>
+<ul class="org-ul">
+<li>input files are comma-separated value text files that can be produced by
+<ul class="org-ul">
+<li>most spreadsheet applications</li>
+<li>most database software</li>
+<li>any text editor</li>
+</ul></li>
+<li>initialization files are the widely-used <code>.ini</code> file format</li>
+<li>the text file output from <code>hm</code> is processed by the  <a href="https://graphviz.gitlab.io/">Graphviz dot</a> software</li>
+<li>compressed <code>hm</code> project archives can be sent via email to colleagues, who
+will then have the information needed to replicate a stratigraphic
+investigation and analysis</li>
+<li>planning is underway to design an interface from <code>hm</code> to Bayesian calibration
+software</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org66b0265" class="outline-2">
+<h2 id="requirements"><a id="org66b0265"></a><span class="section-number-2">2</span> Software Requirements and Installation</h2>
+<div class="outline-text-2" id="text-requirements">
+<p>
+The <code>hm</code> package is open-source Common Lisp software that should run on the
+free, open-source implementations offered by <a href="http://www.sbcl.org/">SBCL</a> or <a href="http://ccl.clozure.com/">Clozure CL</a>. A working
+installation of one of these implementations is required by <code>hm</code>.
+</p>
+
+<p>
+The <code>hm</code> package uses <a href="https://graphviz.gitlab.io/">Graphviz <code>dot</code></a> for graph visualization and graphics output.
+A working installation of <a href="https://graphviz.gitlab.io/download/">Graphviz <code>dot</code></a> software is required by <code>hm</code>.
+</p>
+
+<p>
+The <code>hm</code> package is distributed from a <code>git</code> version control software
+repository.  A working installation of <a href="https://git-scm.com/"><code>git</code> software</a> is required.
+</p>
+
+<p>
+The <a href="https://www.quicklisp.org/beta/">Quicklisp library manager</a> for Common Lisp is strongly recommended. The
+instructions in this manual assume a working installation of <a href="https://www.quicklisp.org/beta/">Quicklisp</a>.
+</p>
+
+<p>
+An <code>hm</code> project is configured with an <code>.ini</code> format text file. A plain text
+editor, rather than a word processor, is recommended for working with <code>.ini</code>
+format files.
+</p>
+
+<p>
+The <code>hm</code> software was developed using the <a href="https://common-lisp.net/project/slime/">Superior Lisp Interaction Mode</a> for the
+<a href="https://www.gnu.org/software/emacs/">Emacs</a> text editor.
+</p>
+</div>
+
+<div id="outline-container-org945df52" class="outline-3">
+<h3 id="install"><a id="org945df52"></a><span class="section-number-3">2.1</span> Install <code>hm</code></h3>
+<div class="outline-text-3" id="text-install">
+<p>
+Installation with <a href="http://www.quicklisp.org">Quicklisp</a> is recommended. It automatically installs the other
+Common Lisp packages upon which <code>hm</code> depends, and their dependencies, etc.
+</p>
+
+<p>
+The following example assumes that <a href="http://www.quicklisp.org">Quicklisp</a> is installed on your computer.
+These instructions will clone the <code>hm</code> package in the <code>local-projects/hm</code>
+subdirectory of your quicklisp installation.
+</p>
+<div class="org-src-container">
+<pre class="src src-sh" id="org2e26f82"><span style="color: #ba55d3;">cd</span> &lt;path-to&gt;/quicklisp/local-projects/
+
+git clone https://github.com/tsdye/harris-matrix.git
+</pre>
+</div>
+
+<p>
+The <code>hm</code> software is released under the <a href="https://www.gnu.org/licenses/gpl-3.0.en.html">GNU General Public License</a>, Version 3, a
+free, copyleft license for software and other kinds of works.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgad38bd8" class="outline-3">
+<h3 id="load"><a id="orgad38bd8"></a><span class="section-number-3">2.2</span> Load <code>hm</code></h3>
+<div class="outline-text-3" id="text-load">
+<p>
+A typical session with <code>hm</code> starts by using Quicklisp to load the software.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp" id="org179e818">(ql:quickload <span style="color: #fa5151;">"hm"</span>)
+</pre>
+</div>
+
+<p>
+Note that the output from your Common Lisp implementation might differ, and that
+you might see additional output depending on the state of your Common Lisp
+environment.
+</p>
+
+<pre class="example">
+To load "hm":
+  Load 1 ASDF system:
+    hm
+; Loading "hm"
+
+</pre>
+
+<p>
+A successful Quicklisp <code>quickload</code> of <code>hm</code> will also install several other
+packages and their dependencies in <code>&lt;path-to&gt;/quicklisp/dists/quicklisp/software/</code>.
+</p>
+
+<table id="org20d42de" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 1:</span> Common Lisp packages upon which <code>hm</code> directly depends</caption>
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Package</th>
+<th scope="col" class="org-left">Description</th>
+<th scope="col" class="org-left">License</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left"><a href="http://quickdocs.org/graph/">graph</a></td>
+<td class="org-left">simple graph data structure and algorithms</td>
+<td class="org-left">GPL V3</td>
+</tr>
+
+<tr>
+<td class="org-left"><a href="http://quickdocs.org/graph/">graph/matrix</a></td>
+<td class="org-left">matrix representation of graphs</td>
+<td class="org-left">GPL V3</td>
+</tr>
+
+<tr>
+<td class="org-left"><a href="http://quickdocs.org/graph/">graph/dot</a></td>
+<td class="org-left">serialize graphs to and from <code>dot</code> format</td>
+<td class="org-left">GPL V3</td>
+</tr>
+
+<tr>
+<td class="org-left"><a href="http://quickdocs.org/cl-csv/">cl-csv</a></td>
+<td class="org-left">read and write comma-separated value text files</td>
+<td class="org-left">BSD</td>
+</tr>
+
+<tr>
+<td class="org-left"><a href="http://quickdocs.org/fset/">fset</a></td>
+<td class="org-left">a functional set-theoretic collections library</td>
+<td class="org-left">LLGPL</td>
+</tr>
+
+<tr>
+<td class="org-left"><a href="http://quickdocs.org/py-configparser/">py-configparser</a></td>
+<td class="org-left">Python configparser module implemented in Common Lisp</td>
+<td class="org-left">MIT</td>
+</tr>
+
+<tr>
+<td class="org-left"><a href="http://quickdocs.org/cl-colors/">cl-colors</a></td>
+<td class="org-left">simple color library for Common Lisp</td>
+<td class="org-left">Boost Software License - Version 1.0</td>
+</tr>
+
+<tr>
+<td class="org-left"><a href="http://quickdocs.org/fare-memoization/">fare-memoization</a></td>
+<td class="org-left">memoization library</td>
+<td class="org-left">MIT</td>
+</tr>
+
+<tr>
+<td class="org-left"><a href="http://quickdocs.org/inferior-shell/">inferior-shell</a></td>
+<td class="org-left">spawning shell commands and pipes from Common Lisp</td>
+<td class="org-left">Copyright (c) 2011-2014 Google, Inc.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div id="outline-container-orgf39ae75" class="outline-3">
+<h3 id="orgf39ae75"><span class="section-number-3">2.3</span> Use the <code>hm</code> name space</h3>
+<div class="outline-text-3" id="text-2-3">
+<p>
+Move into the <code>hm</code> name space for easy access to <code>hm</code> functions.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp" id="orgd57b6fd">(use-package <span style="color: #ba55d3;">:hm</span>)
+</pre>
+</div>
+
+<pre class="example">
+T
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-org8dcaf51" class="outline-2">
+<h2 id="example-projects"><a id="org8dcaf51"></a><span class="section-number-2">3</span> Example Projects</h2>
+<div class="outline-text-2" id="text-example-projects">
+<p>
+The <code>hm</code> software comes with example projects to illustrate some of its
+capabilities. You can find these in
+<code>&lt;path-to&gt;/quicklisp/local-projects/hm/examples/</code>. Each of the projects includes
+the necessary input and configuration files, which can be used as examples for
+your own work.
+</p>
+</div>
+
+<div id="outline-container-orgc4cd93a" class="outline-3">
+<h3 id="orgc4cd93a"><span class="section-number-3">3.1</span> Harris' Figure 12</h3>
+<div class="outline-text-3" id="text-3-1">
+<p>
+"The compilation of a stratigraphic sequence" is the iconic representation of
+how one goes about constructing a Harris matrix by identifying contexts and
+observing their relationships to one another.  Published as Figure 12 in Edward
+Harris' book <i>Principles of Archaeological Stratigraphy</i>, the figure illustrates
+the Harris matrix practice of identifying all deposits and selecting a subset of
+interfaces for identification.  Figure <a href="#org26f4577">1</a> shows the stratigraphic section at the
+top left of Harris' Figure 12 redrawn to include eight interfacial contexts not
+identified in the original.
+</p>
+
+
+<div id="org26f4577" class="figure">
+<p><img src="file:///home/dk/quicklisp/local-projects/hm/examples/fig-12-chronology/fig-12-section-w-interfaces.png" alt="fig-12-section-w-interfaces.png" />
+</p>
+<p><span class="figure-number">Figure 1: </span>The stratigraphic section from Figure 12 in <i>Principles of Archaeological Stratigraphy.</i> Note that interfaces 10&#x2013;18 were not identified in the original.</p>
+</div>
+
+<p>
+A stratigraphic DAG for the information displayed on Figure <a href="#org26f4577">1</a> might
+be drawn on a Linux system with the <code>hm</code> software as follows:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp">(run-project/example <span style="color: #ba55d3;">:fig-12</span>)
+</pre>
+</div>
+
+<p>
+This example produces the graphics file shown as Figure <a href="#org668f830">2</a>.
+</p>
+
+<p>
+In this example, all of the contexts are displayed and inferences of once-whole
+contexts are not taken into account.  This directive is set by the value of
+<code>assume-correlations</code>.
+</p>
+
+<pre class="example">
+[General configuration]
+chronology-graph-draw = off
+project-directory = ~/quicklisp/local-projects/hm/examples/fig-12-chronology/
+legend = off
+assume-correlations = no
+</pre>
+
+
+<div id="org668f830" class="figure">
+<p><a href="file:///home/dk/quicklisp/local-projects/hm/examples/fig-12-chronology/fig-12-sequence.png"><img src="file:///home/dk/quicklisp/local-projects/hm/examples/fig-12-chronology/fig-12-sequence-small.png" alt="fig-12-sequence-small.png" /></a>
+</p>
+<p><span class="figure-number">Figure 2: </span>Stratigraphic DAG for the information on Figure <a href="#org26f4577">1</a>.</p>
+</div>
+
+<p>
+As described by Dye and Buck, the stratigraphic DAG is not able to represent all
+of the information potentially represented on a Harris matrix.  Instead, two
+stratigraphic DAG's are required.  Figure shows the stratigraphic DAG that
+results when inferences of once-whole contexts are assumed true.
+</p>
+
+
+<div id="orgbba356d" class="figure">
+<p><a href="file:///home/dk/quicklisp/local-projects/hm/examples/fig-12-chronology/fig-12-correlations.png"><img src="file:///home/dk/quicklisp/local-projects/hm/examples/fig-12-chronology/fig-12-correlations-small.png" alt="fig-12-correlations-small.png" /></a>
+</p>
+<p><span class="figure-number">Figure 3: </span>Stratigraphic DAG for the information on Figure <a href="#org26f4577">1</a> assuming inferences of once-whole contexts.</p>
+</div>
+
+<p>
+The interesting part of the configuration file is the setting for
+<code>assume-correlations</code>.
+</p>
+
+<pre class="example">
+[General configuration]
+chronology-graph-draw = off
+project-directory = ~/quicklisp/local-projects/hm/examples/fig-12-chronology/
+legend = off
+assume-correlations = yes
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgce92508" class="outline-3">
+<h3 id="orgce92508"><span class="section-number-3">3.2</span> Roskams' H-structure</h3>
+<div class="outline-text-3" id="text-3-2">
+<p>
+"Avoiding a common error in Harris matrix construction," is an example of an
+H-structure from Figure 14 of Steve Roskams' Cambridge Manual in Archaeology,
+<i>Excavation</i>. The H-structure is a common source of error in a Harris matrix
+that is said to "creep in when the lines drawn to the base of an overlying
+unit are not split but enter as single lines" (p. 159).
+</p>
+
+<p>
+The problem is illustrated in Figure <a href="#orgbbbcce4">4</a>, which shows a
+stratigraphic section with five contexts, labeled 1&#x2013;5. Contexts 1&#x2013;4 are each
+pits excavated, at least partially, into the general matrix, Context 5. The
+first pits excavated were Contexts 3 and 4. It is not possible to order them
+based on the information in the stratigraphic section. Later, the Context 1
+and 2 pits were excavated. The Context 1 pit cut into Contexts 3, 4, and 5.
+The Context 2 pit cut into Contexts 3 and 5.
+</p>
+
+
+<div id="orgbbbcce4" class="figure">
+<p><img src="file:///home/dk/quicklisp/local-projects/hm/examples/roskams-h/fig-14.png" alt="fig-14.png" />
+</p>
+<p><span class="figure-number">Figure 4: </span>Hypothetical stratigraphic section, drawn after Figure 14 in Steve Roskams' book, <i>Excavation</i>.</p>
+</div>
+
+<p>
+The problem arises if the Harris matrix is drawn carelessly to indicate a
+stratigraphic relationship between Contexts 2 and 4.  The mistake manifests
+itself as a set of edges that form the letter <i>H</i>, as shown in Figure
+<a href="#org2326027">5</a>.  The incorrect Harris matrix indicates that Context 2 is
+younger than Context 4, when in fact that relationship cannot be determined.
+</p>
+
+
+<div id="org2326027" class="figure">
+<p><img src="file:///home/dk/quicklisp/local-projects/hm/examples/roskams-h/fig-14-h-structure.png" alt="fig-14-h-structure.png" />
+</p>
+<p><span class="figure-number">Figure 5: </span>Incorrect Harris matrix for the stratigraphic section shown in Figure <a href="#orgbbbcce4">4</a>. The H-structure is drawn in red.</p>
+</div>
+
+
+<p>
+A correct Harris matrix for the stratigraphic situation displayed on Figure
+<a href="#orgbbbcce4">4</a> might be drawn on a Linux system with the <code>hm</code> software as follows:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp">(run-project/example <span style="color: #ba55d3;">:roskams-h</span>)
+</pre>
+</div>
+
+<p>
+The correct Harris matrix drawn by this command is shown on Figure <a href="#orgb920fb4">6</a>.
+</p>
+
+
+<div id="orgb920fb4" class="figure">
+<p><img src="file:///home/dk/quicklisp/local-projects/hm/examples/roskams-h/roskams-h-sequence.png" alt="roskams-h-sequence.png" />
+</p>
+<p><span class="figure-number">Figure 6: </span>A correct Harris matrix for Figure <a href="#orgbbbcce4">4</a> drawn by the <code>hm</code> software.</p>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-org5fcae79" class="outline-3">
+<h3 id="org5fcae79"><span class="section-number-3">3.3</span> Roskams' Jumps</h3>
+<div class="outline-text-3" id="text-3-3">
+<p>
+Steve Roskams discusses a practical difficulty encountered during construction
+of the Harris matrix on pages 158&#x2013;159 of <i>Excavation</i>, where one line "jumps"
+over another.  Roskams describes a situation where the Harris matrix cannot
+avoid a jump.
+</p>
+<blockquote>
+<p>
+The stratigraphic situation &hellip; [(fig. <a href="#org3da2d1b">7</a>)] comprises
+a rubble foundation 7, overlain by timber sills 5 and 6, with each sill capped
+at one end with a leveling tile, 3 and 4 respectively, before these tiles were
+themselves overlain by another timber 2 &hellip; However if a second timber 1 also
+overlay sills 5 and 6, its position in the matrix cannot be represented
+accurately without implying a false relationship with either 3 or 4. Here it is
+necessary to use a drawing convention to show one line `jumping' another &hellip;
+</p>
+</blockquote>
+
+
+<div id="org3da2d1b" class="figure">
+<p><img src="file:///home/dk/quicklisp/local-projects/hm/examples/roskams-jumps/roskams-jumps-illustration.png" alt="roskams-jumps-illustration.png" />
+</p>
+<p><span class="figure-number">Figure 7: </span>Hypothetical plan view drawn after Figure 13 in Steve Roskams' book, <i>Excavation</i>.</p>
+</div>
+
+<p>
+The layout of the stratigraphic DAG is more flexible than a Harris matrix, so
+this stratigraphic situation can be drawn without any `jumps'.  The
+stratigraphic DAG can be illustrated with this command:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp">(run-project/example <span style="color: #ba55d3;">:roskams-jumps</span>)
+</pre>
+</div>
+
+<p>
+The nodes of the DAG are placed in such a way that there is no question about
+the chronological relationship of Context 1 with Contexts 3 or 4 (fig. <a href="#org415a1cd">8</a>).
+</p>
+
+
+<div id="org415a1cd" class="figure">
+<p><img src="file:///home/dk/quicklisp/local-projects/hm/examples/roskams-jumps/roskams-jumps-sequence.png" alt="roskams-jumps-sequence.png" />
+</p>
+<p><span class="figure-number">Figure 8: </span>Stratigraphic DAG illustrating the situation illusrated in Figure <a href="#org3da2d1b">7</a>.</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org43e33d3" class="outline-3">
+<h3 id="org43e33d3"><span class="section-number-3">3.4</span> Herzog and Scollar's Complex H-structure</h3>
+<div class="outline-text-3" id="text-3-4">
+<p>
+An "H-structure" is a potentially ambiguous layout in a Harris matrix (see Sec.
+<a href="#orgce92508">3.2</a>). The example described in this section comes from Figure
+9.5a of a 1991 paper by Irmela Herzog and Irwin Scollar, "A new graph theoretic
+oriented program for Harris Matrix analysis" that was presented to the Computer
+Applications and Quantitative Methods in Archaeology 1990 Conference. Herzog and
+Scollar were describing a component of Version 4 of the <a href="http://www.uni-koeln.de/~al001/basp.html">Bonn Seriation and
+Archaeological Statistics Package</a>.
+</p>
+
+<p>
+The Bonn program was able to resolve single H-structures, but complex
+combinations of H-structures could not always be resolved satisfactorily.
+This example describes a complex combination of H-structures, of a kind that
+could not be plotted by the program without potentially ambiguous `crossings'.
+The situation is described on page 57 of their article, as follows.
+</p>
+
+<blockquote>
+<p>
+It is quite difficult to include crossings in the diagram.  There are cases when
+quite a few lines corresponding to crossing relations extend over the full
+breadth of the diagram.  This certainly does not enhance the readability of the
+diagram.  Therefore crossings are currently not plotted.  Any layer that has a
+crossing relation is marked with a double frame.  A list of relations which
+could not be displayed is generated at the bottom of the diagram.
+</p>
+</blockquote>
+
+<p>
+The example in Figure 9.5a of their paper consists of nine contexts with
+relations described as follows.
+</p>
+
+<blockquote>
+<p>
+1 overlies: 5, 6.  2 overlies: 5, 6, 7, 8.  3 overlies: 7, 8.  4 overlies: 7, 8, 9.
+</p>
+</blockquote>
+
+<p>
+The <code>hm</code> software leverages the capabilities of <a href="https://www.graphviz.org/">Graphviz dot</a>, which incorporates
+modern graph layout algorithms. The layout produced by <a href="https://www.graphviz.org/">Graphviz dot</a> for this
+example is unambiguous, but the arcs do cross in several places. The following
+command creates a simple chronological DAG that represents this stratigraphic
+situation.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp">(run-project/example <span style="color: #ba55d3;">:herzog-scollar-h</span>)
+</pre>
+</div>
+
+<p>
+The resulting graphic (fig. <a href="#org391ffeb">9</a>) has six crossings, all but
+one of which involves an arc from node 2. The arc from 2 to 6 crosses the arc
+from 1 to 5; the arc from 2 to 8 crosses the arc from 2 to 7; in addition, the
+arc from 2 to 7 crosses the arc from 3 to 8, the arc from 4 to 8, and the arc
+from 3 to 7. The crossings make the stratigraphic DAG somewhat difficult to
+decipher.
+</p>
+
+
+<div id="org391ffeb" class="figure">
+<p><img src="file:///home/dk/quicklisp/local-projects/hm/examples/h-structure/complex-h-structure.png" alt="complex-h-structure.png" />
+</p>
+<p><span class="figure-number">Figure 9: </span>A stratigraphic DAG of Herzog and Scollar's Figure 9.5a.</p>
+</div>
+
+<p>
+In this particular situation node colors, node fill colors, and edges from nodes
+can be classified by reachability from the problematic node 2.  An example can
+be produced on a Linux setup with the following command.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp">(run-project/example <span style="color: #ba55d3;">:complex-h-structure-reachable</span>)
+</pre>
+</div>
+
+<p>
+The example uses the Brewer Color <code>accent</code> family to color node 2 green, the
+four nodes reachable from it purple, and the nodes not reachable from node 2
+orange (fig. <a href="#org03537fa">10</a>). In this example the green arcs
+from node 2 are easily distinguished from the orange arcs that they cross, which
+disambiguates all but one crossing.
+</p>
+
+
+<div id="org03537fa" class="figure">
+<p><img src="file:///home/dk/quicklisp/local-projects/hm/examples/h-structure/complex-h-structure-reachable-2.png" alt="complex-h-structure-reachable-2.png" />
+</p>
+<p><span class="figure-number">Figure 10: </span>Another stratigraphic DAG of Herzog and Scollar's Figure 9.5a. The colors of nodes, node fills, and edges from nodes are classified by reachability from node 2.</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgfd2da48" class="outline-3">
+<h3 id="orgfd2da48"><span class="section-number-3">3.5</span> Çatalhöyük</h3>
+<div class="outline-text-3" id="text-3-5">
+<p>
+This is a real-world example drawn from the dating program reported by <a href="https://www.stir.ac.uk/natural-sciences/staff-directory/academic/alexbayliss/">Alex
+Bayliss</a>, <a href="http://trowelblazers.com/shahina-farid/">Shahina Farid</a>, and <a href="http://www.arch.ox.ac.uk/TH1.html">Thomas Higham</a> in Chapter 3 of the book <i>Çatalhöyük
+Excavations: the 2000–2008 Seasons</i> entitled "Time will tell: Practicing
+Bayesian chronological modeling on the East Mound." The example was developed to
+explore the DAG approach to drawing and analyzing sequence diagrams set out by
+<a href="https://www.sciencedirect.com/science/article/pii/S0305440315002459">Dye and Buck</a> in 2015. At that time, the example was chosen because it seemed to
+be the most interesting of a small handful of excavations that reported both a
+Harris matrix, in this case one created at an early stage of the project by
+<a href="http://www.michaelbalter.com/photos4.php">Craig Cessford</a>, and a Bayesian chronological model. The example here reproduces
+the DAG's investigated and reported by <a href="https://www.sciencedirect.com/science/article/pii/S0305440315002459">Dye and Buck</a>.
+</p>
+
+<p>
+The Çatalhöyük site has been investigated since 1993 by <a href="http://www.ian-hodder.com/">Ian Hodder</a>, who introduced it
+this way in Chapter 1 of the book <i>Toward Reflexive Method in Archaeology: The
+Example at Çatalhöyük</i> entitled "Developing a reflexive method in archaeology":
+</p>
+
+<blockquote>
+<p>
+Çatalhöyük is in Central Turkey, near Çumra in the Konya region.  The East mound
+is largely Neolithic in date and had a range of radiocarbon dates for its 20 m
+sequence from 6400 <span class="sc">bc</span> to 5600 <span class="sc">bc</span> &hellip; Çatalhöyük was first excavated between
+1961 and 1965 by James Mellaart &hellip; and became of international importance because
+of its size and complexity at an early date outside the Fertile Crescent—i.e.
+outside the heartlands of animal and plant domestication in the Near East.   But
+the importance of the site transcended these factors because of the sculpture
+and painting found at the site.  Indeed, the site has retained a central
+significance despite the discovery in the last thirty years of large complex
+sites at earlier dates in Turkey and the Near East.  It is the art which has won
+for  Çatalhöyük this continued renown.
+</p>
+</blockquote>
+
+
+<p>
+Excavations at Buildings 1 and 5 on the East Mound, which provide the materials
+analyzed by Bayliss and colleagues, yielded a deep, complex sequence.
+Importantly, the sequence was put into Harris Matrix form by Craig Cessford.
+The stratigraphic DAG based on Cessford's matrix can be created with the
+following function call:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp">(run-project/example <span style="color: #ba55d3;">:catal-hoyuk</span>)
+</pre>
+</div>
+
+<p>
+The example project creates a stratigraphic DAG and a chronological DAG, which
+are shown in Figures <a href="#org7df6d57">11</a> and <a href="#org1d81124">12</a>.
+</p>
+
+
+<div id="org7df6d57" class="figure">
+<p><a href="file:///home/dk/quicklisp/local-projects/hm/examples/bldg-1-5/bldg-1-5-sequence.png"><img src="file:///home/dk/quicklisp/local-projects/hm/examples/bldg-1-5/bldg-1-5-sequence-small.png" alt="bldg-1-5-sequence-small.png" /></a>
+</p>
+<p><span class="figure-number">Figure 11: </span>Stratigraphic DAG of the North Area sequence based on a Harris matrix created by Craig Cessford.</p>
+</div>
+
+
+<div id="org1d81124" class="figure">
+<p><a href="file:///home/dk/quicklisp/local-projects/hm/examples/bldg-1-5/bldg-1-5-chronology.png"><img src="file:///home/dk/quicklisp/local-projects/hm/examples/bldg-1-5/bldg-1-5-chronology-small.png" alt="bldg-1-5-chronology-small.png" /></a>
+</p>
+<p><span class="figure-number">Figure 12: </span>Chronology DAG based on residuality determinations of Alex Bayliss and colleagues. Note the situation for Context 1332+ at the top left, with the dangling θs.</p>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-orgba5cecc" class="outline-2">
+<h2 id="orgba5cecc"><span class="section-number-2">4</span> Classifiers</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+This section provides definitions for the various classifiers used by the <code>hm</code>
+software and shows how to save a classification to a comma-separated-value text
+file. There are two kinds of classifiers: archaeological classifiers that
+reflect observations and inferences made by an archaeologist familiar with the
+stratigraphic situation represented by the sequence diagram; and graph
+theoretical classifiers that take advantage of the DAG representation to deduce
+structural relations that might prove useful to the archaeologist tasked with
+interpreting the sequence diagram.
+</p>
+
+<p>
+The <code>hm</code> software currently implements the following classifiers:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp" id="org9caeba9">(show-classifiers)
+</pre>
+</div>
+
+<pre class="example">
+units
+levels
+phases
+periods
+adjacent
+distance
+reachable
+</pre>
+</div>
+
+<div id="outline-container-orgd2a2a89" class="outline-3">
+<h3 id="orgd2a2a89"><span class="section-number-3">4.1</span> Archaeological Classifiers</h3>
+<div class="outline-text-3" id="text-4-1">
+<p>
+The <code>hm</code> software currently provides three ways to integrate archaeological
+observations about contexts into the sequence diagram, which it calls <code>units</code>,
+<code>phases</code>, and <code>periods</code>.  Some preliminary discussion is in order because
+archaeologists define these terms more or less precisely and have achieved more
+or less consensus on their definitions.  Also, there are very many other terms
+in use that attempt to capture the practice of classifying and grouping
+archaeological contexts.
+</p>
+
+<p>
+Steve Roskams discusses this situation on pages 257–258 of <i>Excavation</i> in the
+context of assigning "basic units to higher-order categories."
+</p>
+
+<blockquote>
+<p>
+This raises the question of how such groups are to be defined—what is the point
+where one stops and another begins?  Should there be a single type of group or a
+whole hierarchy of entities?  How should each be named?  Or are the potential
+configurations so diverse that it is impossible to make useful comparisons
+between sites?
+</p>
+
+<p>
+This issue has been approached by a variety of specialists who have produced
+different schemes and terminology.  To some extent the differences are a
+function of the great variety of sites with which they are dealing, and are thus
+entirely legitimate.  Equally, they come, in part, from merely giving a
+different name to the same concept &hellip; This profusion of terminology is to be
+expected, given that thoughts on such matters are at a very formative stage, and
+it is probably right to retain some diversity in any case, given the variety of
+sites and associated stratigraphic sequences, and types of analytical procedures
+applied to them.
+</p>
+</blockquote>
+
+<p>
+The <code>units</code> classification offered by the <code>hm</code> software is more precisely
+defined and widely appreciated by archaeologists than either <code>periods</code> or
+<code>phases</code>. The <code>hm</code> software recognizes the basic distinction of depositional
+from interfacial units of stratification and hard-wires this distinction into
+the software, while leaving to the <code>hm</code> user the choice of how it might be
+represented in the sequence diagram.
+</p>
+
+<p>
+The <code>hm</code> software takes no such confident stand with <code>periods</code> and <code>phases</code>,
+leaving their definitions (if not their names within the software) completely up
+to the user. From the software's point of the view, there is no difference
+between a <code>period</code> and a <code>phase</code> and there is no relationship between them. The
+<code>hm</code> user is best served by viewing them as ways to incorporate any kind of
+classification of contexts whatsoever. The classifications might be based on
+statistical analysis of the finds collected from each context, presence or
+absence of one or more index fossils, physical characteristics of the contexts
+themselves, etc.
+</p>
+
+<p>
+In a sense, the crucial question from the software's point of view is how many
+different kinds of classification might be useful on a single sequence diagram?
+Are two kinds sufficient? The answer to this question does not involve judgments
+about how many or few analyses are best carried out on excavation materials.
+Rather, it involves how many classifications it might be useful to plot on the
+same graphic. If there are a dozen classifications that need to be investigated,
+then the way forward is to use the <code>hm</code> software to make 6–12 sequence diagrams,
+each one showing one or two classifications, as appropriate.
+</p>
+</div>
+
+<div id="outline-container-org340f3ce" class="outline-4">
+<h4 id="org340f3ce"><span class="section-number-4">4.1.1</span> Units</h4>
+<div class="outline-text-4" id="text-4-1-1">
+<p>
+The <code>units</code> classifier is designed for use with excavation data, where both
+depositional and interfacial units are identified and recorded.  Archaeologists
+universally identify and record depositional units (often as `layers') but are
+somewhat ambivalent about interfaces, typically choosing to record interfaces
+that appear to be important and ignoring others.
+</p>
+
+<p>
+This practice is potentially problematic for the <code>hm</code> software because it
+assumes that interfaces that are not identified and recorded do not themselves
+represent chunks of time that might be important in a chronological model. In an
+ideal sense, the stratigraphic sequence represents a continuous record of time
+from some point in the past represented by the base of excavation up through to
+the modern surface. Neglecting to identify and record interfaces potentially
+yields a discontinuous model of that continuous record, with gaps introduced by
+the time spans represented by the excluded interfaces.
+</p>
+
+<p>
+The default configuration file uses node shape to distinguish deposits from
+interfaces.  Deposits are shaped like a rectangular box and interfaces are
+shaped like a trapezium, as in this snippet from a configuration file:
+</p>
+
+<pre class="example">
+[Graphviz sequence unit node shape]
+deposit = box
+interface = trapezium
+</pre>
+
+<p>
+Individual deposits and interfaces are identified in the input file for contexts
+(see Section <a href="#units-of-stratification">7.1</a>).
+</p>
+</div>
+</div>
+
+<div id="outline-container-org5a946a1" class="outline-4">
+<h4 id="org5a946a1"><span class="section-number-4">4.1.2</span> Periods and Phases</h4>
+<div class="outline-text-4" id="text-4-1-2">
+<p>
+The stratigraphic DAG for this example shows the Figure 12 section divided into
+four periods (fig. <a href="#orgc99e407">13</a>).  The oldest period includes the Natural ground and its surface.
+The next oldest period includes Context 9 and its surfaces.  Next is the
+once-whole deposit represented by Contexts 7 and 8, the surfaces of those
+contexts, and all of the various contexts related to construction of the wall
+stub, Context 5.  The youngest period is represented by the Context 1 deposit
+and its surface.
+</p>
+
+
+<div id="orgc99e407" class="figure">
+<p><a href="file:///home/dk/quicklisp/local-projects/hm/examples/fig-12-chronology/fig-12-periods.png"><img src="file:///home/dk/quicklisp/local-projects/hm/examples/fig-12-chronology/fig-12-periods-small.png" alt="fig-12-periods-small.png" /></a>
+</p>
+<p><span class="figure-number">Figure 13: </span>Stratigraphic DAG for the information on Figure <a href="#org26f4577">1</a> assuming inferences of once-whole contexts, and periodized according to the text. Note that rectangular nodes represent deposits and trapeziums represent interfaces.</p>
+</div>
+
+<p>
+On a Linux system, Figure <a href="#orgc99e407">13</a> can be reproduced with the following
+function call:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp">(run-project/example <span style="color: #ba55d3;">:fig-12-periods</span>)
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org1fadaed" class="outline-3">
+<h3 id="org1fadaed"><span class="section-number-3">4.2</span> Graph Theoretical Classifiers</h3>
+<div class="outline-text-3" id="text-4-2">
+<p>
+The graph theoretical classifiers are defined in the context of a general
+definition of a directed graph. The definition used here is paraphrased from the
+book, <i>Structural Models in Anthropology</i> written by Per Hage and Frank Harary.
+This book is the first in a remarkable trilogy that also includes <i>Exchange in
+Oceania: A Graph Theoretic Analysis</i> and <i>Island Networks: Communication,
+Kinship, and Classification Structures in Oceania</i>.
+</p>
+
+<p>
+One of the challenges presented by the literature on graph theory is the number
+of synonyms for the basic elements of a graph (table <a href="#orgdfa2c27">2</a>), what this
+document and the <code>hm</code> software try to label consistently as nodes and arcs. Hage
+and Harary typically use point and arc for directed graphs, and point and line
+for graphs. The definitions given below and in the following sections are quoted
+verbatim, so it is up to the reader to translate synonyms appropriately.
+</p>
+
+<table id="orgdfa2c27" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 2:</span> Some synonyms for node and arc.</caption>
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">node</th>
+<th scope="col" class="org-left">arc</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">point</td>
+<td class="org-left">line</td>
+</tr>
+
+<tr>
+<td class="org-left">vertex</td>
+<td class="org-left">edge</td>
+</tr>
+
+<tr>
+<td class="org-left">junction</td>
+<td class="org-left">branch</td>
+</tr>
+
+<tr>
+<td class="org-left">0-simplex</td>
+<td class="org-left">1-simplex</td>
+</tr>
+
+<tr>
+<td class="org-left">element</td>
+<td class="org-left">element</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+Hage and Harary define a directed graph on page 68 of <i>Structural Models in
+Anthropology</i> as follows.
+</p>
+
+<blockquote>
+<p>
+A <i>directed graph</i> or <i>digraph D</i> consists of a finite set <i>V</i> of points and a
+collection of ordered pairs of distinct points.  Any such pair <i>(u, v)</i> is
+called an <i>arc</i> or <i>directed line</i> and will usually be denoted <i>uv</i>.  The arc
+<i>uv</i> goes from <i>u</i> to <i>v</i> and is incident with <i>u</i> and <i>v</i>.
+</p>
+</blockquote>
+</div>
+
+<div id="outline-container-org0792793" class="outline-4">
+<h4 id="org0792793"><span class="section-number-4">4.2.1</span> Adjacent</h4>
+<div class="outline-text-4" id="text-4-2-1">
+<p>
+The adjacency classification is the simplest among the graph theoretical
+classifications.  Following on the definition of directed graph, quoted above,
+Hage and Harary define adjacency as follows.
+</p>
+
+<blockquote>
+<p>
+The arc <i>uv</i> goes from <i>u</i> to <i>v</i> and is incident with <i>u</i> and <i>v</i>. We also say
+that <i>u</i> is <i>adjacent to v</i> and <i>v</i> is adjacent from <i>u</i>.
+</p>
+</blockquote>
+
+<p>
+It is important to note that the sequence diagram represents chronological
+adjacency, rather than physical adjacency.  Two contexts that are in contact
+with one another can be said to be physically adjacent, but they might be
+chronologically separated by one or more other contexts.
+</p>
+
+<p>
+This can be seen in the following example, which is based on the stratigraphic
+section shown on Figure <a href="#orgbbbcce4">4</a>.
+</p>
+
+<p>
+The sequence diagram can be drawn to highlight the relationship of Context 2 to
+the others. When the sequence diagram is classified so nodes, node labels, and
+edges are colored according to adjacency from Context 2, such that the origin
+node is violet, adjacent nodes are cyan, and nodes not adjacent to Context 2 are
+orange, the graph in Figure <a href="#org28dde63">14</a> results.
+</p>
+
+
+<div id="org28dde63" class="figure">
+<p><img src="file:///home/dk/quicklisp/local-projects/hm/examples/roskams-h/roskams-h-sequence-solarized-dark.png" alt="roskams-h-sequence-solarized-dark.png" />
+</p>
+<p><span class="figure-number">Figure 14: </span>A correct Harris matrix for Figure <a href="#orgbbbcce4">4</a> classified by adjacency to Context 2. Colors are from the <a href="http://ethanschoonover.com/solarized">Solarized</a> dark palette.</p>
+</div>
+
+<p>
+The graph was produced on a Linux system with the following function call:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp">(run-project/example <span style="color: #ba55d3;">:roskams-h-solarized-dark</span>)
+</pre>
+</div>
+
+
+<p>
+The important sections in the initialization file include the following.
+</p>
+
+<pre class="example">
+[Graph analysis configuration]
+distance-from =
+adjacent-from = 2
+...
+
+[Graphviz sequence classification]
+node-fillcolor-by =
+node-fontcolor-by = adjacent
+node-shape-by =
+node-color-by = adjacent
+node-penwidth-by =
+node-style-by =
+node-polygon-distortion-by =
+node-polygon-image-by =
+node-polygon-orientation-by =
+node-polygon-sides-by =
+node-polygon-skew-by =
+edge-color-by = adjacent
+...
+
+[Graphviz sequence graph attributes]
+colorscheme = solarized
+bgcolor = base02
+fontname = Helvetica
+fontsize = 14.0
+fontcolor = base1
+label = Roskams\' H-structure (corrected)
+labelloc = t
+style = filled
+size =
+ratio = 0.618034
+...
+
+[Graphviz sequence node attributes]
+shape = box
+colorscheme = solarized
+style = filled
+color = base01
+fontsize = 14.0
+fontsize-min = 6.0
+fontsize-max = 22.0
+fontcolor = base01
+fillcolor = base03
+...
+
+[Graphviz sequence adjacent node colors]
+origin = violet
+adjacent = cyan
+not-adjacent = orange
+colorscheme = solarized
+
+[Graphviz sequence adjacent node fontcolors]
+origin = violet
+adjacent = cyan
+not-adjacent = orange
+colorscheme = solarized
+
+[Graphviz sequence adjacent edge colors]
+origin = violet
+adjacent = cyan
+not-adjacent = orange
+colorscheme = solarized
+</pre>
+
+<p>
+Note that Context 2 is in physical contact with Contexts 3 and 5.  The sequence
+diagram (fig. <a href="#org28dde63">14</a>) shows Context 2 adjacent to Context 3, but
+because the Context 2 pit cut into Context 3, which itself was cut into Context
+5, Context 2 is not chronologically adjacent to Context 5.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org2549068" class="outline-4">
+<h4 id="org2549068"><span class="section-number-4">4.2.2</span> Reachable</h4>
+<div class="outline-text-4" id="text-4-2-2">
+<p>
+The graph theoretic definition of reachability requires definitions for directed
+walk and path. Hage and Harary define reachability this way on pages 68&#x2013;69 of
+<i>Structural Models in Anthropology</i>, where they use digraph as a synonym for
+directed graph.
+</p>
+
+<blockquote>
+<p>
+A (directed) walk in a digraph is an alternating sequence of points and arcs,
+v₀, x₁, v₁, &hellip;, xₙ, vₙ in which each arc xᵢ is vᵢ₋₁vᵢ.  For brevity, we may write
+the sequence of points v₀, v₁, &hellip;, vₙ to indicate the same walk.  The length of
+such a walk is n, the number of occurrences of arcs in it.  A closed walk has
+the same first and last points, and open walk does not, and a spanning walk
+contains all the points.  A path is a walk in which all points are distinct; a
+cycle is a nontrivial closed walk with all points distinct except the first and
+last.  If there is a path from u to v, then v is said to be reachable from u &hellip;
+</p>
+</blockquote>
+
+<p>
+Compare this definition with Roskams' description of reachability as it is
+conceptualized by users of the Harris matrix on page 158 of the book,
+<i>Excavation</i>:
+</p>
+
+<blockquote>
+<p>
+if one travels from a particular unit via the strands running up from it, all
+units through which one passes are provably later than that unit;
+if one travels down, every unit <i>en route</i> is provably earlier;
+any unit which cannot be reached in one of these two ways has no proven
+relationship with the unit in question.
+</p>
+</blockquote>
+
+<p>
+This describes all the nodes from which the "particular unit" is reachable—"the
+strands running up from it"—and all the nodes reachable from "the particular
+unit" that are encountered when one "travels down".
+</p>
+
+<p>
+One key to dating Çatalhöyük has been identifying residual materials in the
+deposits.  A good example of this is Context 1332+, where several seeds were
+recovered and dated.  Initially, the seeds were thought to be associated with
+the Context 1332+ deposit, but four of them were subsequently determined to be
+residual.  The effect of these different residuality determinations on the
+dating project at Çatalhöuyük is discussed by <a href="https://www.sciencedirect.com/science/article/pii/S0305440315002459">Dye and Buck</a>.
+</p>
+
+<p>
+The importance of Context 1332+ in the stratigraphy of Çatalhöyük is indicated
+by a graph classified by reachability (fig. <a href="#orgcdbf24a">15</a>).
+This graph assigns dark blue fills to nodes from which Context 1332+ is
+reachable and nodes reachable from Context 1332+. The node for Context 1332+ is
+filled light blue. Nodes from which Context 1332+ is not reachable and nodes not
+reachable from Context 1332+ are filled green.  The colors are taken from the
+Brewer color <code>paired</code> palette.
+</p>
+
+
+<div id="orgcdbf24a" class="figure">
+<p><a href="file:///home/dk/quicklisp/local-projects/hm/examples/bldg-1-5/bldg-1-5-sequence-reachable-1332+.png"><img src="file:///home/dk/quicklisp/local-projects/hm/examples/bldg-1-5/bldg-1-5-sequence-reachable-1332+-small.png" alt="bldg-1-5-sequence-reachable-1332+-small.png" /></a>
+</p>
+<p><span class="figure-number">Figure 15: </span>Stratigraphic DAG of the North Area sequence with nodes classified according to reachability to and from Context 1332+. Context 1332+ is light blue.  Nodes reachable from Context 1332+ are dark blue. Nodes not reachable from Context 1332+ are green.</p>
+</div>
+
+<p>
+The important sections of the configuration file include the following.
+</p>
+
+<pre class="example">
+[Graph analysis configuration]
+distance-from =
+adjacent-from =
+reachable-from = 1332+
+reachable-limit =
+
+[Graphviz sequence classification]
+node-fillcolor-by = reachable
+...
+
+[Graphviz sequence reachability node fillcolors]
+origin = 0
+reachable = 1
+not-reachable = 2
+colorscheme = paired
+</pre>
+
+<p>
+Classification by reachability is potentially important for decisions on what
+materials to date.  Contexts that are reachable from many contexts or from which
+many contexts are reachable might be thought of as having relatively great
+potential influence in a chronological model.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org8be14c7" class="outline-4">
+<h4 id="org8be14c7"><span class="section-number-4">4.2.3</span> Distance</h4>
+<div class="outline-text-4" id="text-4-2-3">
+<p>
+The graph theoretic definition of distance follows directly on the definition of
+reachability.  Hage and Harary define distance this way on page 69 of
+<i>Structural Models in Anthropology</i>.
+</p>
+
+<blockquote>
+<p>
+If there is a path from u to v, then v is said to be reachable from u, and the
+distance d (u,v) from u to v is the length of any shortest such path.
+</p>
+</blockquote>
+
+<p>
+An example of a graph classified by distance is Figure <a href="#org6619ec0">16</a>. This graph
+assigns node fills based on distance from Context 1332+. The node for Context
+1332+ is the lightest blue. Nodes not reachable from Context 1332+ are the
+darkest blue. All other nodes have intermediate shades of blue based on their
+distance from Context 1332+, the farther the node the darker the color.
+</p>
+
+
+<div id="org6619ec0" class="figure">
+<p><img src="file:///home/dk/quicklisp/local-projects/hm/examples/bldg-1-5/bldg-1-5-sequence-distance-1332+.png" alt="bldg-1-5-sequence-distance-1332+.png" />
+</p>
+<p><span class="figure-number">Figure 16: </span>Stratigraphic DAG of the North Area sequence with nodes shaded by distance from Context 1332+.</p>
+</div>
+
+<p>
+This graph was produced on a Linux system with the following function call:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp">(run-project/example <span style="color: #ba55d3;">:catal-hoyuk-distance</span> <span style="color: #ba55d3;">:draw-chronology</span> nil)
+</pre>
+</div>
+
+<p>
+The interesting parts of the configuration file follow.
+</p>
+
+<pre class="example">
+[Graph analysis configuration]
+distance-from = 1332+
+
+[Graphviz sequence classification]
+node-fillcolor-by = distance
+
+[Graphviz sequence node fill color schemes]
+levels =
+distance = cet-blues
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgd228a68" class="outline-4">
+<h4 id="orgd228a68"><span class="section-number-4">4.2.4</span> Levels</h4>
+<div class="outline-text-4" id="text-4-2-4">
+<p>
+The graph theoretic concept of level is closely tied to the stratigraphic
+concept of level.  Hage and Harary define level on page 82 of <i>Structural Models in Anthropology.</i>
+</p>
+<blockquote>
+<p>
+An acyclic digraph D has no cycles &hellip; [and] is said to have a level assignment,
+which assigns a positive integer n for each point v, called its level, if for
+each arc vᵢ vⱼ of D, the corresponding integers satisfy nᵢ &lt; nⱼ.  Thus each arc
+of D is directed from a lower to a higher level.  If a digraph D has a cycle,
+then it cannot have a level assignment.
+</p>
+</blockquote>
+
+<p>
+An example of a levels classification can be seen in the stratigraphic DAG of Çatalhöyük (fig. <a href="#orgbbc743c">17</a>).
+</p>
+
+
+<div id="orgbbc743c" class="figure">
+<p><a href="file:///home/dk/quicklisp/local-projects/hm/examples/bldg-1-5/bldg-1-5-sequence-levels.png"><img src="file:///home/dk/quicklisp/local-projects/hm/examples/bldg-1-5/bldg-1-5-sequence-levels-small.png" alt="bldg-1-5-sequence-levels-small.png" /></a>
+</p>
+<p><span class="figure-number">Figure 17: </span>Stratigraphic DAG of the North Area sequence at Çatalhöyük with nodes colored by level.</p>
+</div>
+
+<p>
+The graph was produced on a Linux system with the following function call:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp">(run-project/example <span style="color: #ba55d3;">:catal-hoyuk-levels</span> <span style="color: #ba55d3;">:draw-chronology</span> nil)
+</pre>
+</div>
+
+
+<p>
+The interesting parts of the configuration file follow.
+</p>
+
+<pre class="example">
+[Graphviz sequence classification]
+node-fillcolor-by = levels
+
+[Graphviz sequence node fill color schemes]
+levels = cet-bgyw
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org95f7949" class="outline-3">
+<h3 id="org95f7949"><span class="section-number-3">4.3</span> Write a Classification to a File</h3>
+<div class="outline-text-3" id="text-4-3">
+<p>
+In addition to creating graphical output, the <code>hm</code> software can write a
+classification to a comma-separated-value file to communicate with other
+software.  The name of the output file is specified in the configuration file;
+this protocol insures that the user of an <code>hm</code> project created by someone else
+can be certain of a CSV file's contents.
+</p>
+
+<p>
+In the example below, the file names for <code>distance</code>, <code>reachable</code>, and <code>adjacent</code>
+classifications are helpfully descriptive, while the name given the <code>phases</code>
+classification is not too helpful.
+</p>
+
+<pre class="example">
+[Output files]
+sequence-dot = fig-12-polygon-1.dot
+chronology-dot =
+distance = fig-12-distance.csv
+reachable = fig-12-reachable.csv
+adjacent = fig-12-adjacent.csv
+phases = foobar.csv
+periods = fig-12-periods.csv
+...
+</pre>
+
+<p>
+The following transcript writes the <code>periods</code> classifier for the
+<code>:fig-12-polygon</code> example to the <code>fig-12-periods.csv</code> file.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp" id="org7db1e96">(<span style="color: #2020cc; font-weight: bold;">defvar</span> <span style="color: #6a621b;">*seq*</span>)
+(setq *seq* (run-project/example <span style="color: #ba55d3;">:fig-12-polygon</span>))
+(write-classifier <span style="color: #ba55d3;">:periods</span> *seq*)
+</pre>
+</div>
+
+<p>
+The file <code>fig-12-periods.csv</code> file looks like this:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sh" id="orga767136">head ~/quicklisp/local-projects/hm/examples/fig-12-chronology/fig-12-periods.csv
+</pre>
+</div>
+
+<pre class="example">
+| node | periods |
+|    1 |       1 |
+|    2 |       2 |
+|    3 |       2 |
+|    4 |       2 |
+|    5 |       2 |
+|    6 |       2 |
+|    9 |       3 |
+|   10 |       1 |
+|   12 |       2 |
+</pre>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-org922dfe4" class="outline-2">
+<h2 id="org922dfe4"><span class="section-number-2">5</span> Classifiable Graph Attributes</h2>
+<div class="outline-text-2" id="text-5">
+<p>
+The <code>hm</code> software is able to apply each of the classifiers to each of the
+17 classifiable graph attributes listed below. The attributes
+vary by their visual saliency and by the number of states they are able to
+express. Fill color, color, and shape (including the polygon attributes) are
+most salient for nodes, followed by font color, pen width, and style. Color,
+style, and arrowhead are most salient for edges, followed by font size,
+font color, and pen width.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp" id="orge5fe5ec">(show-classifiable-attributes)
+</pre>
+</div>
+
+<pre class="example">
+edge-color-by
+edge-style-by
+node-color-by
+node-shape-by
+node-style-by
+edge-fontsize-by
+edge-penwidth-by
+node-penwidth-by
+edge-arrowhead-by
+edge-fontcolor-by
+node-fillcolor-by
+node-fontcolor-by
+node-polygon-skew-by
+node-polygon-image-by
+node-polygon-sides-by
+node-polygon-distortion-by
+node-polygon-orientation-by
+</pre>
+</div>
+
+
+<div id="outline-container-org11547f5" class="outline-3">
+<h3 id="org11547f5"><span class="section-number-3">5.1</span> Colors</h3>
+<div class="outline-text-3" id="text-5-1">
+<p>
+The <code>hm</code> software offers several color palettes that might be useful in
+different situations.  However, color should be handled with care because it is
+easy to misuse it.
+</p>
+
+<p>
+Edward Tufte's chapter on "Color and Information" in the book <i>Envisioning
+Information</i> starts off like this:
+</p>
+
+<blockquote>
+<p>
+In representing and communicating information, how are we to benefit from
+color's great dominion?  Human eyes are exquisitely sensitive to color
+variations: a trained colorist can distinguish among 1,000,000 colors, at least
+when tested under contrived conditions of pairwise comparison.  Some 20,000
+colors are accessible to many viewers, with the constraints for practical
+applications set by the early limits of human visual memory rather than the
+capacity to discriminate locally between adjacent tints.  For encoding abstract
+information, however, more than 20 or 30 colors frequently produce not
+diminishing but negative returns.
+</p>
+
+<p>
+Tying color to information is as elementary and straightforward as color
+technique in art, "To paint well is simply this: to put the right color in the
+right place," in Paul Klee's ironic prescription.  The often scant benefits derived from
+coloring data indicate that even putting a good color in place is a complex
+matter.  Indeed, so difficult and subtle that avoiding catastrophe becomes the
+first principle in bringing color to information: <i>Above all, do no harm.</i>
+</p>
+</blockquote>
+
+<p>
+With this in mind, the <code>hm</code> software uses a selection of named and indexed color
+palettes.
+</p>
+</div>
+
+<div id="outline-container-orgeb8fd1f" class="outline-4">
+<h4 id="orgeb8fd1f"><span class="section-number-4">5.1.1</span> Named Color Palettes</h4>
+<div class="outline-text-4" id="text-5-1-1">
+<p>
+Colors from named color palettes are indicated by a color name, such as
+<code>burlywood3</code>, <code>coral1</code>, or <code>darkgoldenrod</code>. Named color palettes are useful in
+situations where you know ahead of time how many colors will be needed, or when
+you have need or desire to use particular hues.  However, choosing colors that
+work well with one another is difficult for many people and, as Tufte reminds us,
+catastrophe is a real possibility.
+</p>
+
+<p>
+The three named color palettes used by <code>hm</code> software include the two general
+purpose palettes, X11 and SVG, and the designer palette, Solarized.
+</p>
+</div>
+
+
+<ol class="org-ol">
+<li><a id="org1c23902"></a>X11<br />
+<div class="outline-text-5" id="text-5-1-1-1">
+<p>
+The <code>hm</code> software recognizes 782 X11 color names, which generally correspond to
+the <a href="http://www.graphviz.org/doc/info/colors.html#x11">Graphviz dot X11 color names</a>.  By far the most useful of these are <code>white</code>
+and <code>black</code>, with <code>dimgray</code> (or <code>dimgrey</code>), <code>gray</code> (or <code>grey</code>), and <code>lightgray</code>
+(or <code>lightgrey</code>) often coming in handy.
+</p>
+</div>
+</li>
+
+<li><a id="org39e0e55"></a>SVG<br />
+<div class="outline-text-5" id="text-5-1-1-2">
+<p>
+The SVG palette has 147 names for somewhat fewer colors, given that some colors
+have multiple names. In general, this is a subset of the X11 colors that is most
+useful when graphics output will be scalar vector graphics. The <a href="http://www.graphviz.org/doc/info/colors.html#svg">Graphviz dot SVG
+color names</a> are supported by the <code>hm</code> software.
+</p>
+</div>
+</li>
+
+<li><a id="orga190202"></a>Solarized<br />
+<div class="outline-text-5" id="text-5-1-1-3">
+<p>
+The Solarized color palette was developed by a designer interested in computer
+graphics. It includes two sets of background tones, a set of four tones for
+content, and eight accent colors. The accent colors are suited for categorical
+variables and might be useful for classifications with relatively few
+distinctions such as <code>units</code>, <code>adjacent</code>, and <code>reachable</code>. In some cases, they
+might be useful for <code>periods</code> or <code>phases</code>.
+</p>
+
+<p>
+A notable feature of the Solarized palette is the relative ease of switching
+from a color scheme with a dark background (Fig. <a href="#org28dde63">14</a>) to one with
+a light background (Fig. <a href="#orgfbffc6d">18</a>).
+A characteristic of the <a href="http://ethanschoonover.com/solarized">Solarized</a> palette is accent colors&#x2014;in this case
+violet, cyan, and orange&#x2014;look good on either a dark or light background.  An
+example project is included to show off this property of the <a href="http://ethanschoonover.com/solarized">Solarized</a> palette.
+</p>
+
+<p>
+When the following command is run on a Linux system, the graph in Figure <a href="#orgfbffc6d">18</a>
+results.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp">(run-project/example <span style="color: #ba55d3;">:roskams-h-solarized-light</span>)
+</pre>
+</div>
+
+
+<div id="orgfbffc6d" class="figure">
+<p><img src="file:///home/dk/quicklisp/local-projects/hm/examples/roskams-h/roskams-h-sequence-solarized-light.png" alt="roskams-h-sequence-solarized-light.png" />
+</p>
+<p><span class="figure-number">Figure 18: </span>A correct Harris matrix for Figure <a href="#orgbbbcce4">4</a> classified by adjacency to Context 2. Colors are from the <a href="http://ethanschoonover.com/solarized">Solarized</a> light palette.</p>
+</div>
+
+<p>
+There is an informative website that describes <a href="http://ethanschoonover.com/solarized">Ethan Schoonover's Solarized
+colors</a>.
+</p>
+</div>
+</li>
+</ol>
+</div>
+
+<div id="outline-container-org7a1828b" class="outline-4">
+<h4 id="org7a1828b"><span class="section-number-4">5.1.2</span> Indexed Color Palettes</h4>
+<div class="outline-text-4" id="text-5-1-2">
+<p>
+Colors in indexed color palettes are identified by numbers, rather than names.
+This makes them easy to use in situations where the number of colors needed is not
+known ahead of time.  In addition, the color palettes have been designed to
+include colors that work well together, so graphs that use them can have a
+polished look that might be difficult to achieve otherwise.
+</p>
+
+<p>
+There are three kinds of indexed color palette that are useful for different
+kinds of data:
+</p>
+<dl class="org-dl">
+<dt>sequential</dt><dd>colors move from dark to light along a single "path" through
+color space, which makes it easy to visualize the magnitude of
+a value</dd>
+<dt>diverging</dt><dd>colors move from dark to light and back to dark again as they
+move from one edge of the rainbow to the other, a pattern that
+highlights the middle color and is useful for data that have
+both location and scale</dd>
+<dt>qualitative</dt><dd>colors are chosen to be distinct from one another, without
+giving emphasis to one or another, which is useful for
+categorical data</dd>
+</dl>
+
+<p>
+The <code>hm</code> software uses a color index that is 0 based for all of the indexed
+color palettes.  Note that this is different than the usual scheme for the
+Brewer color palettes in which the base color is 1.
+</p>
+
+<p>
+The <code>hm</code> software offers two sets of indexed color palettes, one developed by
+the <a href="http://colorbrewer2.org/#type=sequential&amp;scheme=BuGn&amp;n=3">ColorBrewer project</a>, and another developed at the <a href="https://bokeh.github.io/colorcet/">Center for Exploration
+Targeting</a>.
+</p>
+</div>
+
+
+<ol class="org-ol">
+<li><a id="orgfad9bfe"></a>Brewer Color Palettes<br />
+<div class="outline-text-5" id="text-5-1-2-1">
+<p>
+The <a href="https://graphviz.gitlab.io/_pages/doc/info/colors.html#brewer">Brewer color palettes</a> are built into the GraphViz <code>dot</code> software. There are
+several families of 3 to 12 color palettes, which are most useful for the simple
+classifications.  The <code>hm</code> software accepts the family name of the color scheme
+and then chooses which palette to use based on the number of colors needed.  So,
+for example, the <code>hm</code> software user might choose <code>accent</code>, <code>blues</code>, or <code>brbg</code>
+and the software might apply <code>accent3</code>, <code>blues7</code>, or <code>brbg</code> 5, as appropriate.
+</p>
+
+<p>
+Note that the <code>paired</code> palette is useful for classifications such as <code>adjacent</code>
+and <code>reachable</code> that yield three values.  In these cases, the origin and
+adjacent or reachable nodes can be colored with the same hue, and non-adjacent
+or unreachable nodes can be colored with a different hue.  Figure
+<a href="#org7df6d57">11</a> illustrates use of the <code>paired</code> color palette with a
+<code>reachable</code> classification.
+</p>
+</div>
+</li>
+
+<li><a id="org1abadc7"></a>Center for Exploration Targeting Color Palettes<br />
+<div class="outline-text-5" id="text-5-1-2-2">
+<p>
+These are 256 color palettes that were designed to be "perceptually uniform",
+which means that none of the colors sticks out from the others. The idea behind
+perceptual uniformity of colors in the palette is that perceptual variation in a
+graphic that uses these color palettes will primarily track variation in the
+underlying data.
+</p>
+
+<p>
+These color palettes will be most useful for the <code>levels</code> and <code>distance</code>
+classifications, which might require dozens of distinct colors to represent the
+range of values. Because both of these classifications yields a number important
+for its magnitude, the palettes included with the <code>hm</code> software are mostly
+sequential (or linear), but also include a rainbow palette.
+</p>
+
+<p>
+The name of the palette used by the <code>hm</code> software is shown in the first column
+of Table <a href="#orge8ef4e6">3</a>. The second column gives the name of the color file
+distributed by Colorcet; the names of these files are based on the palette
+labels displayed at the <a href="https://bokeh.github.io/colorcet/">Colorcet website</a>.
+</p>
+
+<table id="orge8ef4e6" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 3:</span> Names used for the Colorcet palettes</caption>
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">name</th>
+<th scope="col" class="org-left">file</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">cet-bgyw</td>
+<td class="org-left">linear_bgyw_15-100_c67_n256.csv</td>
+</tr>
+
+<tr>
+<td class="org-left">cet-kbc</td>
+<td class="org-left">linear_blue_5-95_c73_n256.csv</td>
+</tr>
+
+<tr>
+<td class="org-left">cet-blues</td>
+<td class="org-left">linear_blue_95-50_c20_n256.csv</td>
+</tr>
+
+<tr>
+<td class="org-left">cet-bmw</td>
+<td class="org-left">linear_bmw_5-95_c86_n256.csv</td>
+</tr>
+
+<tr>
+<td class="org-left">cet-inferno</td>
+<td class="org-left">linear_bmy_10-95_c71_n256.csv</td>
+</tr>
+
+<tr>
+<td class="org-left">cet-kgy</td>
+<td class="org-left">linear_green_5-95_c69_n256.csv</td>
+</tr>
+
+<tr>
+<td class="org-left">cet-gray</td>
+<td class="org-left">linear_grey_0-100_c0_n256.csv</td>
+</tr>
+
+<tr>
+<td class="org-left">cet-dimgray</td>
+<td class="org-left">linear_grey_10-95_c0_n256.csv</td>
+</tr>
+
+<tr>
+<td class="org-left">cet-fire</td>
+<td class="org-left">linear_kryw_0-100_c71_n256.csv</td>
+</tr>
+
+<tr>
+<td class="org-left">cet-kb</td>
+<td class="org-left">linear_ternary-blue_0-44_c57_n256.csv</td>
+</tr>
+
+<tr>
+<td class="org-left">cet-kg</td>
+<td class="org-left">linear_ternary-green_0-46_c42_n256.csv</td>
+</tr>
+
+<tr>
+<td class="org-left">cet-kr</td>
+<td class="org-left">linear_ternary-red_0-50_c52_n256.csv</td>
+</tr>
+
+<tr>
+<td class="org-left">cet-rainbow</td>
+<td class="org-left">rainbow_bgyr_35-85_c72_n256.csv</td>
+</tr>
+</tbody>
+</table>
+</div>
+</li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-org51ca5f9" class="outline-3">
+<h3 id="org51ca5f9"><span class="section-number-3">5.2</span> Nodes</h3>
+<div class="outline-text-3" id="text-5-2">
+<p>
+The <code>dot</code> software provides many ways to control how nodes are displayed.
+</p>
+</div>
+
+<div id="outline-container-orga1ecfa6" class="outline-4">
+<h4 id="orga1ecfa6"><span class="section-number-4">5.2.1</span> Shapes</h4>
+<div class="outline-text-4" id="text-5-2-1">
+<p>
+Node shapes can be set individually, or they can be assigned by <code>hm</code> based on
+the value of a classifier.  The names of the shapes are taken from the <a href="https://graphviz.gitlab.io/_pages/doc/info/shapes.html"><code>dot</code> software</a>.
+</p>
+
+<p>
+Here is an example of node shapes set individually in the configuration file.
+</p>
+<pre class="example">
+[Graphviz sequence reachability node shapes]
+origin = box
+reachable = triangle
+not-reachable = oval
+</pre>
+
+<p>
+In situations where it is not possible to specify node shapes individually, the
+<code>hm</code> software uses a lookup table to map a classifier to a node shape.  The
+lookup table can be displayed with the following function call.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp" id="orgee031a2">(show-map <span style="color: #ba55d3;">:node-shape</span>)
+</pre>
+</div>
+
+<pre class="example">
+0 --&gt; box
+1 --&gt; trapezium
+2 --&gt; ellipse
+3 --&gt; egg
+4 --&gt; triangle
+5 --&gt; diamond
+6 --&gt; oval
+7 --&gt; circle
+8 --&gt; house
+9 --&gt; pentagon
+10 --&gt; parallelogram
+11 --&gt; square
+12 --&gt; star
+13 --&gt; hexagon
+14 --&gt; septagon
+15 --&gt; octagon
+16 --&gt; doublecircle
+17 --&gt; doubleoctagon
+18 --&gt; tripleoctagon
+19 --&gt; invtriangle
+20 --&gt; invtrapezium
+21 --&gt; invhouse
+22 --&gt; Mdiamond
+23 --&gt; Msquare
+24 --&gt; Mcircle
+25 --&gt; lpromoter
+26 --&gt; larrow
+27 --&gt; underline
+28 --&gt; note
+29 --&gt; tab
+30 --&gt; folder
+31 --&gt; box3d
+32 --&gt; component
+33 --&gt; cds
+34 --&gt; signature
+35 --&gt; rpromoter
+36 --&gt; rarrow
+</pre>
+</div>
+</div>
+
+
+<div id="outline-container-org29799c6" class="outline-4">
+<h4 id="org29799c6"><span class="section-number-4">5.2.2</span> Polygons</h4>
+<div class="outline-text-4" id="text-5-2-2">
+<p>
+Polygons offer another way to classify node shapes.  Instead of working with a
+fixed number of shapes, polygons can take on almost any shape, varying
+continuously along dimensions defined by <code>skew</code>, <code>sides</code>, <code>distortion</code>, and
+<code>orientation</code>.  It is even possible to associate images with polygons.
+</p>
+
+<p>
+In theory, the various dimensions of a polygon might be associated with
+different classifiers, with each combination of classifier values yielding its
+own distinct polygon.  The key here is, of course, the term "distinct".  At some
+point, complexity in the underlying data defeats the graphical purpose, yielding
+a complex graphic that defies interpretation.
+</p>
+
+<p>
+Figure <a href="#orga4a68f2">19</a> shows an example of polygons in use, which builds on the classification
+of Harris' Figure 12 by periods (see fig. <a href="#orgc99e407">13</a>).
+</p>
+
+
+<div id="orga4a68f2" class="figure">
+<p><a href="file:///home/dk/quicklisp/local-projects/hm/examples/fig-12-chronology/fig-12-polygon-1.png"><img src="file:///home/dk/quicklisp/local-projects/hm/examples/fig-12-chronology/fig-12-polygon-1-small.png" alt="fig-12-polygon-1-small.png" /></a>
+</p>
+<p><span class="figure-number">Figure 19: </span>Stratigraphic DAG for the information on Figure <a href="#org26f4577">1</a> and periodized according to Figure <a href="#orgc99e407">13</a>. Note that the number of node sides and node fill color both reflect the periods classification.</p>
+</div>
+
+<p>
+Figure <a href="#orga4a68f2">19</a> can be produced on a Linux system with the following
+function call:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp">(run-project/example <span style="color: #ba55d3;">:fig-12-polygon</span>)
+</pre>
+</div>
+
+<p>
+Polygons require a bit of set up in the configuration file.  The <code>node-shape-by</code>
+option must be empty, <code>node-shape</code> must be set to <code>polygon</code>, and one of the
+<code>node-polygon-*-by</code> attributes must be set to an appropriate classifier.
+</p>
+
+<p>
+The configuration file for Figure <a href="#orga4a68f2">19</a> illustrates these points.  The
+options <code>polygon-sides-min</code> and <code>polygon-sides-max</code> set boundaries for the
+allowable number of sides, while <code>polygon-sides</code> sets the shape of the base
+polygon.  So, in Figure <a href="#orga4a68f2">19</a> the latest period is shown as a rectangle
+and each preceding period adds another side to the polygon.
+</p>
+
+<pre class="example">
+[Graphviz sequence classification]
+node-fillcolor-by = periods
+node-fontcolor-by =
+node-shape-by =
+node-color-by =
+node-penwidth-by =
+node-style-by =
+node-polygon-distortion-by =
+node-polygon-image-by =
+node-polygon-orientation-by =
+node-polygon-sides-by = periods
+...
+
+[Graphviz sequence node attributes]
+shape = polygon
+...
+polygon-sides = 4
+polygon-sides-min = 3
+polygon-sides-max = 16
+</pre>
+</div>
+</div>
+
+<div id="outline-container-org0f9dc81" class="outline-4">
+<h4 id="org0f9dc81"><span class="section-number-4">5.2.3</span> Styles</h4>
+<div class="outline-text-4" id="text-5-2-3">
+<p>
+Node styles can be set individually, or they can be assigned by <code>hm</code> based on
+the value of a classifier.  The names of the styles are taken from the <a href="https://graphviz.gitlab.io/_pages/doc/info/attrs.html#k:style"><code>dot</code>
+software</a>.  Note that some styles have to do with the node outline and others
+have to do with the node fill.  It is possible to set an option to two values,
+one to control the node outline and the other to control the node fill.
+</p>
+
+<p>
+Here is an example of node styles set individually in the configuration file.
+In each case, the first value controls the node outline and the second value
+controls the node fill.
+</p>
+
+<pre class="example">
+[Graphviz sequence reachability node styles]
+origin = solid,filled
+reachable = dashed,filled
+not-reachable = dotted,filled
+</pre>
+
+<p>
+In situations where it is not possible to specify the node styles individually,
+the <code>hm</code> software uses a lookup table to map a classifier to a node style.  The
+lookup table can be displayed with the following function call.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp" id="org966124e">(show-map <span style="color: #ba55d3;">:node-style</span>)
+</pre>
+</div>
+
+<pre class="example">
+0 --&gt; solid
+1 --&gt; dashed
+2 --&gt; dotted
+3 --&gt; bold
+4 --&gt; rounded
+5 --&gt; diagonals
+6 --&gt; filled
+7 --&gt; striped
+8 --&gt; wedged
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org035bcb6" class="outline-3">
+<h3 id="org035bcb6"><span class="section-number-3">5.3</span> Arcs</h3>
+<div class="outline-text-3" id="text-5-3">
+<p>
+The <code>dot</code> software provides several arc (or edge) styles and a wide range of
+arrowheads.
+</p>
+</div>
+<div id="outline-container-org6c544b8" class="outline-4">
+<h4 id="org6c544b8"><span class="section-number-4">5.3.1</span> Styles</h4>
+<div class="outline-text-4" id="text-5-3-1">
+<p>
+The edge styles recognized by the <code>hm</code> software can be shown with the following
+function call.  In each case, the name used by <code>hm</code> matches the <a href="https://graphviz.gitlab.io/_pages/doc/info/attrs.html#k:style">name used by <code>dot</code></a>.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp" id="orgf3fd66f">(show-map <span style="color: #ba55d3;">:edge-style</span>)
+</pre>
+</div>
+
+<pre class="example">
+0 --&gt; solid
+1 --&gt; dashed
+2 --&gt; dotted
+3 --&gt; bold
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgfe16af2" class="outline-4">
+<h4 id="orgfe16af2"><span class="section-number-4">5.3.2</span> Arrowheads</h4>
+<div class="outline-text-4" id="text-5-3-2">
+<p>
+The arrowhead styles recognized by the <code>hm</code> software can be shown with the
+following function call.  In each case, the name used by <code>hm</code> matches the <a href="https://graphviz.gitlab.io/_pages/doc/info/arrows.html">name
+used by <code>dot</code></a>.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp" id="org8bf428c">(show-map <span style="color: #ba55d3;">:arrow-shape</span>)
+</pre>
+</div>
+
+<pre class="example">
+0 --&gt; none
+1 --&gt; box
+2 --&gt; lbox
+3 --&gt; rbox
+4 --&gt; obox
+5 --&gt; olbox
+6 --&gt; orbox
+7 --&gt; crow
+8 --&gt; lcrow
+9 --&gt; rcrow
+10 --&gt; diamond
+11 --&gt; ldiamond
+12 --&gt; rdiamond
+13 --&gt; odiamond
+14 --&gt; oldiamond
+15 --&gt; ordiamond
+16 --&gt; dot
+17 --&gt; odot
+18 --&gt; inv
+19 --&gt; linv
+20 --&gt; rinv
+21 --&gt; oinv
+22 --&gt; olinv
+23 --&gt; orinv
+24 --&gt; normal
+25 --&gt; lnormal
+26 --&gt; rnormal
+27 --&gt; onormal
+28 --&gt; olnormal
+29 --&gt; ornormal
+30 --&gt; tee
+31 --&gt; ltee
+32 --&gt; rtee
+33 --&gt; vee
+34 --&gt; lvee
+35 --&gt; rvee
+36 --&gt; curve
+37 --&gt; lcurve
+38 --&gt; rcurve
+39 --&gt; icurve
+40 --&gt; licurve
+41 --&gt; ricurve
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orge40cfeb" class="outline-2">
+<h2 id="orge40cfeb"><span class="section-number-2">6</span> The Configuration File</h2>
+<div class="outline-text-2" id="text-6">
+<p>
+The <code>hm</code> configuration file conforms to the <a href="https://en.wikipedia.org/wiki/INI_file">informal <code>.ini</code> file standard for
+configuration software</a>, which specifies a structure composed of sections,
+options, and values.
+</p>
+
+<p>
+Here are the sections in an <code>hm</code> configuration file listed in alphabetical order.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp" id="org6b12132">(use-package <span style="color: #ba55d3;">:hm</span>)
+(<span style="color: #2020cc; font-weight: bold;">defparameter</span> <span style="color: #6a621b;">*seq*</span> (run-project/example <span style="color: #ba55d3;">:roskams-h</span> <span style="color: #ba55d3;">:draw-sequence</span> nil))
+(format t <span style="color: #fa5151;">"~%Sections:~%"</span>)
+(show-configuration-sections *seq*)
+</pre>
+</div>
+
+<pre class="example">
+Read one initialization file: /home/dk/quicklisp/local-projects/hm/examples/roskams-h/roskams-h.ini.
+Reading table from roskams-h-contexts.csv.
+Adding nodes to the sequence graph.
+5 nodes added to the sequence graph.
+Reading table from roskams-h-observations.csv.
+Adding arcs to the sequence graph.
+7 arcs added to the sequence graph.
+Checking graph for cycles.
+No cycles found.
+Starting transitive reduction.
+Removed transitive arc from node 1 to node 5.
+Removed transitive arc from node 2 to node 5.
+Transitive reduction finished.
+Chronology graph off.
+Creating units classification.
+Archaeological sequence configured.
+
+Sections:
+General configuration
+Graph analysis configuration
+Graphviz chronology edge attributes
+Graphviz chronology graph attributes
+Graphviz chronology node attributes
+Graphviz legend node attributes
+Graphviz sequence adjacent edge arrowhead
+Graphviz sequence adjacent edge colors
+Graphviz sequence adjacent edge fontcolor
+Graphviz sequence adjacent edge fontsize
+Graphviz sequence adjacent edge penwidths
+Graphviz sequence adjacent edge styles
+Graphviz sequence adjacent node colors
+Graphviz sequence adjacent node fillcolors
+Graphviz sequence adjacent node fontcolors
+Graphviz sequence adjacent node penwidths
+Graphviz sequence adjacent node polygon distortion
+Graphviz sequence adjacent node polygon image
+Graphviz sequence adjacent node polygon orientation
+Graphviz sequence adjacent node polygon sides
+Graphviz sequence adjacent node polygon skew
+Graphviz sequence adjacent node shapes
+Graphviz sequence adjacent node styles
+Graphviz sequence classification
+Graphviz sequence edge attributes
+Graphviz sequence edge color schemes
+Graphviz sequence edge font color schemes
+Graphviz sequence graph attributes
+Graphviz sequence node attributes
+Graphviz sequence node color schemes
+Graphviz sequence node fill color schemes
+Graphviz sequence node font color schemes
+Graphviz sequence reachability edge arrowhead
+Graphviz sequence reachability edge colors
+Graphviz sequence reachability edge fontcolors
+Graphviz sequence reachability edge fontsize
+Graphviz sequence reachability edge penwidths
+Graphviz sequence reachability edge styles
+Graphviz sequence reachability node colors
+Graphviz sequence reachability node fillcolors
+Graphviz sequence reachability node fontcolors
+Graphviz sequence reachability node penwidths
+Graphviz sequence reachability node polygon distortion
+Graphviz sequence reachability node polygon image
+Graphviz sequence reachability node polygon orientation
+Graphviz sequence reachability node polygon sides
+Graphviz sequence reachability node polygon skew
+Graphviz sequence reachability node shapes
+Graphviz sequence reachability node styles
+Graphviz sequence unit edge arrowhead
+Graphviz sequence unit edge color
+Graphviz sequence unit edge fontcolor
+Graphviz sequence unit edge fontsize
+Graphviz sequence unit edge penwidth
+Graphviz sequence unit edge style
+Graphviz sequence unit node color
+Graphviz sequence unit node fillcolor
+Graphviz sequence unit node fontcolor
+Graphviz sequence unit node penwidth
+Graphviz sequence unit node polygon distortion
+Graphviz sequence unit node polygon image
+Graphviz sequence unit node polygon orientation
+Graphviz sequence unit node polygon sides
+Graphviz sequence unit node polygon skew
+Graphviz sequence unit node shape
+Graphviz sequence unit node style
+Input file headers
+Input files
+Output file headers
+Output files
+</pre>
+
+<p>
+Each section typically includes several options, as shown in the <code>General
+configuration</code> section, below.  Here, you can see that string values, such as
+<code>project-directory</code> are not quoted.  Boolean options recognize several pairs of
+terms: <code>on/off</code>, <code>yes/no</code>, <code>true/false</code>, or <code>1/0</code>.
+</p>
+
+<pre class="example">
+[General configuration]
+chronology-graph-draw = off
+project-directory = ~/quicklisp/local-projects/hm/examples/fig-12-chronology/
+legend = off
+assume-correlations = yes
+fast-matrix = on
+</pre>
+
+<p>
+Another example, the <code>Graphviz sequence graph attributes</code>, below, illustrates
+strings, integers, and real numbers. In this example, the <code>fontsize</code> and
+<code>margin</code> options take a real number(s), and the <code>fontsize-subscript</code> is set to
+an integer. Options left blank specify that the <code>dot</code> software should use a
+default value.
+</p>
+
+<pre class="example">
+[Graphviz sequence graph attributes]
+colorscheme = x11
+bgcolor = white
+fontname = Helvetica
+fontsize = 14.0
+fontcolor = black
+label = Harris Figure 12 (with periods)
+labelloc = t
+style = filled
+size =
+ratio =
+page =
+dpi =
+margin = 0.5,0.5
+fontsize-subscript = 10
+splines = ortho
+url = http://tsdye.github.io/harris-matrix/
+</pre>
+</div>
+</div>
+
+<div id="outline-container-org69f01dd" class="outline-2">
+<h2 id="data-tables"><a id="org69f01dd"></a><span class="section-number-2">7</span> Input Files</h2>
+<div class="outline-text-2" id="text-data-tables">
+<p>
+There are seven data tables potentially used as input to <code>hm</code>.  A project
+requires a table for units of stratification and for observed stratigraphic
+relations, but the other five tables are optional.
+</p>
+</div>
+
+<div id="outline-container-org375957d" class="outline-3">
+<h3 id="units-of-stratification"><a id="org375957d"></a><span class="section-number-3">7.1</span> Units of Stratification, or Contexts</h3>
+<div class="outline-text-3" id="text-units-of-stratification">
+<p>
+This input file describes units of stratification, or contexts, identified by the
+archaeologist.
+</p>
+
+<dl class="org-dl">
+<dt>label</dt><dd>context identifier (primary key)</dd>
+<dt>unit-type</dt><dd>one of <code>interface</code> or <code>deposit</code></dd>
+<dt>position</dt><dd>one of <code>surface</code>, <code>basal</code>, or <code>other</code></dd>
+<dt>period</dt><dd>period identifier (foreign key)</dd>
+<dt>phase</dt><dd>phase identifier (foreign key)</dd>
+<dt>url</dt><dd>node link (svg output only)</dd>
+</dl>
+
+<p>
+The file <code>roskams-h-contexts.csv</code> is an example.  As this example shows, columns
+may be empty, as the <code>period</code>, <code>phase</code>, and <code>url</code> columns are in this example.
+Note however that each line of the file has five commas so the <code>hm</code> software can
+determine that there are indeed six columns in the table.
+</p>
+
+<pre class="example">
+label,unit-type,position,period,phase,url
+1,deposit,surface,,,
+2,deposit,surface,,,
+3,deposit,other,,,
+4,deposit,other,,,
+5,deposit,basal,,,
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgf40672e" class="outline-3">
+<h3 id="observed-stratigraphic-relations"><a id="orgf40672e"></a><span class="section-number-3">7.2</span> Observed Stratigraphic Relations</h3>
+<div class="outline-text-3" id="text-observed-stratigraphic-relations">
+<p>
+This table includes observations of stratigraphic superposition. Its
+first two columns refer to values from the <code>label</code> column of the
+contexts table.
+</p>
+
+<dl class="org-dl">
+<dt>younger</dt><dd>stratigraphically superior context label (foreign key)</dd>
+<dt>older</dt><dd>stratigraphically inferior context label (foreign key)</dd>
+<dt>url</dt><dd>arc link (svg output only)</dd>
+</dl>
+
+<p>
+The file <code>roskams-h-observations.csv</code> is an example.  Note that the third column
+is empty save for the column head, <code>url</code>.
+</p>
+
+<pre class="example">
+younger,older,url
+1,3,
+1,4,
+1,5,
+2,3,
+2,5,
+3,5,
+4,5,
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgb338c14" class="outline-3">
+<h3 id="inferred-parity-relations"><a id="orgb338c14"></a><span class="section-number-3">7.3</span> Inferences of once-whole contexts</h3>
+<div class="outline-text-3" id="text-inferred-parity-relations">
+<p>
+This table contains inferences of parity between pairs of discontiguous
+contexts.
+</p>
+
+<dl class="org-dl">
+<dt>first</dt><dd>context label (foreign key)</dd>
+<dt>second</dt><dd>context label (foreign key)</dd>
+</dl>
+
+<p>
+The file <code>inference-eg.csv</code> in the <code>fig-12-chronology</code> example is shown below.
+</p>
+
+<pre class="example">
+first,second
+7,8
+15,16
+11,14
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgd93c373" class="outline-3">
+<h3 id="periods"><a id="orgd93c373"></a><span class="section-number-3">7.4</span> Periods</h3>
+<div class="outline-text-3" id="text-periods">
+<p>
+This table describes periods, which are groups of interfacial contexts
+believed to have been in use at the same time.
+</p>
+
+<dl class="org-dl">
+<dt>id</dt><dd>a unique integer to identify the period (primary key)</dd>
+<dt>label</dt><dd>name of the period used in the legend</dd>
+<dt>attribute</dt><dd>zero-based integer scale for a
+<a href="http://www.graphviz.org/doc/info/colors.html#brewer">Brewer color</a></dd>
+<dt>description</dt><dd>optional field not used by <code>hm</code></dd>
+</dl>
+
+<p>
+An example is the file <code>bldg-1-5-periods.csv</code>.
+</p>
+
+<pre class="example">
+id,label,attribute,description
+1,Building 1,5,
+2,Outside,6,
+3,Building 5,7,
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orge78baba" class="outline-3">
+<h3 id="phases"><a id="orge78baba"></a><span class="section-number-3">7.5</span> Phases</h3>
+<div class="outline-text-3" id="text-phases">
+<p>
+This table describes phases, which are groups of depositional contexts
+believed to have been deposited pene-contemporaneously, typically
+because they share diagnostic artifactual content.
+</p>
+
+<dl class="org-dl">
+<dt>id</dt><dd>a unique integer to identify the phase (primary key)</dd>
+<dt>label</dt><dd>name of the phase used in the legend</dd>
+<dt>color</dt><dd>zero-based integer scale for a
+<a href="http://www.graphviz.org/doc/info/colors.html#brewer">Brewer color</a></dd>
+<dt>description</dt><dd>optional field not used by <code>hm</code></dd>
+</dl>
+
+<p>
+The file <code>phases-eg.csv</code> is shown below.  As this file indicates, the <code>hm</code>
+software does not pay attention to the column headers, which you are free to
+label in any pleasing way.
+</p>
+
+<pre class="example">
+id,label,attribute,url
+1,Phase I,5,http://www.tsdye.com
+2,Phase II,6,http://www.tsdye.com
+</pre>
+</div>
+</div>
+
+<div id="outline-container-org2c48a54" class="outline-3">
+<h3 id="events"><a id="org2c48a54"></a><span class="section-number-3">7.6</span> Events</h3>
+<div class="outline-text-3" id="text-events">
+<p>
+This table associates events and contexts and specifies the nature of
+the association using terms introduced to archaeology by Jeffrey S. Dean in an
+essay entitled "Independent dating in archaeological analysis" published in
+<i>Advances in Archaeological Method and Theory</i> in 1978.
+</p>
+
+<dl class="org-dl">
+<dt>theta</dt><dd>unique label (primary key)</dd>
+<dt>context</dt><dd>context identifier (foreign key)</dd>
+<dt>lab</dt><dd>dating laboratory identifier</dd>
+<dt>association</dt><dd>one of <code>disjunct</code>, <code>direct</code>, <code>disparate</code></dd>
+</dl>
+
+<p>
+An example is the file <code>bldg-1-5-dates.csv</code>.  As this example shows, the <code>hm</code>
+software does not care if you add extra columns to the table.  The software
+works with columns by position, so do not be tempted to switch columns around.
+</p>
+
+<pre class="example">
+theta,context,lab,association,original context
+1,3810+,OxA-11046,disjunct,3810
+8,1297+,OxA-11045,disjunct,3036
+10,3030+,OxA-11044,disjunct,3030
+5,2165+,PL-972424A,disjunct,2198
+4,2165+,PL-980558A,disjunct,2181
+2,2165+,OxA-11043,disjunct,2166
+3,2165+,OxA-11042,disjunct,2165
+28,1951+,OxA-16800,associated,1960
+27,1940+,OxA-16799,associated,1959
+</pre>
+</div>
+</div>
+
+<div id="outline-container-org311db4e" class="outline-3">
+<h3 id="event-order"><a id="org311db4e"></a><span class="section-number-3">7.7</span> Event Order</h3>
+<div class="outline-text-3" id="text-event-order">
+<p>
+This optional table contains information on the temporal order of events
+from the same context.
+</p>
+
+<dl class="org-dl">
+<dt>older</dt><dd>theta label of older event (foreign key)</dd>
+<dt>younger</dt><dd>theta label of younger event (foreign key)</dd>
+</dl>
+
+<p>
+The example file <code>date-order.csv</code> is shown below.
+</p>
+
+<pre class="example">
+older,younger
+3,4
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org2039164" class="outline-2">
+<h2 id="org2039164"><span class="section-number-2">8</span> Technical Description</h2>
+<div class="outline-text-2" id="text-8">
+</div>
+<div id="outline-container-org0a3a785" class="outline-3">
+<h3 id="org0a3a785"><span class="section-number-3">8.1</span> External Symbols</h3>
+<div class="outline-text-3" id="text-8-1">
+</div>
+<div id="outline-container-org1c4beeb" class="outline-4">
+<h4 id="org1c4beeb"><span class="section-number-4">8.1.1</span> External Functions</h4>
+<div class="outline-text-4" id="text-8-1-1">
+<hr />
+
+<p>
+<a id="org11372df"></a>
+<a id="orgd74108d"></a>
+</p>
+</div>
+
+
+<ol class="org-ol">
+<li><a id="org257565e"></a>Inherited Function: <code>read-configuration-from-files</code>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="function">function</span></span><br />
+<ol class="org-ol">
+<li><a id="org6f16eb4"></a>Syntax<br />
+<div class="outline-text-6" id="text-8-1-1-1-1">
+<div class="org-src-container">
+<pre class="src src-lisp">(read-configuration-from-files verbose <span style="color: #9400d3;">&amp;rest</span> file-names)
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="org467bd82"></a>Arguments<br />
+<div class="outline-text-6" id="text-8-1-1-1-2">
+<dl class="org-dl">
+<dt>verbose</dt><dd>Boolean.</dd>
+<dt>file-names</dt><dd>One or more strings or pathnames.</dd>
+</dl>
+</div>
+</li>
+<li><a id="orgb20505d"></a>Returns<br />
+<div class="outline-text-6" id="text-8-1-1-1-3">
+<p>
+A configuration.
+</p>
+</div>
+</li>
+<li><a id="orgfe13b5f"></a>Description<br />
+<div class="outline-text-6" id="text-8-1-1-1-4">
+<p>
+Reads the initialization files FILE-NAMES and returns a configuration. Errors
+out if one or more initialization files were not read. If VERBOSE is non-nil,
+prints a status message.
+</p>
+</div>
+</li>
+<li><a id="orgd809dc4"></a>Example<br />
+<div class="outline-text-6" id="text-8-1-1-1-5">
+<div class="org-src-container">
+<pre class="src src-lisp">(read-configuration-from-files t <span style="color: #fa5151;">"my-config.ini"</span>)
+</pre>
+</div>
+
+
+<hr />
+
+<p>
+<a id="orge1baa45"></a>
+<a id="org557f9d1"></a>
+</p>
+</div>
+</li>
+</ol>
+</li>
+
+
+<li><a id="org6aaffc8"></a>Inherited Function: <code>reset-option</code>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="function">function</span></span><br />
+<ol class="org-ol">
+<li><a id="org10d683c"></a>Syntax<br />
+<div class="outline-text-6" id="text-8-1-1-2-1">
+<div class="org-src-container">
+<pre class="src src-lisp">(reset-option seq section-name option-name value)
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="org1d11ae5"></a>Arguments<br />
+<div class="outline-text-6" id="text-8-1-1-2-2">
+<dl class="org-dl">
+<dt>seq</dt><dd>An archaeological sequence.</dd>
+<dt>section-name</dt><dd>A string.</dd>
+<dt>option-name</dt><dd>A string.</dd>
+<dt>value</dt><dd>A string.</dd>
+</dl>
+</div>
+</li>
+<li><a id="orge544917"></a>Returns<br />
+<div class="outline-text-6" id="text-8-1-1-2-3">
+<p>
+Nothing.  Called for its side-effects.
+</p>
+</div>
+</li>
+<li><a id="orgfade889"></a>Description<br />
+<div class="outline-text-6" id="text-8-1-1-2-4">
+<p>
+Assign a value, VALUE, to the option, OPTION-NAME, in configurations section,
+SECTION-NAME, in the configuration associated with the archaeological sequence,
+SEQ. Ensures section and option names are not inadvertently created when resetting
+an option.
+</p>
+</div>
+</li>
+<li><a id="org4569dca"></a>Example<br />
+<div class="outline-text-6" id="text-8-1-1-2-5">
+<div class="org-src-container">
+<pre class="src src-lisp">(reset-option *my-sequence* <span style="color: #fa5151;">"General configuration"</span> <span style="color: #fa5151;">"chronology-graph-draw"</span> <span style="color: #fa5151;">"no"</span>)
+</pre>
+</div>
+
+
+<hr />
+
+<p>
+<a id="org13e8b9b"></a>
+<a id="org75dc2aa"></a>
+</p>
+</div>
+</li>
+</ol>
+</li>
+
+
+<li><a id="orgbf6ebe3"></a>Inherited Function: <code>run-project</code>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="function">function</span></span><br />
+<ol class="org-ol">
+<li><a id="orgd049e85"></a>Syntax<br />
+<div class="outline-text-6" id="text-8-1-1-3-1">
+<div class="org-src-container">
+<pre class="src src-lisp">(run-project cfg-file <span style="color: #9400d3;">&amp;key</span> (verbose t) (sequence-display png)
+             (chronology-display png) (sequence-cmd xdg-open)
+             (chronology-cmd xdg-open) (draw-sequence t) (draw-chronology t)
+             (delete-sequence nil) (delete-chronology nil))
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="orgbcf4528"></a>Arguments<br />
+<div class="outline-text-6" id="text-8-1-1-3-2">
+<dl class="org-dl">
+<dt>cfg-file</dt><dd>A string or pathname.</dd>
+<dt>verbose</dt><dd>Boolean.</dd>
+<dt>sequence-display</dt><dd>A string indicating a Graphviz <code>dot</code> output file format.</dd>
+<dt>chronology-display</dt><dd>A string indicating a Graphviz <code>dot</code> output file format.</dd>
+<dt>sequence-cmd</dt><dd>A string naming the application used to open the sequence graph.</dd>
+<dt>chronology-cmd</dt><dd>A string naming the application used to open the chronology graph.</dd>
+<dt>draw-sequence</dt><dd>Boolean.</dd>
+<dt>draw-chronology</dt><dd>Boolean.</dd>
+<dt>delete-sequence</dt><dd>Boolean.  Delete the sequence graph file after it is displayed.</dd>
+<dt>delete-chronology</dt><dd>Boolean. Delete the chronology graph file after it is displayed.</dd>
+</dl>
+</div>
+</li>
+<li><a id="orgb92a2b1"></a>Returns<br />
+<div class="outline-text-6" id="text-8-1-1-3-3">
+<p>
+An archaeological sequence.
+</p>
+</div>
+</li>
+<li><a id="org35c09fb"></a>Description<br />
+<div class="outline-text-6" id="text-8-1-1-3-4">
+<p>
+Run the project specified in the user's configuration file, CFG-FILE. If
+DRAW-SEQUENCE is non-nil, then create a sequence graph in the format indicated
+by SEQUENCE-DISPLAY and open the graphics file with the shell command,
+SEQUENCE-CMD. If DELETE-SEQUENCE is non-nil, then delete the graphics file after
+it is displayed. If DRAW-CHRONOLOGY is non-nil, then create a sequence graph in
+the format indicated by CHRONOLOGY-DISPLAY and open the graphics file with the
+shell command, CHRONOLOGY-CMD. If DELETE-CHRONOLOGY is non-nil, then delete the
+graphics file after it is displayed. If VERBOSE is non-nil, then advertise
+progress.
+</p>
+</div>
+</li>
+<li><a id="org80e2928"></a>Example<br />
+<div class="outline-text-6" id="text-8-1-1-3-5">
+<div class="org-src-container">
+<pre class="src src-lisp">(run-project <span style="color: #fa5151;">"my-config.ini"</span> <span style="color: #ba55d3;">:verbose</span> nil <span style="color: #ba55d3;">:sequence-cmd</span> <span style="color: #fa5151;">"evince"</span>)
+</pre>
+</div>
+
+
+<hr />
+
+<p>
+<a id="orga42fc54"></a>
+<a id="org590ca1a"></a>
+</p>
+</div>
+</li>
+</ol>
+</li>
+
+
+<li><a id="orgaad64ff"></a>Inherited Function: <code>run-project/example</code>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="function">function</span></span><br />
+<ol class="org-ol">
+<li><a id="orgb4ba86a"></a>Syntax<br />
+<div class="outline-text-6" id="text-8-1-1-4-1">
+<div class="org-src-container">
+<pre class="src src-lisp">(run-project/example example <span style="color: #9400d3;">&amp;key</span> (verbose t) (sequence-display png)
+                     (chronology-display png) (sequence-cmd xdg-open)
+                     (chronology-cmd xdg-open) (draw-sequence t)
+                     (draw-chronology t) (delete-sequence t)
+                     (delete-chronology t))
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="org06f358e"></a>Arguments<br />
+<div class="outline-text-6" id="text-8-1-1-4-2">
+<dl class="org-dl">
+<dt>example</dt><dd>A keyword, one of :catal-hoyuk, :catal-hoyuk-levels, :catal-hoyuk-distance, :roskams-h, :roskams-h-solarized-light, :roskams-h-solarized-dark, :roskams-jumps, :complex-h-structure, :complex-h-structure-reachable, :fig-12, :fig-12-correlations, :fig-12-periods.</dd>
+<dt>verbose</dt><dd>Boolean.</dd>
+<dt>sequence-display</dt><dd>A string indicating a Graphviz <code>dot</code> output file format.</dd>
+<dt>chronology-display</dt><dd>A string indicating a Graphviz <code>dot</code> output file format.</dd>
+<dt>sequence-cmd</dt><dd>A string naming the application used to open the sequence graph.</dd>
+<dt>chronology-cmd</dt><dd>A string naming the application used to open the chronology graph.</dd>
+<dt>draw-sequence</dt><dd>Boolean.</dd>
+<dt>draw-chronology</dt><dd>Boolean.</dd>
+<dt>delete-sequence</dt><dd>Boolean.  Delete the sequence graph file after it is displayed.</dd>
+<dt>delete-chronology</dt><dd>Boolean. Delete the chronology graph file after it is displayed.</dd>
+</dl>
+</div>
+</li>
+<li><a id="orgd7cc254"></a>Returns<br />
+<div class="outline-text-6" id="text-8-1-1-4-3">
+<p>
+An archaeological sequence.
+</p>
+</div>
+</li>
+<li><a id="org4e5d0cc"></a>Description<br />
+<div class="outline-text-6" id="text-8-1-1-4-4">
+<p>
+Given a keyword, EXAMPLE, that indicates one of the example projects defined
+for the <code>hm</code> package, run the project described by the appropriate <code>.ini</code> file.
+</p>
+</div>
+</li>
+<li><a id="orgea9ce09"></a>Example<br />
+<div class="outline-text-6" id="text-8-1-1-4-5">
+<div class="org-src-container">
+<pre class="src src-lisp">(run-project/example <span style="color: #ba55d3;">:roskams-h</span> <span style="color: #ba55d3;">:delete-sequence</span> nil)
+</pre>
+</div>
+
+
+<hr />
+
+<p>
+<a id="orgc4ba21e"></a>
+<a id="org2146172"></a>
+</p>
+</div>
+</li>
+</ol>
+</li>
+
+
+<li><a id="org8e7a9ed"></a>Inherited Function: <code>set-input-file</code>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="function">function</span></span><br />
+<ol class="org-ol">
+<li><a id="orgaabca60"></a>Syntax<br />
+<div class="outline-text-6" id="text-8-1-1-5-1">
+<div class="org-src-container">
+<pre class="src src-lisp">(set-input-file seq option file-name header)
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="org9939f5f"></a>Arguments<br />
+<div class="outline-text-6" id="text-8-1-1-5-2">
+<dl class="org-dl">
+<dt>seq</dt><dd>An archaeological sequence.</dd>
+<dt>option</dt><dd>A string.</dd>
+<dt>file-name</dt><dd>A string or pathname.</dd>
+<dt>header</dt><dd>Boolean</dd>
+</dl>
+</div>
+</li>
+<li><a id="org2b9b590"></a>Returns<br />
+<div class="outline-text-6" id="text-8-1-1-5-3">
+<p>
+Nothing.  Called for its side-effects.
+</p>
+</div>
+</li>
+<li><a id="org3f29380"></a>Description<br />
+<div class="outline-text-6" id="text-8-1-1-5-4">
+<p>
+ If OPTION is recognized, then FILE-NAME and HEADER are registered with the
+configuration associated with the archaeological sequence, SEQ. HEADER is
+interpreted as a boolean.
+</p>
+</div>
+</li>
+<li><a id="org387292b"></a>Example<br />
+<div class="outline-text-6" id="text-8-1-1-5-5">
+<div class="org-src-container">
+<pre class="src src-lisp">(set-input-file <span style="color: #fa5151;">"contexts"</span> <span style="color: #fa5151;">"roskams-h-contexts.ini"</span> t)
+</pre>
+</div>
+
+
+<hr />
+
+<p>
+<a id="org9f64e83"></a>
+<a id="org8be90b4"></a>
+</p>
+</div>
+</li>
+</ol>
+</li>
+
+
+<li><a id="org78a1375"></a>Inherited Function: <code>set-output-file</code>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="function">function</span></span><br />
+<ol class="org-ol">
+<li><a id="org2fb7c59"></a>Syntax<br />
+<div class="outline-text-6" id="text-8-1-1-6-1">
+<div class="org-src-container">
+<pre class="src src-lisp">(set-output-file seq option file-name <span style="color: #9400d3;">&amp;optional</span> (verbose t))
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="orgec0d3da"></a>Arguments<br />
+<div class="outline-text-6" id="text-8-1-1-6-2">
+<dl class="org-dl">
+<dt>seq</dt><dd>An archaeological sequence.</dd>
+<dt>option</dt><dd>A string.</dd>
+<dt>file-name</dt><dd>A string or pathname.</dd>
+<dt>verbose</dt><dd>Boolean.</dd>
+</dl>
+</div>
+</li>
+<li><a id="orgb81fc40"></a>Returns<br />
+<div class="outline-text-6" id="text-8-1-1-6-3">
+<p>
+Nothing.  Called for its side-effects.
+</p>
+</div>
+</li>
+<li><a id="orga3aeb4f"></a>Description<br />
+<div class="outline-text-6" id="text-8-1-1-6-4">
+<p>
+  Registers the output file, FILE-NAME, with the OPTION in the
+configuration associated with the archaeological sequence, SEQ. Checks if OPTION
+is known and errors out if not. If FILE-NAME exists and VERBOSE is non-nil, then asks
+about overwriting it.
+</p>
+</div>
+</li>
+<li><a id="org468fdde"></a>Example<br />
+<div class="outline-text-6" id="text-8-1-1-6-5">
+<div class="org-src-container">
+<pre class="src src-lisp">(set-output-file *my-seq* <span style="color: #fa5151;">"observations"</span> <span style="color: #fa5151;">"my-observations.csv"</span>)
+</pre>
+</div>
+
+
+<hr />
+
+<p>
+<a id="orgd7b1e9e"></a>
+<a id="org9c7f45b"></a>
+</p>
+</div>
+</li>
+</ol>
+</li>
+
+
+<li><a id="org06035be"></a>Inherited Function: <code>show-classifiable-attributes</code>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="function">function</span></span><br />
+<ol class="org-ol">
+<li><a id="org47b98b8"></a>Syntax<br />
+<div class="outline-text-6" id="text-8-1-1-7-1">
+<div class="org-src-container">
+<pre class="src src-lisp">(show-classifiable-attributes)
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="org2d6c62b"></a>Arguments<br />
+<div class="outline-text-6" id="text-8-1-1-7-2">
+<p>
+None.
+</p>
+</div>
+</li>
+<li><a id="orgebb1836"></a>Returns<br />
+<div class="outline-text-6" id="text-8-1-1-7-3">
+<p>
+Nothing.  Called for its side-effects.
+</p>
+</div>
+</li>
+<li><a id="orgb2376f4"></a>Description<br />
+<div class="outline-text-6" id="text-8-1-1-7-4">
+<p>
+Write a list of classifiable attributes to standard output.
+</p>
+</div>
+</li>
+<li><a id="orga516a4d"></a>Example<br />
+<div class="outline-text-6" id="text-8-1-1-7-5">
+<div class="org-src-container">
+<pre class="src src-lisp">(show-classifiable-attributes)
+</pre>
+</div>
+
+
+<hr />
+
+<p>
+<a id="org0a8b505"></a>
+<a id="org7d9844d"></a>
+</p>
+</div>
+</li>
+</ol>
+</li>
+
+
+<li><a id="org849afc0"></a>Inherited Function: <code>show-classifiers</code>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="function">function</span></span><br />
+<ol class="org-ol">
+<li><a id="orge794228"></a>Syntax<br />
+<div class="outline-text-6" id="text-8-1-1-8-1">
+<div class="org-src-container">
+<pre class="src src-lisp">(show-classifiers)
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="org1b7613d"></a>Arguments<br />
+<div class="outline-text-6" id="text-8-1-1-8-2">
+<p>
+None.
+</p>
+</div>
+</li>
+<li><a id="org104e2d2"></a>Returns<br />
+<div class="outline-text-6" id="text-8-1-1-8-3">
+<p>
+Nothing.  Called for its side effects.
+</p>
+</div>
+</li>
+<li><a id="org5611899"></a>Description<br />
+<div class="outline-text-6" id="text-8-1-1-8-4">
+<p>
+Write a list of classifiers to standard output.
+</p>
+</div>
+</li>
+<li><a id="orgb039c01"></a>Example<br />
+<div class="outline-text-6" id="text-8-1-1-8-5">
+<div class="org-src-container">
+<pre class="src src-lisp">(show-classifiers)
+</pre>
+</div>
+
+
+<hr />
+
+<p>
+<a id="orgbd3941e"></a>
+<a id="org7feb8a6"></a>
+</p>
+</div>
+</li>
+</ol>
+</li>
+
+
+<li><a id="org8178431"></a>Inherited Function: <code>show-configuration-options</code>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="function">function</span></span><br />
+<ol class="org-ol">
+<li><a id="org6f951b3"></a>Syntax<br />
+<div class="outline-text-6" id="text-8-1-1-9-1">
+<div class="org-src-container">
+<pre class="src src-lisp">(show-configuration-options seq section)
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="org121ef23"></a>Arguments<br />
+<div class="outline-text-6" id="text-8-1-1-9-2">
+<dl class="org-dl">
+<dt>seq</dt><dd>An archaeological sequence.</dd>
+<dt>section</dt><dd>A string.</dd>
+</dl>
+</div>
+</li>
+<li><a id="orgbcd7e95"></a>Returns<br />
+<div class="outline-text-6" id="text-8-1-1-9-3">
+<p>
+A list of strings.
+</p>
+</div>
+</li>
+<li><a id="org34def84"></a>Description<br />
+<div class="outline-text-6" id="text-8-1-1-9-4">
+<p>
+Print the options in section SECTION of configuration associated with
+the archaeological sequence, SEQ. Errors out if the configuration is not valid or
+SECTION isn't found in the configuration.
+</p>
+</div>
+</li>
+<li><a id="org3b4757e"></a>Example<br />
+<div class="outline-text-6" id="text-8-1-1-9-5">
+<div class="org-src-container">
+<pre class="src src-lisp">(show-configuration-options *my-sequence* <span style="color: #fa5151;">"General configuration"</span>)
+</pre>
+</div>
+
+
+<hr />
+
+<p>
+<a id="orgf762c8c"></a>
+<a id="org47314f2"></a>
+</p>
+</div>
+</li>
+</ol>
+</li>
+
+
+<li><a id="orgfc3f3e3"></a>Inherited Function: <code>show-configuration-sections</code>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="function">function</span></span><br />
+<ol class="org-ol">
+<li><a id="org275aaa5"></a>Syntax<br />
+<div class="outline-text-6" id="text-8-1-1-10-1">
+<div class="org-src-container">
+<pre class="src src-lisp">(show-configuration-sections seq <span style="color: #9400d3;">&amp;optional</span> (sort t))
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="org706533c"></a>Arguments<br />
+<div class="outline-text-6" id="text-8-1-1-10-2">
+<dl class="org-dl">
+<dt>seq</dt><dd>An archaeological sequence.</dd>
+<dt>sort</dt><dd>Boolean.</dd>
+</dl>
+</div>
+</li>
+<li><a id="org7921964"></a>Returns<br />
+<div class="outline-text-6" id="text-8-1-1-10-3">
+<p>
+A list of strings.
+</p>
+</div>
+</li>
+<li><a id="orgda771cb"></a>Description<br />
+<div class="outline-text-6" id="text-8-1-1-10-4">
+<p>
+Print out the sections in the configuration associated with the
+archaeological sequence, SE, by default in sorted order. If SORT is nil, then
+print out the unsorted section list. Errors out if the configuration associated
+with SEQ is not valid.
+</p>
+</div>
+</li>
+<li><a id="org5c413a4"></a>Example<br />
+<div class="outline-text-6" id="text-8-1-1-10-5">
+<div class="org-src-container">
+<pre class="src src-lisp">(show-configuration-sections *my-sequence* nil)
+</pre>
+</div>
+
+
+<hr />
+
+<p>
+<a id="orgc0f5218"></a>
+<a id="orgb5d55a4"></a>
+</p>
+</div>
+</li>
+</ol>
+</li>
+
+
+<li><a id="orgc03c2b5"></a>Inherited Function: <code>show-map</code>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="function">function</span></span><br />
+<ol class="org-ol">
+<li><a id="orgb92befd"></a>Syntax<br />
+<div class="outline-text-6" id="text-8-1-1-11-1">
+<div class="org-src-container">
+<pre class="src src-lisp">(show-map attribute)
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="org0019723"></a>Arguments<br />
+<div class="outline-text-6" id="text-8-1-1-11-2">
+<p>
+A keyword, ATTRIBUTE, one of :edge-style, :node-style, :node-shape, or :arrow-shape.
+</p>
+</div>
+</li>
+<li><a id="org6a30a16"></a>Returns<br />
+<div class="outline-text-6" id="text-8-1-1-11-3">
+<p>
+Nothing.  Called for its side-effects
+</p>
+</div>
+</li>
+<li><a id="org4a37822"></a>Description<br />
+<div class="outline-text-6" id="text-8-1-1-11-4">
+<p>
+Write a lookup map of attributes to standard output.  Raise an error if ATTRIBUTES is out of range.
+</p>
+</div>
+</li>
+<li><a id="orgcd8d7a5"></a>Example<br />
+<div class="outline-text-6" id="text-8-1-1-11-5">
+<div class="org-src-container">
+<pre class="src src-lisp">(show-map <span style="color: #ba55d3;">:edge-style</span>)
+</pre>
+</div>
+
+
+<hr />
+
+<p>
+<a id="org3c7da53"></a>
+<a id="org34ea7bb"></a>
+</p>
+</div>
+</li>
+</ol>
+</li>
+
+
+<li><a id="org7106dd1"></a>Inherited Function: <code>write-classifier</code>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="function">function</span></span><br />
+<ol class="org-ol">
+<li><a id="org2869793"></a>Syntax<br />
+<div class="outline-text-6" id="text-8-1-1-12-1">
+<div class="org-src-container">
+<pre class="src src-lisp">(write-classifier classifier-type seq <span style="color: #9400d3;">&amp;optional</span> (verbose t))
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="org85f6fea"></a>Arguments<br />
+<div class="outline-text-6" id="text-8-1-1-12-2">
+<dl class="org-dl">
+<dt>classifier-type</dt><dd>A keyword.</dd>
+<dt>seq</dt><dd>An archaeological sequence.</dd>
+<dt>verbose</dt><dd>Boolean.</dd>
+</dl>
+</div>
+</li>
+<li><a id="orgf71cd85"></a>Returns<br />
+<div class="outline-text-6" id="text-8-1-1-12-3">
+<p>
+Nothing.  Called for its side-effects.
+</p>
+</div>
+</li>
+<li><a id="org71c7b44"></a>Description<br />
+<div class="outline-text-6" id="text-8-1-1-12-4">
+<p>
+Write the classifier, CLASSIFIER-TYPE, to a file specified in the user's
+configuration stored in the archaeological sequence, SEQ. If verbose, indicate
+that a file was written.
+</p>
+</div>
+</li>
+<li><a id="orgd557455"></a>Example<br />
+<div class="outline-text-6" id="text-8-1-1-12-5">
+<div class="org-src-container">
+<pre class="src src-lisp">(write-classifier <span style="color: #ba55d3;">:levels</span> *my-sequence* nil)
+</pre>
+</div>
+
+
+<hr />
+
+<p>
+<a id="orga509b7b"></a>
+<a id="orgc00f795"></a>
+</p>
+</div>
+</li>
+</ol>
+</li>
+
+
+<li><a id="orgf2847d5"></a>Inherited Function: <code>write-configuration</code>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="function">function</span></span><br />
+<ol class="org-ol">
+<li><a id="orga652ead"></a>Syntax<br />
+<div class="outline-text-6" id="text-8-1-1-13-1">
+<div class="org-src-container">
+<pre class="src src-lisp">(write-configuration seq file-name)
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="org93d7233"></a>Arguments<br />
+<div class="outline-text-6" id="text-8-1-1-13-2">
+<dl class="org-dl">
+<dt>seq</dt><dd>An archaeological sequence.</dd>
+<dt>file-name</dt><dd>A string or pathname.</dd>
+</dl>
+</div>
+</li>
+<li><a id="orgcfbada9"></a>Returns<br />
+<div class="outline-text-6" id="text-8-1-1-13-3">
+<p>
+Nothing.  Called for its side-effects.
+</p>
+</div>
+</li>
+<li><a id="org84cc60c"></a>Description<br />
+<div class="outline-text-6" id="text-8-1-1-13-4">
+<p>
+Write configuration associated with the archaeological sequence, SEQ, to the
+file, FILE-NAME, in the project directory associated with SEQ.
+</p>
+</div>
+</li>
+<li><a id="orgec7f51a"></a>Example<br />
+<div class="outline-text-6" id="text-8-1-1-13-5">
+<div class="org-src-container">
+<pre class="src src-lisp">(write-configuration *my-sequence* <span style="color: #fa5151;">"my-config.ini"</span>)
+</pre>
+</div>
+
+
+<hr />
+
+<p>
+<a id="orge7f8de2"></a>
+<a id="orga156c6e"></a>
+</p>
+</div>
+</li>
+</ol>
+</li>
+
+
+<li><a id="orgb062a9a"></a>Inherited Function: <code>write-default-configuration</code>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="function">function</span></span><br />
+<ol class="org-ol">
+<li><a id="org57b043b"></a>Syntax<br />
+<div class="outline-text-6" id="text-8-1-1-14-1">
+<div class="org-src-container">
+<pre class="src src-lisp">(write-default-configuration file-name)
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="orgc5b9f59"></a>Argument<br />
+<div class="outline-text-6" id="text-8-1-1-14-2">
+<dl class="org-dl">
+<dt>file-name</dt><dd>A string or pathname.</dd>
+</dl>
+</div>
+</li>
+<li><a id="orgc6f39cd"></a>Returns<br />
+<div class="outline-text-6" id="text-8-1-1-14-3">
+<p>
+Nothing.  Called for its side-effects.
+</p>
+</div>
+</li>
+<li><a id="org506dbec"></a>Description<br />
+<div class="outline-text-6" id="text-8-1-1-14-4">
+<p>
+Write the default configuration to the file, FILE-NAME.  Returns an error if
+ the directory part of FILE-NAME cannot be found.
+</p>
+</div>
+</li>
+<li><a id="org0bb522e"></a>Example<br />
+<div class="outline-text-6" id="text-8-1-1-14-5">
+<div class="org-src-container">
+<pre class="src src-lisp">(write-default-configuration <span style="color: #fa5151;">"default-config.ini"</span>)
+</pre>
+</div>
+</div>
+</li>
+</ol>
+</li>
+</ol>
+</div>
+</div>
+
+
+
+
+
+<div id="outline-container-orged2c5d0" class="outline-3">
+<h3 id="orged2c5d0"><span class="section-number-3">8.2</span> Index</h3>
+<div class="outline-text-3" id="text-8-2">
+<p>
+<a href="#org52aec34">R</a>  <a href="#org259579f">S</a>  <a href="#org28db940">W</a>
+</p>
+</div>
+
+
+<div id="outline-container-orgbb56fd2" class="outline-4">
+<h4 id="orgbb56fd2"><span class="section-number-4">8.2.1</span> R</h4>
+<div class="outline-text-4" id="text-8-2-1">
+<p>
+<a id="org52aec34"></a>
+</p>
+<ul class="org-ul">
+<li><a href="#orgd74108d"><code>read-configuration-from-files</code></a>,
+Function</li>
+<li><a href="#org557f9d1"><code>reset-option</code></a>, Function</li>
+<li><a href="#org75dc2aa"><code>run-project</code></a>, Function</li>
+<li><a href="#org590ca1a"><code>run-project/example</code></a>, Function</li>
+</ul>
+</div>
+</div>
+
+
+
+<div id="outline-container-org302433a" class="outline-4">
+<h4 id="org302433a"><span class="section-number-4">8.2.2</span> S</h4>
+<div class="outline-text-4" id="text-8-2-2">
+<p>
+<a id="org259579f"></a>
+</p>
+<ul class="org-ul">
+<li><a href="#org2146172"><code>set-input-file</code></a>, Function</li>
+<li><a href="#org8be90b4"><code>set-output-file</code></a>, Function</li>
+<li><a href="#org9c7f45b"><code>show-classifiable-attributes</code></a>,
+Function</li>
+<li><a href="#org7d9844d"><code>show-classifiers</code></a>, Function</li>
+<li><a href="#org7feb8a6"><code>show-configuration-options</code></a>,
+Function</li>
+<li><a href="#org47314f2"><code>show-configuration-sections</code></a>,
+Function</li>
+<li><a href="#orgb5d55a4"><code>show-map</code></a>, Function</li>
+</ul>
+</div>
+</div>
+
+
+
+<div id="outline-container-org2973528" class="outline-4">
+<h4 id="org2973528"><span class="section-number-4">8.2.3</span> W</h4>
+<div class="outline-text-4" id="text-8-2-3">
+<p>
+<a id="org28db940"></a>
+</p>
+<ul class="org-ul">
+<li><a href="#org34ea7bb"><code>write-classifier</code></a>, Function</li>
+<li><a href="#orgc00f795"><code>write-configuration</code></a>, Function</li>
+<li><a href="#orga156c6e"><code>write-default-configuration</code></a>,
+Function</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+
+
+
+
+<div id="outline-container-orgb97f5ef" class="outline-2">
+<h2 id="orgb97f5ef"><span class="section-number-2">9</span> Colophon</h2>
+<div class="outline-text-2" id="text-9">
+<p>
+This section of the documentation was generated from Common Lisp source code using a hacked up copy of CLOD, version 1.0.
+The latest version of CLOD is available <a href="http://bitbucket.org/eeeickythump/clod/">here</a>.
+</p>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: Thomas S. Dye</p>
+<p class="date">Created: 2018-03-24 Sat 14:31</p>
+<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>

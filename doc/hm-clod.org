@@ -1,0 +1,583 @@
+#+TITLE: The HM package
+#+AUTHOR: CLOD
+#+EMAIL: your@email.here
+#+LINK: hs http://www.lispworks.com/reference/HyperSpec//%s
+#+STARTUP: showall
+#+OPTIONS: toc:4 H:10 @:t tags:nil
+
+<<hm>>
+<<package hm>>
+
+
+* Internal Package: =hm=                                                 :package:
+
+
+** Description
+
+Not documented.
+
+
+** External Symbols
+
+
+
+
+*** External Functions
+
+-----
+
+<<read-configuration-from-files>>
+<<function read-configuration-from-files>>
+
+
+**** Inherited Function: =read-configuration-from-files=                   :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(read-configuration-from-files verbose &rest file-names)
+#+END_SRC
+
+***** Arguments
+
+ - verbose :: Boolean.
+ - file-names :: One or more strings or pathnames.
+***** Returns
+
+A configuration.
+***** Description
+
+Reads the initialization files FILE-NAMES and returns a configuration. Errors
+out if one or more initialization files were not read. If VERBOSE is non-nil,
+prints a status message.
+***** Example
+
+#+begin_src lisp
+(read-configuration-from-files t "my-config.ini")
+#+end_src
+
+
+-----
+
+<<reset-option>>
+<<function reset-option>>
+
+
+**** Inherited Function: =reset-option=                                    :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(reset-option seq section-name option-name value)
+#+END_SRC
+
+***** Arguments
+
+ - seq :: An archaeological sequence.
+ - section-name :: A string.
+ - option-name :: A string.
+ - value :: A string.
+***** Returns
+
+Nothing.  Called for its side-effects.
+***** Description
+
+Assign a value, VALUE, to the option, OPTION-NAME, in configurations section,
+SECTION-NAME, in the configuration associated with the archaeological sequence,
+SEQ. Ensures section and option names are not inadvertently created when resetting
+an option.
+***** Example
+
+#+begin_src lisp
+(reset-option *my-sequence* "General configuration" "chronology-graph-draw" "no")
+#+end_src
+
+
+-----
+
+<<run-project>>
+<<function run-project>>
+
+
+**** Inherited Function: =run-project=                                     :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(run-project cfg-file &key (verbose t) (sequence-display png)
+             (chronology-display png) (sequence-cmd xdg-open)
+             (chronology-cmd xdg-open) (draw-sequence t) (draw-chronology t)
+             (delete-sequence nil) (delete-chronology nil))
+#+END_SRC
+
+***** Arguments
+
+ - cfg-file :: A string or pathname.
+ - verbose :: Boolean.
+ - sequence-display :: A string indicating a Graphviz =dot= output file format.
+ - chronology-display :: A string indicating a Graphviz =dot= output file format.
+ - sequence-cmd :: A string naming the application used to open the sequence graph.
+ - chronology-cmd :: A string naming the application used to open the chronology graph.
+ - draw-sequence :: Boolean.
+ - draw-chronology :: Boolean.
+ - delete-sequence :: Boolean.  Delete the sequence graph file after it is displayed.
+ - delete-chronology :: Boolean. Delete the chronology graph file after it is displayed.
+***** Returns
+
+An archaeological sequence.
+***** Description
+
+Run the project specified in the user's configuration file, CFG-FILE. If
+DRAW-SEQUENCE is non-nil, then create a sequence graph in the format indicated
+by SEQUENCE-DISPLAY and open the graphics file with the shell command,
+SEQUENCE-CMD. If DELETE-SEQUENCE is non-nil, then delete the graphics file after
+it is displayed. If DRAW-CHRONOLOGY is non-nil, then create a sequence graph in
+the format indicated by CHRONOLOGY-DISPLAY and open the graphics file with the
+shell command, CHRONOLOGY-CMD. If DELETE-CHRONOLOGY is non-nil, then delete the
+graphics file after it is displayed. If VERBOSE is non-nil, then advertise
+progress.
+***** Example
+
+#+begin_src lisp
+(run-project "my-config.ini" :verbose nil :sequence-cmd "evince")
+#+end_src
+
+
+-----
+
+<<run-project..2f..example>>
+<<function run-project..2f..example>>
+
+
+**** Inherited Function: =run-project/example=                             :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(run-project/example example &key (verbose t) (sequence-display png)
+                     (chronology-display png) (sequence-cmd xdg-open)
+                     (chronology-cmd xdg-open) (draw-sequence t)
+                     (draw-chronology t) (delete-sequence t)
+                     (delete-chronology t))
+#+END_SRC
+
+***** Arguments
+
+ - example :: A keyword, one of :catal-hoyuk, :catal-hoyuk-levels, :catal-hoyuk-distance, :roskams-h, :roskams-h-solarized-light, :roskams-h-solarized-dark, :roskams-jumps, :complex-h-structure, :complex-h-structure-reachable, :fig-12, :fig-12-correlations, :fig-12-periods.
+ - verbose :: Boolean.
+ - sequence-display :: A string indicating a Graphviz =dot= output file format.
+ - chronology-display :: A string indicating a Graphviz =dot= output file format.
+ - sequence-cmd :: A string naming the application used to open the sequence graph.
+ - chronology-cmd :: A string naming the application used to open the chronology graph.
+ - draw-sequence :: Boolean.
+ - draw-chronology :: Boolean.
+ - delete-sequence :: Boolean.  Delete the sequence graph file after it is displayed.
+ - delete-chronology :: Boolean. Delete the chronology graph file after it is displayed.
+***** Returns
+
+An archaeological sequence.
+***** Description
+
+Given a keyword, EXAMPLE, that indicates one of the example projects defined
+for the =hm= package, run the project described by the appropriate =.ini= file.
+***** Example
+
+#+begin_src lisp
+  (run-project/example :roskams-h :delete-sequence nil)
+#+end_src
+
+
+-----
+
+<<set-input-file>>
+<<function set-input-file>>
+
+
+**** Inherited Function: =set-input-file=                                  :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(set-input-file seq option file-name header)
+#+END_SRC
+
+***** Arguments
+
+ - seq :: An archaeological sequence.
+ - option :: A string.
+ - file-name :: A string or pathname.
+ - header :: Boolean
+***** Returns
+
+Nothing.  Called for its side-effects.
+***** Description
+
+ If OPTION is recognized, then FILE-NAME and HEADER are registered with the
+configuration associated with the archaeological sequence, SEQ. HEADER is
+interpreted as a boolean.
+***** Example
+
+#+begin_src lisp
+(set-input-file "contexts" "roskams-h-contexts.ini" t)
+#+end_src
+
+
+-----
+
+<<set-output-file>>
+<<function set-output-file>>
+
+
+**** Inherited Function: =set-output-file=                                 :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(set-output-file seq option file-name &optional (verbose t))
+#+END_SRC
+
+***** Arguments
+
+  - seq :: An archaeological sequence.
+  - option :: A string.
+  - file-name :: A string or pathname.
+  - verbose :: Boolean.
+***** Returns
+
+  Nothing.  Called for its side-effects.
+***** Description
+
+  Registers the output file, FILE-NAME, with the OPTION in the
+configuration associated with the archaeological sequence, SEQ. Checks if OPTION
+is known and errors out if not. If FILE-NAME exists and VERBOSE is non-nil, then asks
+about overwriting it.
+***** Example
+
+#+begin_src lisp
+(set-output-file *my-seq* "observations" "my-observations.csv")
+#+end_src
+
+
+-----
+
+<<show-classifiable-attributes>>
+<<function show-classifiable-attributes>>
+
+
+**** Inherited Function: =show-classifiable-attributes=                    :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(show-classifiable-attributes)
+#+END_SRC
+
+***** Arguments
+
+None.
+***** Returns
+
+Nothing.  Called for its side-effects.
+***** Description
+
+Write a list of classifiable attributes to standard output.
+***** Example
+
+#+begin_src lisp
+(show-classifiable-attributes)
+#+end_src
+
+
+-----
+
+<<show-classifiers>>
+<<function show-classifiers>>
+
+
+**** Inherited Function: =show-classifiers=                                :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(show-classifiers)
+#+END_SRC
+
+***** Arguments
+
+None.
+***** Returns
+
+Nothing.  Called for its side effects.
+***** Description
+
+Write a list of classifiers to standard output.
+***** Example
+
+#+begin_src lisp
+(show-classifiers)
+#+end_src
+
+
+-----
+
+<<show-configuration-options>>
+<<function show-configuration-options>>
+
+
+**** Inherited Function: =show-configuration-options=                      :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(show-configuration-options seq section)
+#+END_SRC
+
+***** Arguments
+
+ - seq :: An archaeological sequence.
+ - section :: A string.
+***** Returns
+
+A list of strings.
+***** Description
+
+Print the options in section SECTION of configuration associated with
+the archaeological sequence, SEQ. Errors out if the configuration is not valid or
+SECTION isn't found in the configuration.
+***** Example
+
+#+begin_src lisp
+(show-configuration-options *my-sequence* "General configuration")
+#+end_src
+
+
+-----
+
+<<show-configuration-sections>>
+<<function show-configuration-sections>>
+
+
+**** Inherited Function: =show-configuration-sections=                     :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(show-configuration-sections seq &optional (sort t))
+#+END_SRC
+
+***** Arguments
+
+ - seq :: An archaeological sequence.
+ - sort :: Boolean.
+***** Returns
+
+A list of strings.
+***** Description
+
+Print out the sections in the configuration associated with the
+archaeological sequence, SE, by default in sorted order. If SORT is nil, then
+print out the unsorted section list. Errors out if the configuration associated
+with SEQ is not valid.
+***** Example
+
+#+begin_src lisp
+(show-configuration-sections *my-sequence* nil)
+#+end_src
+
+
+-----
+
+<<show-map>>
+<<function show-map>>
+
+
+**** Inherited Function: =show-map=                                        :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(show-map attribute)
+#+END_SRC
+
+***** Arguments
+
+A keyword, ATTRIBUTE, one of :edge-style, :node-style, :node-shape, or :arrow-shape.
+***** Returns
+
+Nothing.  Called for its side-effects
+***** Description
+
+Write a lookup map of attributes to standard output.  Raise an error if ATTRIBUTES is out of range.
+***** Example
+
+#+begin_src lisp
+(show-map :edge-style)
+#+end_src
+
+
+-----
+
+<<write-classifier>>
+<<function write-classifier>>
+
+
+**** Inherited Function: =write-classifier=                                :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(write-classifier classifier-type seq &optional (verbose t))
+#+END_SRC
+
+***** Arguments
+
+ - classifier-type :: A keyword.
+ - seq :: An archaeological sequence.
+ - verbose :: Boolean.
+***** Returns
+
+Nothing.  Called for its side-effects.
+***** Description
+
+Write the classifier, CLASSIFIER-TYPE, to a file specified in the user's
+configuration stored in the archaeological sequence, SEQ. If verbose, indicate
+that a file was written.
+***** Example
+
+#+begin_src lisp
+(write-classifier :levels *my-sequence* nil)
+#+end_src
+
+
+-----
+
+<<write-configuration>>
+<<function write-configuration>>
+
+
+**** Inherited Function: =write-configuration=                             :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(write-configuration seq file-name)
+#+END_SRC
+
+***** Arguments
+
+ - seq :: An archaeological sequence.
+ - file-name :: A string or pathname.
+***** Returns
+
+Nothing.  Called for its side-effects.
+***** Description
+
+Write configuration associated with the archaeological sequence, SEQ, to the
+file, FILE-NAME, in the project directory associated with SEQ.
+***** Example
+
+#+begin_src lisp
+ (write-configuration *my-sequence* "my-config.ini")
+#+end_src
+
+
+-----
+
+<<write-default-configuration>>
+<<function write-default-configuration>>
+
+
+**** Inherited Function: =write-default-configuration=                     :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(write-default-configuration file-name)
+#+END_SRC
+
+***** Argument
+
+ - file-name :: A string or pathname.
+***** Returns
+
+ Nothing.  Called for its side-effects.
+***** Description
+
+ Write the default configuration to the file, FILE-NAME.  Returns an error if
+  the directory part of FILE-NAME cannot be found.
+***** Example
+
+#+begin_src lisp
+(write-default-configuration "default-config.ini")
+#+end_src
+
+
+
+
+
+** Index
+
+
+[[index R][R]]  [[index S][S]]  [[index W][W]]  
+
+
+*** R
+
+
+<<index R>>
+- [[function read-configuration-from-files][=read-configuration-from-files=]],
+  Function
+- [[function reset-option][=reset-option=]], Function
+- [[function run-project][=run-project=]], Function
+- [[function run-project..2f..example][=run-project/example=]], Function
+
+
+
+*** S
+
+
+<<index S>>
+- [[function set-input-file][=set-input-file=]], Function
+- [[function set-output-file][=set-output-file=]], Function
+- [[function show-classifiable-attributes][=show-classifiable-attributes=]],
+  Function
+- [[function show-classifiers][=show-classifiers=]], Function
+- [[function show-configuration-options][=show-configuration-options=]],
+  Function
+- [[function show-configuration-sections][=show-configuration-sections=]],
+  Function
+- [[function show-map][=show-map=]], Function
+
+
+
+*** W
+
+
+<<index W>>
+- [[function write-classifier][=write-classifier=]], Function
+- [[function write-configuration][=write-configuration=]], Function
+- [[function write-default-configuration][=write-default-configuration=]],
+  Function
+
+
+
+
+
+* Colophon
+
+This section of the documentation was generated from Common Lisp source code using a hacked up copy of CLOD, version 1.0.
+The latest version of CLOD is available [[http://bitbucket.org/eeeickythump/clod/][here]].
