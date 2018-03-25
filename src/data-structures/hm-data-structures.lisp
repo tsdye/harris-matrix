@@ -7,17 +7,7 @@
 (in-package #:hm)
 
 (defun classifiable-attributes ()
-  "* Arguments
-None.
-* Returns
-A set of strings.
-* Description
-Returns a set of strings that are the classifiable graph attributes in the
-standard =hm= configuration.
-* Example
-#+begin_src lisp
-(classifiable-attributes)
-#+end_src"
+  "Returns a set of strings that are the classifiable graph attributes."
   (let ((opts (options (empty-configuration) "Graphviz sequence classification"))
         (ret (fset:empty-set)))
     (dolist (opt opts)

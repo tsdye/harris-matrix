@@ -34,9 +34,8 @@ dot node style strings."
                  (fset:with 4 "rounded")
                  (fset:with 5 "diagonals")
                  (fset:with 6 "filled")
-                 (fset:with 7 "filled")
-                 (fset:with 8 "striped")
-                 (fset:with 9 "wedged"))))
+                 (fset:with 7 "striped")
+                 (fset:with 8 "wedged"))))
     map))
 
 (defun graphviz-node-style ()

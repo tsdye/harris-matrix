@@ -8,8 +8,9 @@
    :alexandria
    :inferior-shell)
   (:export
-   :classifiable-attributes
-   :classifiers
+   :show-classifiable-attributes
+   :show-classifiers
+   :show-map
    :write-default-configuration
    :write-configuration
    :reset-option

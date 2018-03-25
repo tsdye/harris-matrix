@@ -552,7 +552,7 @@ progress.
                                       (draw-chronology t) (delete-sequence t)
                                       (delete-chronology t))
   "* Arguments
- - example :: A keyword, one of :catal-hoyuk, :catal-hoyuk-levels, :catal-hoyuk-distance, :roskams-h, :roskams-h-solarized-light, :roskams-h-solarized-dark, :roskams-jumps, :complex-h-structure, :complex-h-structure-reachable.
+ - example :: A keyword, one of :catal-hoyuk, :catal-hoyuk-levels, :catal-hoyuk-distance, :roskams-h, :roskams-h-solarized-light, :roskams-h-solarized-dark, :roskams-jumps, :complex-h-structure, :complex-h-structure-reachable, :fig-12, :fig-12-correlations, :fig-12-periods.
  - verbose :: Boolean.
  - sequence-display :: A string indicating a Graphviz =dot= output file format.
  - chronology-display :: A string indicating a Graphviz =dot= output file format.
@@ -574,6 +574,10 @@ for the =hm= package, run the project described by the appropriate =.ini= file.
 "
 
   (let ((cfg-file (case example
+                    (:fig-12-polygon
+                     (uiop:merge-pathnames*
+                      "examples/fig-12-chronology/fig-12-polygon-1.ini"
+                      (asdf:system-source-directory :hm)))
                     (:fig-12
                      (uiop:merge-pathnames*
                       "examples/fig-12-chronology/fig-12-chronology.ini"
@@ -581,6 +585,10 @@ for the =hm= package, run the project described by the appropriate =.ini= file.
                     (:fig-12-correlations
                      (uiop:merge-pathnames*
                       "examples/fig-12-chronology/fig-12-correlations.ini"
+                      (asdf:system-source-directory :hm)))
+                    (:fig-12-periods
+                     (uiop:merge-pathnames*
+                      "examples/fig-12-chronology/fig-12-periods.ini"
                       (asdf:system-source-directory :hm)))
                     (:catal-hoyuk-levels
                      (uiop:merge-pathnames*
@@ -622,10 +630,58 @@ for the =hm= package, run the project described by the appropriate =.ini= file.
                      (uiop:merge-pathnames*
                       "examples/h-structure/complex-h-structure-reachable-2.ini"
                       (asdf:system-source-directory :hm)))
-                    (t (error "Error: The ~s project is not known.~&" example)))))
+                    (t (error "Error: The ~a project is not known.~&" example)))))
     (run-project cfg-file :verbose verbose :sequence-display sequence-display
                           :chronology-display chronology-display
                           :sequence-cmd sequence-cmd :chronology-cmd chronology-cmd
                           :draw-sequence draw-sequence :draw-chronology draw-chronology
                           :delete-sequence delete-sequence
                           :delete-chronology delete-chronology)))
+
+(defun show-classifiers ()
+  "* Arguments
+None.
+* Returns
+Nothing.  Called for its side effects.
+* Description
+Write a list of classifiers to standard output.
+* Example
+#+begin_src lisp
+(show-classifiers)
+#+end_src"
+  (fset:do-set (x (classifiers))
+    (format t "~(~A~%~)" x)))
+
+(defun show-classifiable-attributes ()
+  "* Arguments
+None.
+* Returns
+Nothing.  Called for its side-effects.
+* Description
+Write a list of classifiable attributes to standard output.
+* Example
+#+begin_src lisp
+(show-classifiable-attributes)
+#+end_src"
+  (fset:do-set (x (classifiable-attributes))
+    (format t "~(~A~%~)" x)))
+
+(defun show-map (attribute)
+  "* Arguments
+A keyword, ATTRIBUTE, one of :edge-style, :node-style, :node-shape, or :arrow-shape.
+* Returns
+Nothing.  Called for its side-effects
+* Description
+Write a lookup map of attributes to standard output.  Raise an error if ATTRIBUTES is out of range.
+* Example
+#+begin_src lisp
+(show-map :edge-style)
+#+end_src"
+  (let ((map (case attribute
+               (:edge-style (graphviz-edge-style-map))
+               (:node-style (graphviz-node-style-map))
+               (:node-shape (graphviz-node-shape-map))
+               (:arrow-shape (graphviz-arrow-shape-map))
+               (t (error "Error: The ~a attribute is not known.~&" attribute)))))
+    (fset:do-map (x y map)
+      (format t "~A --> ~A~%" x y))))
