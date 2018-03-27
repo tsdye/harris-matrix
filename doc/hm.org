@@ -5,6 +5,7 @@
 #+OPTIONS: ^:nil
 #+HTML_DOCTYPE: xhtml-strict
 #+HTML_CONTAINER: div
+#+PROPERTY: header-args    :eval noexport
 #+CREATOR: <a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.5.1 (<a href="http://orgmode.org">Org</a> mode 8.3beta)
 #+SETUPFILE: /home/dk/.emacs.d/private/local/org-html-themes/setup/theme-readtheorg.setup
 #+HTML: <meta http-equiv='Content-Type' content='text/html; charset=utf-8' />
@@ -92,7 +93,7 @@ Installation with [[http://www.quicklisp.org][Quicklisp]] is recommended. It aut
 Common Lisp packages upon which =hm= depends, and their dependencies, etc.
 
 The following example assumes that [[http://www.quicklisp.org][Quicklisp]] is installed on your computer.
-These instructions will clone the =hm= package in the =local-projects/hm=
+These instructions will clone the =hm= package in the =local-projects/harris-matrix/=
 subdirectory of your quicklisp installation.
 #+name: shell
 #+header: :prefix $ :eval never
@@ -204,9 +205,9 @@ T
   :END:
 The =hm= software comes with example projects to illustrate some of its
 capabilities. You can find these in
-=<path-to>/quicklisp/local-projects/hm/examples/=. Each of the projects includes
-the necessary input and configuration files, which can be used as examples for
-your own work.
+=<path-to>/quicklisp/local-projects/harris-matrix/examples/=. Each of the
+projects includes the necessary input and configuration files, which can be used
+as examples for your own work.
 
 ** DONE Harris' Figure 12
    CLOSED: [2018-03-17 Sat 17:56] SCHEDULED: <2018-03-17 Sat>
@@ -228,7 +229,7 @@ identified in the original.
 A stratigraphic DAG for the information displayed on Figure [[fig-12-section]] might
 be drawn on a Linux system with the =hm= software as follows:
 
-#+header: :eval never
+#+header: :exports code
 #+BEGIN_SRC lisp
 (run-project/example :fig-12)
 #+END_SRC
@@ -242,7 +243,7 @@ contexts are not taken into account.  This directive is set by the value of
 #+BEGIN_EXAMPLE
 [General configuration]
 chronology-graph-draw = off
-project-directory = ~/quicklisp/local-projects/hm/examples/fig-12-chronology/
+project-directory = ~/quicklisp/local-projects/harris-matrix/examples/fig-12-chronology/
 legend = off
 assume-correlations = no
 #+END_EXAMPLE
@@ -252,9 +253,10 @@ assume-correlations = no
 [[file:~/quicklisp/local-projects/hm/examples/fig-12-chronology/fig-12-sequence.png][file:../examples/fig-12-chronology/fig-12-sequence-small.png]]
 
 As described by Dye and Buck, the stratigraphic DAG is not able to represent all
-of the information potentially represented on a Harris matrix.  Instead, two
-stratigraphic DAG's are required.  Figure shows the stratigraphic DAG that
-results when inferences of once-whole contexts are assumed true.
+of the information potentially represented on a Harris matrix. Instead, two
+stratigraphic DAG's are required. Figure [[fig-12-correlations]] shows the
+stratigraphic DAG that results when inferences of once-whole contexts are
+assumed true.
 
 #+name: fig-12-correlations
 #+caption: Stratigraphic DAG for the information on Figure [[fig-12-section]] assuming inferences of once-whole contexts.
@@ -305,7 +307,7 @@ assume-correlations = yes
 A correct Harris matrix for the stratigraphic situation displayed on Figure
 [[fig:roskams-14]] might be drawn on a Linux system with the =hm= software as follows:
 
-#+header: :eval never
+#+header: :exports code
 #+BEGIN_SRC lisp
   (run-project/example :roskams-h)
 #+END_SRC
@@ -684,7 +686,7 @@ orange, the graph in Figure [[fig:roskams-h-dark]] results.
 
 The graph was produced on a Linux system with the following function call:
 
-#+header: :eval never
+#+header: :exports code
 #+BEGIN_SRC lisp
   (run-project/example :roskams-h-solarized-dark)
 #+END_SRC
@@ -815,7 +817,7 @@ Brewer color =paired= palette.
 #+caption: Stratigraphic DAG of the North Area sequence with nodes classified according to reachability to and from Context 1332+.
 #+caption: Context 1332+ is light blue.  Nodes reachable from Context 1332+ are dark blue.
 #+caption: Nodes not reachable from Context 1332+ are green.
-[[file:~/quicklisp/local-projects/hm/examples/bldg-1-5/bldg-1-5-sequence-reachable-1332+.png][file:/home/dk/quicklisp/local-projects/hm/examples/bldg-1-5/bldg-1-5-sequence-reachable-1332+-small.png]]
+[[file:../examples/bldg-1-5/bldg-1-5-sequence-reachable-1332+.png][file:../examples/bldg-1-5/bldg-1-5-sequence-reachable-1332+-small.png]]
 
 The important sections of the configuration file include the following.
 
@@ -865,7 +867,7 @@ distance from Context 1332+, the farther the node the darker the color.
 
 This graph was produced on a Linux system with the following function call:
 
-#+header: :eval never
+#+header: :exports code
 #+BEGIN_SRC lisp
 (run-project/example :catal-hoyuk-distance :draw-chronology nil)
 #+END_SRC
@@ -947,7 +949,7 @@ The following transcript writes the =periods= classifier for the
 =:fig-12-polygon= example to the =fig-12-periods.csv= file.
 
 #+name: write-classifier
-#+header: :exports source
+#+header: :exports code :eval never
 #+BEGIN_SRC lisp
 (defvar *seq*)
 (setq *seq* (run-project/example :fig-12-polygon))
@@ -1088,7 +1090,7 @@ example project is included to show off this property of the [[http://ethanschoo
 When the following command is run on a Linux system, the graph in Figure [[fig:roskams-h-light]]
 results.
 
-#+header: :eval never
+#+header: :exports code
 #+BEGIN_SRC lisp
   (run-project/example :roskams-h-solarized-light)
 #+END_SRC
@@ -1443,7 +1445,7 @@ used by =dot=]].
  Here are the sections in an =hm= configuration file listed in alphabetical order.
 
  #+name: configuration-sections
- #+header: :results output :exports both :wrap example
+ #+header: :results output :exports both :wrap example :eval never
  #+BEGIN_SRC lisp
    (use-package :hm)
    (defparameter *seq* (run-project/example :roskams-h :draw-sequence nil))
@@ -1453,7 +1455,7 @@ used by =dot=]].
 
  #+RESULTS: configuration-sections
  #+BEGIN_example
- Read one initialization file: /home/dk/quicklisp/local-projects/hm/examples/roskams-h/roskams-h.ini.
+ Read one initialization file: <path-to>/quicklisp/local-projects/harris-matrix/examples/roskams-h/roskams-h.ini.
  Reading table from roskams-h-contexts.csv.
  Nodes added to the sequence graph.
  Reading table from roskams-h-observations.csv.
@@ -1543,7 +1545,7 @@ terms: =on/off=, =yes/no=, =true/false=, or =1/0=.
 #+BEGIN_EXAMPLE
 [General configuration]
 chronology-graph-draw = off
-project-directory = ~/quicklisp/local-projects/hm/examples/fig-12-chronology/
+project-directory = ~/quicklisp/local-projects/harris-matrix/examples/fig-12-chronology/
 legend = off
 assume-correlations = yes
 fast-matrix = on
@@ -1678,7 +1680,7 @@ An example is the file =bldg-1-5-periods.csv=.
 
 #+header: :exports results :results raw :wrap example
 #+BEGIN_SRC sh
-head ~/quicklisp/local-projects/hm/examples/bldg-1-5/bldg-1-5-periods.csv
+head ~/quicklisp/local-projects/harris-matrix/examples/bldg-1-5/bldg-1-5-periods.csv
 #+END_SRC
 
 #+RESULTS:
@@ -1735,7 +1737,7 @@ works with columns by position, so do not be tempted to switch columns around.
 
 #+header: :exports results :results raw :wrap example
 #+BEGIN_SRC sh
-head ~/quicklisp/local-projects/hm/examples/bldg-1-5/bldg-1-5-dates.csv
+head ~/quicklisp/local-projects/harris-matrix/examples/bldg-1-5/bldg-1-5-dates.csv
 #+END_SRC
 
 #+RESULTS:
@@ -1785,7 +1787,7 @@ If you'd like to see if your installation passes some tests, then follow these
 instructions.
 
 #+name: tests
-#+header: :exports code :eval no-export
+#+header: :exports code
 #+BEGIN_SRC lisp
 (require 'hm-test)
 (use-package :hm-test)
@@ -1796,77 +1798,18 @@ If the tests run, then you should see a progress indicator in your Lisp
 environment. Several graphs will be produced as =pdf= files and opened, and one
 graph should open in a web browser.
 
-** Plotting the Sequence Diagram                                   :noexport:
-   :PROPERTIES:
-   :CUSTOM_ID: plotting-the-sequence-diagram
-   :END:
-*** Example Output
-    :PROPERTIES:
-    :CUSTOM_ID: example-output
-    :END:
-
- The =hm= package includes several example configuration and data files.
-
- The stratigraphic section shown in Figure 12 of Edward Harris' book,
- /Principles of Archaeological Stratigraphy/. Note that the symbol for a
- deposit is a box and for an interface a trapezium. In this example, the
- nodes are colored according to the directed graph concept of /level/.
-
- [[http://harris-matrix.tsdye.com/img/fig-12-harris-levels-tred.svg]]
-
- Another view of the stratigraphic section shown in Figure 12 of Edward
- Harris' book, /Principles of Archaeological Stratigraphy/. In this
- example, layer interfaces are recognized and the nodes are colored to
- reflect the relationship of Context 4 to other contexts in a Bayesian
- chronological model.
-
- [[http://harris-matrix.tsdye.com/img/fig-12-distance-from-4-layer-interfaces-set24-tred.svg]]
-
-
- =(hm-draw "path/to/examples/roskams-h-structure/roskams-h-cnf.csv")=
-
- Note that you might have to adjust the paths in =roskams-h-cnf.csv= to
- reflect your file structure.
-
- [[http://harris-matrix.tsdye.com/img/roskams-h-tred.svg]]
-
- A complex H-structure from an article by Irmela Herzog and Irwin
- Scollar, "A new graph theoretic oriented program for Harris Matrix
- analysis," with nodes colored according to reachability from Context 2.
- The node coloring resolves potential ambiguities in the diagram.
-
- [[http://harris-matrix.tsdye.com/img/hs95a-reachable-from-2-tred.svg]]
-
- Another view of the complex H-structure with nodes colored according to
- reachability from Context 4.
-
- [[http://harris-matrix.tsdye.com/img/hs95a-reachable-from-4-tred.svg]]
-
- Sequence diagrams sometimes require "jumps" or "crossings". This example
- from Figure 13 of Steve Roskams' book, /Excavation/, was created with
- the following command:
-
- =(hm-draw "path/to/examples/roskams-jumps/roskams-cnf.csv")=
-
- Note that you might have to adjust the paths in =roskams-cnf.csv= to
- reflect your file structure.
-
- [[http://harris-matrix.tsdye.com/img/roskams-jumps-tred.svg]]
-
 ** Generate technical description                                  :noexport:
 
 #+name: generate-technical-description
+#+header: :eval never
 #+BEGIN_SRC lisp
   (ql:quickload "hm")
   (ql:quickload "clod")
   (in-package :hm)
   (clod:document-package
-   :hm "~/quicklisp/local-projects/hm/doc/hm-clod.org"
+   :hm "~/quicklisp/local-projects/harris-matrix/doc/hm-clod.org"
    :internal-symbols? nil)
 #+END_SRC
-
-#+RESULTS: generate-technical-description
-: NIL
 
 ** Configuration                                                   :noexport:
 
@@ -1874,6 +1817,7 @@ graph should open in a web browser.
 **** Eric Schulte's filter for HTML small caps
 
 #+name: es-small-caps
+#+header: :results silent
 #+begin_src emacs-lisp
 ;;; "sc" links for the \sc{} latex command
 (defun org-export-html-small-caps (string backend channel)
@@ -1931,79 +1875,9 @@ graph should open in a web browser.
 
 #+end_src
 
-#+results: es-small-caps
-| org-export-latex-sc |
-
 
 
 *** Local Variables
 # Local Variables:
 # eval: (org-sbe "es-small-caps")
 # End:
-
-* Setup for html project
-#+BEGIN_SRC emacs-lisp
-    (progn
-      (when (boundp 'org-publish-project-alist)
-        (setq org-publish-project-alist nil))
-      (add-to-list 'org-publish-project-alist
-                   '("hm-site"
-                     :base-directory "/home/dk/quicklisp/local-projects/hm/doc/"
-                     :base-extension "org"
-                     :exclude "hm-clod.org"
-                     :publishing-directory "/home/dk/Public/projects/936-harris-matrix/site/doc/"
-                     :publishing-function org-html-publish-to-html
-                     :section-numbers nil
-                     :table-of-contents "yes"
-                     :style "<link rel=\"stylesheet\"
-           href=\"http://orgmode.org/org.css\"
-           type=\"text/css\"/>"))
-      (add-to-list 'org-publish-project-alist
-                   '("hm-support"
-                     :base-directory "/home/dk/quicklisp/local-projects/hm/examples/"
-                     :base-extension "jpg\\|gif\\|png\\|pdf"
-                     :publishing-directory "/home/dk/Public/projects/936-harris-matrix/site/examples/"
-                     :publishing-function org-publish-attachment))
-      (add-to-list 'org-publish-project-alist
-                   '("hm-bldg-5"
-                     :base-directory "/home/dk/quicklisp/local-projects/hm/examples/bldg-1-5"
-                     :base-extension "jpg\\|gif\\|png\\|pdf"
-                     :publishing-directory "/home/dk/Public/projects/936-harris-matrix/site/examples/bldg-1-5/"
-                     :publishing-function org-publish-attachment))
-      (add-to-list 'org-publish-project-alist
-                   '("hm-fig-12"
-                     :base-directory "/home/dk/quicklisp/local-projects/hm/examples/fig-12-chronology/"
-                     :base-extension "jpg\\|gif\\|png\\|pdf"
-                     :publishing-directory "/home/dk/Public/projects/936-harris-matrix/site/examples/fig-12-chronology/"
-                     :publishing-function org-publish-attachment))
-      (add-to-list 'org-publish-project-alist
-                   '("hm-h-structure"
-                     :base-directory "/home/dk/quicklisp/local-projects/hm/examples/h-structure/"
-                     :base-extension "jpg\\|gif\\|png\\|pdf"
-                     :publishing-directory "/home/dk/Public/projects/936-harris-matrix/site/examples/h-structure/"
-                     :publishing-function org-publish-attachment))
-      (add-to-list 'org-publish-project-alist
-                   '("hm-roskams-h"
-                     :base-directory "/home/dk/quicklisp/local-projects/hm/examples/roskams-h/"
-                     :base-extension "jpg\\|gif\\|png\\|pdf"
-                     :publishing-directory "/home/dk/Public/projects/936-harris-matrix/site/examples/roskams-h/"
-                     :publishing-function org-publish-attachment))
-      (add-to-list 'org-publish-project-alist
-                   '("hm-roskams-jumps"
-                     :base-directory "/home/dk/quicklisp/local-projects/hm/examples/roskams-jumps/"
-                     :base-extension "jpg\\|gif\\|png\\|pdf"
-                     :publishing-directory "/home/dk/Public/projects/936-harris-matrix/site/examples/roskams-jumps/"
-                     :publishing-function org-publish-attachment))
-      (add-to-list 'org-publish-project-alist
-                   '("hm" :components ("hm-site" "hm-bldg-5" "hm-fig-12" "hm-h-structure" "hm-roskams-h" "hm-roskams-jumps"))))
-#+END_SRC
-
-#+RESULTS:
-| hm               | :components     | (hm-site hm-bldg-5 hm-fig-12 hm-h-structure hm-roskams-h hm-roskams-jumps) |                 |      |          |             |                       |                                                      |                                                                             |                          |                        |     |                    |     |        |                        |
-| hm-roskams-jumps | :base-directory | /home/dk/quicklisp/local-projects/hm/examples/roskams-jumps/               | :base-extension | jpg\ | gif\     | png\        | pdf                   | :publishing-directory                                | /home/dk/Public/projects/936-harris-matrix/site/examples/roskams-jumps/     | :publishing-function     | org-publish-attachment |     |                    |     |        |                        |
-| hm-roskams-h     | :base-directory | /home/dk/quicklisp/local-projects/hm/examples/roskams-h/                   | :base-extension | jpg\ | gif\     | png\        | pdf                   | :publishing-directory                                | /home/dk/Public/projects/936-harris-matrix/site/examples/roskams-h/         | :publishing-function     | org-publish-attachment |     |                    |     |        |                        |
-| hm-h-structure   | :base-directory | /home/dk/quicklisp/local-projects/hm/examples/h-structure/                 | :base-extension | jpg\ | gif\     | png\        | pdf                   | :publishing-directory                                | /home/dk/Public/projects/936-harris-matrix/site/examples/h-structure/       | :publishing-function     | org-publish-attachment |     |                    |     |        |                        |
-| hm-fig-12        | :base-directory | /home/dk/quicklisp/local-projects/hm/examples/fig-12-chronology/           | :base-extension | jpg\ | gif\     | png\        | pdf                   | :publishing-directory                                | /home/dk/Public/projects/936-harris-matrix/site/examples/fig-12-chronology/ | :publishing-function     | org-publish-attachment |     |                    |     |        |                        |
-| hm-bldg-5        | :base-directory | /home/dk/quicklisp/local-projects/hm/examples/bldg-1-5                     | :base-extension | jpg\ | gif\     | png\        | pdf                   | :publishing-directory                                | /home/dk/Public/projects/936-harris-matrix/site/examples/bldg-1-5/          | :publishing-function     | org-publish-attachment |     |                    |     |        |                        |
-| hm-support       | :base-directory | /home/dk/quicklisp/local-projects/hm/examples/                             | :base-extension | jpg\ | gif\     | png\        | pdf                   | :publishing-directory                                | /home/dk/Public/projects/936-harris-matrix/site/examples/                   | :publishing-function     | org-publish-attachment |     |                    |     |        |                        |
-| hm-site          | :base-directory | /home/dk/quicklisp/local-projects/hm/doc/                                  | :base-extension | org  | :exclude | hm-clod.org | :publishing-directory | /home/dk/Public/projects/936-harris-matrix/site/doc/ | :publishing-function                                                        | org-html-publish-to-html | :section-numbers       | nil | :table-of-contents | yes | :style | <link rel="stylesheet" |
