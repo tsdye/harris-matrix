@@ -250,7 +250,7 @@ assume-correlations = no
 
 #+name: fig-12-sequence
 #+caption: Stratigraphic DAG for the information on Figure [[fig-12-section]].
-[[file:~/quicklisp/local-projects/hm/examples/fig-12-chronology/fig-12-sequence.png][file:../examples/fig-12-chronology/fig-12-sequence-small.png]]
+[[file:../examples/fig-12-chronology/fig-12-sequence.png][file:../examples/fig-12-chronology/fig-12-sequence-small.png]]
 
 As described by Dye and Buck, the stratigraphic DAG is not able to represent all
 of the information potentially represented on a Harris matrix. Instead, two
@@ -260,7 +260,7 @@ assumed true.
 
 #+name: fig-12-correlations
 #+caption: Stratigraphic DAG for the information on Figure [[fig-12-section]] assuming inferences of once-whole contexts.
-[[file:~/quicklisp/local-projects/hm/examples/fig-12-chronology/fig-12-correlations.png][file:../examples/fig-12-chronology/fig-12-correlations-small.png]]
+[[file:../examples/fig-12-chronology/fig-12-correlations.png][file:../examples/fig-12-chronology/fig-12-correlations-small.png]]
 
 The interesting part of the configuration file is the setting for
 =assume-correlations=.
@@ -472,12 +472,12 @@ are shown in Figures [[fig:bldg-1-5-seq]] and [[fig:bldg-1-5-chron]].
 
 #+name: fig:bldg-1-5-seq
 #+caption: Stratigraphic DAG of the North Area sequence based on a Harris matrix created by Craig Cessford.
-[[file:~/quicklisp/local-projects/hm/examples/bldg-1-5/bldg-1-5-sequence.png][file:../examples/bldg-1-5/bldg-1-5-sequence-small.png]]
+[[file:../examples/bldg-1-5/bldg-1-5-sequence.png][file:../examples/bldg-1-5/bldg-1-5-sequence-small.png]]
 
 #+name: fig:bldg-1-5-chron
 #+caption: Chronology DAG based on residuality determinations of Alex Bayliss and colleagues.
 #+caption: Note the situation for Context 1332+ at the top left, with the dangling θs.
-[[file:~/quicklisp/local-projects/hm/examples/bldg-1-5/bldg-1-5-chronology.png][file:../examples/bldg-1-5/bldg-1-5-chronology-small.png]]
+[[file:../examples/bldg-1-5/bldg-1-5-chronology.png][file:../examples/bldg-1-5/bldg-1-5-chronology-small.png]]
 * Classifiers
 
 This section provides definitions for the various classifiers used by the =hm=
@@ -609,7 +609,7 @@ and its surface.
 #+name: fig-12-periods
 #+caption: Stratigraphic DAG for the information on Figure [[fig-12-section]] assuming inferences of once-whole contexts, and periodized according to the text.
 #+caption: Note that rectangular nodes represent deposits and trapeziums represent interfaces.
-[[file:~/quicklisp/local-projects/hm/examples/fig-12-chronology/fig-12-periods.png][file:../examples/fig-12-chronology/fig-12-periods-small.png]]
+[[file:../examples/fig-12-chronology/fig-12-periods.png][file:../examples/fig-12-chronology/fig-12-periods-small.png]]
 
 On a Linux system, Figure [[fig-12-periods]] can be reproduced with the following
 function call:
@@ -863,7 +863,7 @@ distance from Context 1332+, the farther the node the darker the color.
 
 #+name: 1332-distance
 #+caption: Stratigraphic DAG of the North Area sequence with nodes shaded by distance from Context 1332+.
-[[file:../examples/bldg-1-5/bldg-1-5-sequence-distance-1332+.png]]
+[[file:../examples/bldg-1-5/bldg-1-5-sequence-distance-1332+.png][file:../examples/bldg-1-5/bldg-1-5-sequence-distance-1332+-small.png]]
 
 This graph was produced on a Linux system with the following function call:
 
@@ -902,7 +902,7 @@ An example of a levels classification can be seen in the stratigraphic DAG of Ç
 
 #+name: catal-hoyuk-levels
 #+caption: Stratigraphic DAG of the North Area sequence at Çatalhöyük with nodes colored by level.
-[[file:~/quicklisp/local-projects/hm/examples/bldg-1-5/bldg-1-5-sequence-levels.png][file:../examples/bldg-1-5/bldg-1-5-sequence-levels-small.png]]
+[[file:../examples/bldg-1-5/bldg-1-5-sequence-levels.png][file:../examples/bldg-1-5/bldg-1-5-sequence-levels-small.png]]
 
 The graph was produced on a Linux system with the following function call:
 
@@ -1272,7 +1272,7 @@ of Harris' Figure 12 by periods (see fig. [[fig-12-periods]]).
 #+name: fig-12-polygon
 #+caption: Stratigraphic DAG for the information on Figure [[fig-12-section]] and periodized according to Figure [[fig-12-periods]].
 #+caption: Note that the number of node sides and node fill color both reflect the periods classification.
-[[file:~/quicklisp/local-projects/hm/examples/fig-12-chronology/fig-12-polygon-1.png][file:../examples/fig-12-chronology/fig-12-polygon-1-small.png]]
+[[file:../examples/fig-12-chronology/fig-12-polygon-1.png][file:../examples/fig-12-chronology/fig-12-polygon-1-small.png]]
 
 Figure [[fig-12-polygon]] can be produced on a Linux system with the following
 function call:
