@@ -51,22 +51,21 @@ behavior indicated in the user's configuration."
 configuration CFG.  If VERBOSE, then advertise the activity.  Returns
 the possibly modified GRAPH."
   (let ((ret (graph:copy graph))
-        (contexts (read-table (input-file-name cfg "contexts")
-                              (file-header-p cfg "contexts") verbose))
+        (contexts (read-context-table cfg verbose))
         (count 0))
     (when verbose (format t "Adding nodes to the sequence graph.~&"))
-    (dolist (node contexts)
+    (fset:do-map (node rec contexts)
       (incf count)
-      (graph:add-node ret (ensure-symbol (nth 0 node))))
+      (graph:add-node ret node))
     (when verbose (format t "~:d nodes added to the sequence graph.~&" count))
     ret))
 
 (defun add-arcs (graph cfg &optional (verbose t))
-  "Add arcs to a graph, GRAPH, using the information in the configuation CFG. If
+  "Add arcs to a graph, GRAPH, using the information in the configuration CFG. If
 VERBOSE, then advertise the activity. Returns the possibly modified GRAPH."
   (let ((ret (graph:copy graph))
-        (obs (read-table (input-file-name cfg "observations")
-                         (file-header-p cfg "observations") verbose))
+        (obs (read-table (input-file-name cfg :observations)
+                         (file-header-p cfg :observations) verbose))
         (count 0))
     (when verbose (format t "Adding arcs to the sequence graph.~&"))
     (dolist (arc obs)
@@ -100,8 +99,8 @@ cycles are found."
   nodes of GRAPH. Check for cycles and error out if present, otherwise return
   the possibly modified GRAPH."
   (let ((ret (graph:copy graph))
-        (input-file-name (input-file-name cfg "inferences"))
-        (file-header (file-header-p cfg "inferences"))
+        (input-file-name (input-file-name cfg :inferences))
+        (file-header (file-header-p cfg :inferences))
         (inferences)
         (node-map (fset:empty-map)))
     (if input-file-name
@@ -112,7 +111,7 @@ cycles are found."
       (loop while (fset:domain-contains? node-map (nth 0 part))
         do (setf (nth 0 part) (fset:lookup node-map (nth 0 part))))
       (loop while (fset:domain-contains? node-map (nth 1 part))
-        do (setf (nth 1 part) (fset:lookup node-map (nth 0 part))))
+        do (setf (nth 1 part) (fset:lookup node-map (nth 1 part))))
       (let ((new-node (correlated-node (nth 0 part) (nth 1 part))))
         (fset:with node-map (nth 0 part) new-node)
         (fset:with node-map (nth 1 part) new-node)
@@ -137,10 +136,10 @@ correlated node symbol as a string."
 specifies that correlations should be assumed true, nil otherwise."
   (let ((ranks))
     (if (assume-correlations-p cfg)
-        (let ((inferences (read-table (input-file-name cfg "inferences")
-                                      (file-header-p cfg "inferences") verbose))
-              (contexts (read-table (input-file-name cfg "contexts")
-                                    (file-header-p cfg "contexts") verbose)))
+        (let ((inferences (read-table (input-file-name cfg :inferences)
+                                      (file-header-p cfg :inferences) verbose))
+              (contexts (read-table (input-file-name cfg :contexts)
+                                    (file-header-p cfg :contexts) verbose)))
           (when inferences (appendf ranks (set-same-ranks inferences))
                 (when verbose (format t "Ranks set from inferences.~&")))
           (when contexts (appendf ranks (set-other-ranks contexts))
@@ -217,21 +216,21 @@ empty graph. If VERBOSE, then advertise progress."
   (let* ((ret (new-graph))
          (distance-matrix (create-distance-matrix seq))
          (cfg (archaeological-sequence-configuration seq))
-         (event-table (read-table (input-file-name cfg "events")
-                                  (file-header-p cfg "events")
+         (event-table (read-table (input-file-name cfg :events)
+                                  (file-header-p cfg :events)
                                   verbose))
          (event-order-table
            (when (input-file-name-p cfg "event-order")
-             (read-table (input-file-name cfg "event-order")
-                         (file-header-p cfg "event-order")
+             (read-table (input-file-name cfg :event-order)
+                         (file-header-p cfg :event-order)
                          verbose)))
          (inference-map (fset:empty-map)))
     ;; If assume-correlations then make a map to adjust the event-table and
     ;; event-order table accordingly
     (when (assume-correlations-p cfg)
       (let ((inference-table
-              (read-table (input-file-name cfg "inferences")
-                          (file-header-p cfg "inferences")
+              (read-table (input-file-name cfg :inferences)
+                          (file-header-p cfg :inferences)
                           verbose)))
         (dolist (row inference-table)
           (setq inference-map
@@ -473,7 +472,7 @@ configure the archaeological sequence, check it for errors, and return it."
   existing file. If DISPLAY is set to a string with a valid dot file format,
   then run dot and display the resulting graphic file with the command, CMD."
   (let* ((cfg (hm::archaeological-sequence-configuration seq))
-         (old-file (probe-file (hm::output-file-name cfg "sequence-dot"))))
+         (old-file (probe-file (hm::output-file-name cfg :sequence-dot))))
     (if verbose
         (when (and old-file (y-or-n-p "Overwrite ~a?" (enough-namestring old-file)))
           (uiop:delete-file-if-exists old-file))
@@ -494,7 +493,7 @@ configure the archaeological sequence, check it for errors, and return it."
   existing file. If DISPLAY is set to a string with a valid dot file format,
   then run dot and display the resulting graphic file with the command, CMD."
   (let* ((cfg (hm::archaeological-sequence-configuration seq))
-         (old-file (probe-file (hm::output-file-name cfg "chronology-dot"))))
+         (old-file (probe-file (hm::output-file-name cfg :chronology-dot))))
     (if verbose
         (when (and old-file (y-or-n-p "Overwrite ~a?" (enough-namestring old-file)))
           (uiop:delete-file-if-exists old-file))

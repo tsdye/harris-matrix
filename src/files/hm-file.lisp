@@ -47,7 +47,34 @@ give notice."
         (format t "Reading table from ~a.~a.~&" (pathname-name name)
                 (pathname-type name)))
       (cl-csv:read-csv in-file :skip-first-p header))
-    (error "Unable to read ~a.~&" in-file)))
+    (error "Error: Unable to read ~a.~&" in-file)))
+
+(defun read-context-table (cfg &optional (verbose t))
+  "Reads the context table specified in the configuration CFG and returns an fset map where the keys are symbols for the context labels and the values are context structures.  Errors out if the input file cannot be read or a context label contains the `=' character."
+  (let* ((in-file (input-file-name cfg :contexts))
+         (header? (file-header-p cfg :contexts))
+         (in-file-path (probe-file in-file)))
+    (unless in-file-path (error "Error: Unable to locate ~a.~&" in-file))
+    (when verbose (format t "Reading context table from ~a.~&" in-file))
+    (let ((context-list
+            (cl-csv:read-csv in-file-path
+                             :skip-first-p header?
+                             :map-fn #'(lambda (row)
+                                         (make-context :label (nth 0 row)
+                                                       :unit-type (nth 1 row)
+                                                       :position (nth 2 row)
+                                                       :period (nth 3 row)
+                                                       :phase (nth 4 row)
+                                                       :url (nth 5 row)))))
+          (ret (fset:empty-map))
+          (count 0))
+      (dolist (rec context-list)
+        (incf count)
+        (if (search "=" (context-label rec))
+            (error "Error: Invalid context label, ~a, in file ~a.~&" (context-label rec) in-file)
+            (setf ret (fset:with ret (ensure-symbol (context-label rec)) rec))))
+      (when verbose (format t "Read ~W contexts from ~a.~&" count in-file))
+      ret)))
 
 (defun write-default-configuration (file-name)
   "* Argument
@@ -59,7 +86,7 @@ give notice."
   the directory part of FILE-NAME cannot be found.
 * Example
 #+begin_src lisp
-(write-default-configuration \"default-config.ini\")
+(write-default-configuration <path/to/default-config.ini>)
 #+end_src
 "
   (let* ((cfg (make-default-or-empty-configuration (master-table)))
@@ -154,7 +181,8 @@ that a file was written.
 * Example
 #+begin_src lisp
 (write-classifier :levels *my-sequence* nil)
-#+end_src"
+#+end_src
+"
   (let ((classifier (make-classifier classifier-type seq verbose))
         (cfg (archaeological-sequence-configuration seq))
         (out-file (classifier-out-file classifier-type seq verbose)))
@@ -165,10 +193,18 @@ that a file was written.
         (cl-csv:write-csv-row (list "node" (string-downcase classifier-type))
                               :stream stream))
       (fset:do-map (key val classifier)
-        (cl-csv:write-csv-row
-         (list key (if (numberp val) val (string-downcase val)))
-         :stream stream)))
-    (when verbose (format t "Wrote ~a.~&" (enough-namestring out-file)))))
+        (if (search "=" (string key))
+            (progn
+              (let ((keys (ppcre:split "=" (string key))))
+                (dolist (once-whole-key keys)
+                  (cl-csv:write-csv-row
+                   (list once-whole-key (if (numberp val) val (string-downcase val)))
+                   :stream stream))))
+            (cl-csv:write-csv-row
+             (list key (if (numberp val) val (string-downcase val)))
+             :stream stream))))
+    (when verbose (format t "Wrote classifier ~a to ~a.~&"
+       classifier-type (enough-namestring out-file)))))
 
 (defun get-project-directory (cfg)
   "Check if the user's project directory exists, if so, return a path to it. If
@@ -180,17 +216,18 @@ not, return a path to the default project directory."
 
 (defun input-file-name (cfg content)
   "Return the file path for CONTENT from the user's configuration, CFG, or nil
-  if the file does not exist. CONTENT is a string, one of `contexts',
-  `observations', `inferences', `periods', `phases', `events', or
-  `event-order'."
-  (probe-file (uiop:merge-pathnames* (get-option cfg "Input files" content)
-                                     (project-directory cfg))))
+  if the file does not exist. CONTENT is a keyword, one of :contexts,
+  :observations, :inferences, :periods, :phases, :events, or
+  :event-order."
+  (probe-file (uiop:merge-pathnames*
+               (get-option cfg "Input files" (string-downcase (string content)))
+               (project-directory cfg))))
 
 
 (defun output-file-name (cfg content)
   "Return the file path for CONTENT from the user's configuration, CFG. CONTENT
-  is a string, one of `sequence-dot' or `chronology-dot'."
-  (uiop:merge-pathnames* (get-option cfg "Output files" content)
+  is a keyword, one of :sequence-dot or :chronology-dot."
+  (uiop:merge-pathnames* (get-option cfg "Output files" (string-downcase (string content)))
                          (project-directory cfg)))
 
 (defun unable-to-find-input-files? (cfg)

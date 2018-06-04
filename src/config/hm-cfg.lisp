@@ -454,13 +454,14 @@ or nil if CFG contains a value not interpreted by py-configparser as a boolean."
 (defun file-header-p (cfg content)
   "Return the boolean value for CONTENT from the `Input file headers' section of
   the user's configuration, CFG, or nil if the value is not a valid boolean
-  string. CONTENT is a string, one of `contexts', `observations', `inferences',
-  `periods', `phases', `events', or `event-order'."
-  (let ((value (get-option cfg "Input file headers" content)))
+  string. CONTENT is a keyword, one of :contexts, :observations, :inferences,
+  :periods, :phases, :events, or :event-order."
+  (let* ((content-string (string-downcase (string content)))
+         (value (get-option cfg "Input file headers" content-string)))
     (if (fset:contains? (boolean-strings) value)
-        (get-option cfg "Input file headers" content :type :boolean)
+        (get-option cfg "Input file headers" content-string :type :boolean)
         (unless (emptyp value)
-          (error "Error: ~s is not valid for ~s file header." value content)))))
+          (error "Error: ~s is not valid for ~s file header." value content-string)))))
 
 (defun graphviz-chronology-graph-attribute (cfg attribute)
   "Return the sequence graph attribute from the user's configuration, CFG."
@@ -497,8 +498,8 @@ user's configuration, CFG."
   (get-option cfg "Graphviz sequence graph attributes" attribute))
 
 (defun make-edge-url-map (cfg &optional (verbose t))
-  (let ((url-list (read-table (input-file-name cfg "observations")
-                              (file-header-p cfg "observations") verbose))
+  (let ((url-list (read-table (input-file-name cfg :observations)
+                              (file-header-p cfg :observations) verbose))
         (map (fset:empty-map)))
     (dolist (edge url-list)
       (setf map (fset:with map (list (ensure-symbol (nth 0 edge))
@@ -506,8 +507,8 @@ user's configuration, CFG."
     map))
 
 (defun make-node-url-map (cfg &optional (verbose t))
-  (let ((url-list (read-table (input-file-name cfg "contexts")
-                              (file-header-p cfg "contexts") verbose))
+  (let ((url-list (read-table (input-file-name cfg :contexts)
+                              (file-header-p cfg :contexts) verbose))
         (map (fset:empty-map)))
     (dolist (node url-list)
       (setf map (fset:with map (ensure-symbol (nth 0 node)) (nth 5 node))))
@@ -819,10 +820,10 @@ settings."
 (defun correlation-problems? (cfg)
   "Raises an error if correlated nodes are assigned to different unit types,
 periods, or phases."
-  (let ((correlations (read-table (input-file-name cfg "inferences")
-                                  (file-header-p cfg "inferences") nil))
-        (contexts (read-table (input-file-name cfg "contexts")
-                              (file-header-p cfg "contexts") nil))
+  (let ((correlations (read-table (input-file-name cfg :inferences)
+                                  (file-header-p cfg :inferences) nil))
+        (contexts (read-table (input-file-name cfg :contexts)
+                              (file-header-p cfg :contexts) nil))
         (period-map (fset:empty-map))
         (phase-map (fset:empty-map))
         (unit-map (fset:empty-map)))

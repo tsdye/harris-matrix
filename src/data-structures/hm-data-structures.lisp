@@ -176,12 +176,12 @@ which case value is a non-negative integer."
                           (string-downcase classifier-type)))
     (cond
       ((eq classifier-type :units)
-       (let ((map (context-type-to-map (read-table (input-file-name cfg "contexts")
-                                                   (file-header-p cfg "contexts")
+       (let ((map (context-type-to-map (read-table (input-file-name cfg :contexts)
+                                                   (file-header-p cfg :contexts)
                                                    verbose))))
          (when (assume-correlations-p cfg)
-           (let ((inferences (read-table (input-file-name cfg "inferences")
-                                         (file-header-p cfg "inferences")
+           (let ((inferences (read-table (input-file-name cfg :inferences)
+                                         (file-header-p cfg :inferences)
                                          verbose)))
              (dolist (inference inferences)
                (setf map (fset:with map (correlated-node (nth 0 inference)
@@ -243,16 +243,16 @@ which case value is a non-negative integer."
          map))
       ((member classifier-type '(:periods :phases) :test 'eq)
        (let ((map (tables-to-map
-                   (read-table (input-file-name cfg "contexts")
-                               (file-header-p cfg "contexts")
+                   (read-table (input-file-name cfg :contexts)
+                               (file-header-p cfg :contexts)
                                verbose)
                    (read-table (input-file-name cfg (string-downcase classifier-type))
                                (file-header-p cfg (string-downcase classifier-type))
                                verbose)
                    classifier-type)))
          (when (assume-correlations-p cfg)
-           (let ((inferences (read-table (input-file-name cfg  "inferences")
-                                         (file-header-p cfg  "inferences")
+           (let ((inferences (read-table (input-file-name cfg  :inferences)
+                                         (file-header-p cfg  :inferences)
                                          verbose)))
              (dolist (inference inferences)
                (setf map (fset:with map (correlated-node (nth 0 inference)
@@ -647,3 +647,44 @@ and the value is either the period or phase of the context."
                                    ((string= (nth 1 x) "interface") :interface)))))
             contexts)
     ret))
+
+;; structures for the input tables
+
+(defstruct context
+  label
+  unit-type
+  position
+  period
+  phase
+  url)
+
+(defstruct observation
+  younger
+  older
+  url)
+
+(defstruct inference
+  first
+  second)
+
+(defstruct period
+  id
+  label
+  attribute
+  description)
+
+(defstruct phase
+  id
+  label
+  attribute
+  description)
+
+(defstruct event
+  theta
+  context
+  lab
+  association)
+
+(defstruct event-order
+  older
+  younger)
