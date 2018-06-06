@@ -673,11 +673,11 @@ and the value is either the period or phase of the context."
   attribute
   description)
 
-(defstruct phase
-  id
-  label
-  attribute
-  description)
+;; (defstruct phase
+;;   id
+;;   label
+;;   attribute
+;;   description)
 
 (defstruct event
   theta

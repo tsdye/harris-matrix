@@ -84,7 +84,7 @@ VERBOSE, then advertise the activity. Returns the possibly modified GRAPH."
     (check-cycles graph verbose)
     (when (assume-correlations-p cfg)
       (setf graph (assume-correlations graph cfg verbose)))
-    (setf graph (transitive-reduction graph verbose))
+    (setf graph (transitive-reduction-2 graph verbose))
     graph))
 
 (defun check-cycles (graph &optional (verbose t))
@@ -298,31 +298,43 @@ empty graph. If VERBOSE, then advertise progress."
       (error "Error: The chronology graph is cyclical.~&Nodes: ~a~&Edges: ~a~&"
              (graph:nodes ret) (graph:edges ret)))
     (when verbose (format t "Performing transitive reduction of the chronology graph.~&"))
-    (setq ret (transitive-reduction ret verbose))
+    (setq ret (transitive-reduction-2 ret verbose))
     ret))
 
-(defun transitive-reduction (graph &optional (verbose t))
-  "Perform transitive reduction on the directed acyclic GRAPH. Returns the
-possibly modified directed acyclic GRAPH."
-  (when verbose
-    (format t "Starting transitive reduction.~&"))
-  (let ((ret (graph:copy graph))
-        (r (graph/matrix:to-reachability-matrix graph (new-matrix))))
-    (map-permutations
-     #'(lambda (x)
-         (when
-             (and
-              (graph:has-edge-p ret (list (nth 0 x) (nth 1 x)))
-              (graph:has-edge-p ret (list (nth 0 x) (nth 2 x)))
-              (graph/matrix:reachablep graph r (nth 1 x) (nth 2 x)))
-           (graph:delete-edge ret (list (nth 0 x) (nth 2 x)))
-           (when verbose
-             (format t "Removed transitive arc from node ~a to node ~a.~&"
-                     (nth 0 x) (nth 2 x)))))
-     (graph:nodes graph) :length 3)
-    (when verbose
-      (format t "Transitive reduction finished.~&"))
-    ret))
+;; (defun transitive-reduction (graph &optional (verbose t))
+;;   "Perform transitive reduction on the directed acyclic GRAPH. Returns the
+;; possibly modified directed acyclic GRAPH."
+;;   (when verbose
+;;     (format t "Starting transitive reduction.~&"))
+;;   (let ((ret (graph:copy graph))
+;;         (r (graph/matrix:to-reachability-matrix graph (new-matrix))))
+;;     (map-permutations
+;;      #'(lambda (x)
+;;          (when
+;;              (and
+;;               (graph:has-edge-p ret (list (nth 0 x) (nth 1 x)))
+;;               (graph:has-edge-p ret (list (nth 0 x) (nth 2 x)))
+;;               (graph/matrix:reachablep graph r (nth 1 x) (nth 2 x)))
+;;            (graph:delete-edge ret (list (nth 0 x) (nth 2 x)))
+;;            (when verbose
+;;              (format t "Removed transitive arc from node ~a to node ~a.~&"
+;;                      (nth 0 x) (nth 2 x)))))
+;;      (graph:nodes graph) :length 3)
+;;     (when verbose
+;;       (format t "Transitive reduction finished.~&"))
+;;     ret))
+
+(defun transitive-reduction-2 (graph &optional (verbose t))
+  (when verbose (format t "Starting transitive reduction.~&"))
+  (let ((ret (graph:copy graph)))
+    (dolist (node (graph:nodes ret))
+      (dolist (child (graph:adjacent-from ret node))
+        (dolist (reachable (remove child (graph:connected-component ret child)))
+          (let ((candidate (list node reachable)))
+            (when (graph:has-edge-p ret candidate) (graph:delete-edge ret candidate)
+                  (when verbose
+                    (format t "Removed transitive arc ~a.~&" candidate)))))))
+    (when verbose (format t "Transitive reduction finished.~&"))))
 
 (defun new-matrix (&optional (fast t))
   "Makes a matrix instance.  If FAST is t, then uses fast matrix
