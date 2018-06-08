@@ -91,11 +91,13 @@ VERBOSE, then advertise the activity. Returns the possibly modified GRAPH."
   "Reports an error when cycles are present in GRAPH, or returns nil if no
 cycles are found.  The error message contains a list of suspicious nodes."
   (let ((fvs))
-    (when verbose (format t "Checking graph for cycles.~&"))
+    (when verbose (format t "Checking directed graph ~a for cycles.~&" graph))
     (when (graph:cycles graph)
       (setf fvs (array-fas graph verbose))
-      (error "Error: Graph cyclical--check nodes ~a.~&"))
-    (when verbose (format t "No cycles found.~&"))))
+      (when verbose
+        (format t "Directed graph ~a is cyclical, suspect nodes ~a.~&" graph fvs))
+      (error "Error: Directed graph ~a is cyclical.~&" graph))
+    (when verbose (format t "No cycles found in directed graph ~a.~&" graph))))
 
 (defun assume-correlations (graph cfg &optional (verbose t))
   "Given the information in a configuration CFG, possibly merge and rename the
