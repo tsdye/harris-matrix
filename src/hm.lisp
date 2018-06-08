@@ -89,10 +89,13 @@ VERBOSE, then advertise the activity. Returns the possibly modified GRAPH."
 
 (defun check-cycles (graph &optional (verbose t))
   "Reports an error when cycles are present in GRAPH, or returns nil if no
-cycles are found."
-  (when verbose (format t "Checking graph for cycles.~&"))
-  (and (graph:cycles graph) (error "Error: Graph contains a cycle."))
-  (when verbose (format t "No cycles found.~&")))
+cycles are found.  The error message contains a list of suspicious nodes."
+  (let ((fvs))
+    (when verbose (format t "Checking graph for cycles.~&"))
+    (when (graph:cycles graph)
+      (setf fvs (array-fas graph verbose))
+      (error "Error: Graph cyclical--check nodes ~a.~&"))
+    (when verbose (format t "No cycles found.~&"))))
 
 (defun assume-correlations (graph cfg &optional (verbose t))
   "Given the information in a configuration CFG, possibly merge and rename the
@@ -301,30 +304,10 @@ empty graph. If VERBOSE, then advertise progress."
     (setq ret (transitive-reduction-2 ret verbose))
     ret))
 
-;; (defun transitive-reduction (graph &optional (verbose t))
-;;   "Perform transitive reduction on the directed acyclic GRAPH. Returns the
-;; possibly modified directed acyclic GRAPH."
-;;   (when verbose
-;;     (format t "Starting transitive reduction.~&"))
-;;   (let ((ret (graph:copy graph))
-;;         (r (graph/matrix:to-reachability-matrix graph (new-matrix))))
-;;     (map-permutations
-;;      #'(lambda (x)
-;;          (when
-;;              (and
-;;               (graph:has-edge-p ret (list (nth 0 x) (nth 1 x)))
-;;               (graph:has-edge-p ret (list (nth 0 x) (nth 2 x)))
-;;               (graph/matrix:reachablep graph r (nth 1 x) (nth 2 x)))
-;;            (graph:delete-edge ret (list (nth 0 x) (nth 2 x)))
-;;            (when verbose
-;;              (format t "Removed transitive arc from node ~a to node ~a.~&"
-;;                      (nth 0 x) (nth 2 x)))))
-;;      (graph:nodes graph) :length 3)
-;;     (when verbose
-;;       (format t "Transitive reduction finished.~&"))
-;;     ret))
-
 (defun transitive-reduction-2 (graph &optional (verbose t))
+  "Perform transitive reduction on the directed acyclic GRAPH. Return the
+possibly modified GRAPH. The algorithm was described here
+https://cs.stackexchange.com/q/29133."
   (when verbose (format t "Starting transitive reduction.~&"))
   (let ((ret (graph:copy graph)))
     (dolist (node (graph:nodes ret))
@@ -334,7 +317,8 @@ empty graph. If VERBOSE, then advertise progress."
             (when (graph:has-edge-p ret candidate) (graph:delete-edge ret candidate)
                   (when verbose
                     (format t "Removed transitive arc ~a.~&" candidate)))))))
-    (when verbose (format t "Transitive reduction finished.~&"))))
+    (when verbose (format t "Transitive reduction finished.~&"))
+    ret))
 
 (defun new-matrix (&optional (fast t))
   "Makes a matrix instance.  If FAST is t, then uses fast matrix
@@ -652,7 +636,8 @@ for the =hm= package, run the project described by the appropriate =.ini= file.
                       "examples/h-structure/complex-h-structure-reachable-2.ini"
                       (asdf:system-source-directory :hm)))
                     (t (error "Error: The ~a project is not known.~&" example)))))
-    (run-project cfg-file :verbose verbose :sequence-display sequence-display
+    (
+     run-project cfg-file :verbose verbose :sequence-display sequence-display
                           :chronology-display chronology-display
                           :sequence-cmd sequence-cmd :chronology-cmd chronology-cmd
                           :draw-sequence draw-sequence :draw-chronology draw-chronology

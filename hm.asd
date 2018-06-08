@@ -8,7 +8,7 @@
   :author "Thomas S. Dye <tsd@tsdye.com>"
   :maintainer "Thomas S. Dye <tsd@tsdye.com>"
   :homepage "http://tsdye.github.io/harris-matrix/"
-  :version "0.2"
+  :version "0.3"
   :license "GPL V3"
   :depends-on (#:graph
                #:graph/matrix
@@ -29,4 +29,5 @@
                (:file "src/elements/hm-elements")
                (:file "src/data-structures/hm-data-structures")
                (:file "src/memo/hm-memo")
+               (:file "src/fas/hm-fas")
                (:file "src/hm")))

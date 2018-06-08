@@ -25,6 +25,9 @@
 (defvar *sequence* nil
   "Variable to hold an archaeological-sequence for use in hm tests.")
 
+(defvar *cycle-graph* nil
+  "Variable to hold a graph with a cycle for use in hm tests.")
+
 (defixture fig-12-urls
   (:setup (setf *sequence*
                 (hm::configure-archaeological-sequence
@@ -267,19 +270,30 @@
                                                :edges '((a b)
                                                         (b c)
                                                         (c d)))
-                *cfg* (hm:default-configuration)))
+                *cfg* (hm::default-configuration)))
   (:teardown (setf *transitive* nil
                    *intransitive* nil
                    *cfg* nil)))
 
+(defixture cycle-graph
+    (:setup (setf *cycle-graph* (graph:populate (make-instance 'graph:digraph)
+                                                :nodes '(a b c d)
+                                                :edges '((a b)
+                                                         (b c)
+                                                         (c d)
+                                                         (d b)))))
+  (:teardown (setf *cycle-graph* nil)))
+
 (defixture default-config
-  (:setup (setf *cfg* (hm:default-configuration)))
+  (:setup
+   (setf *cfg* (hm::make-archaeological-sequence
+                :configuration (hm::default-configuration))))
   (:teardown (setf *cfg* nil)))
 
 (defixture empty-config
-  (:setup (setf *cfg* (hm:empty-configuration)))
+  (:setup (setf *cfg* (hm::make-archaeological-sequence
+                       :configuration  (hm::empty-configuration))))
   (:teardown (setf *cfg* nil)))
-
 
 ;;; Tests for utility functions, hm.lisp
 
@@ -304,7 +318,7 @@
   (is (equal (funcall (hm::graphviz-node-style) 2) "dotted"))
   (is (equal (funcall (hm::graphviz-node-style) 3) "bold"))
   (is (equal (funcall (hm::graphviz-node-style) 4) "rounded"))
-  (is (equal (funcall (hm::graphviz-node-style) 10) "solid")))
+  (is (equal (funcall (hm::graphviz-node-style) 9) "solid")))
 
 (deftest graphviz-node-shape-test ()
   (is (equal (funcall (hm::graphviz-node-shape) 0) "box"))
@@ -343,7 +357,7 @@
 (deftest transitive-reduction ()
   (with-fixture transitive-graph
     (is (graph:graph-equal
-         (hm::transitive-reduction *transitive* nil)
+         (hm::transitive-reduction-2 *transitive* nil)
          *intransitive*))))
 
 ;;; Tests for configurations
@@ -351,190 +365,200 @@
 (deftest test-penwidths ()
   "Test that edge and node penwidth min and max return the correct strings."
   (with-fixture default-config
-    (let ((res 1.0))
-      (is (equal (hm::penwidth-min *cfg* :node) res))
-      (is (equal (hm::penwidth-min *cfg* :edge) res))
-      (is (equal (hm::penwidth-max *cfg* :node) res))
-      (is (equal (hm::penwidth-max *cfg* :edge) res)))))
+    (let ((res 1.0)
+          (cfg (hm::archaeological-sequence-configuration *cfg*)))
+      (is (equal (hm::penwidth-min cfg :node) res))
+      (is (equal (hm::penwidth-min cfg :edge) res))
+      (is (equal (hm::penwidth-max cfg :node) res))
+      (is (equal (hm::penwidth-max cfg :edge) res)))))
 
 (deftest test-fontsizes ()
   "Test that edge and node fontsize min and max return correct strings."
   (with-fixture default-config
-    (let ((res 14.0))
-      (is (equal (hm::fontsize-min *cfg* :node) 6.0))
-      (is (equal (hm::fontsize-min *cfg* :edge) res))
-      (is (equal (hm::fontsize-max *cfg* :node) 22.0))
-      (is (equal (hm::fontsize-max *cfg* :edge) res)))))
+    (let ((res 14.0)
+          (cfg (hm::archaeological-sequence-configuration *cfg*)))
+      (is (equal (hm::fontsize-min cfg :node) 6.0))
+      (is (equal (hm::fontsize-min cfg :edge) res))
+      (is (equal (hm::fontsize-max cfg :node) 22.0))
+      (is (equal (hm::fontsize-max cfg :edge) res)))))
 
 (deftest test-lookup-fast-matrix ()
   "Test setting and getting the FAST-MATRIX option."
   (with-fixture default-config
-    (is (hm:fast-matrix-p *cfg*))
-    (hm::set-option *cfg* "General configuration" "fast-matrix" "off")
-    (is (not (hm:fast-matrix-p *cfg*)))))
+    (let ((cfg (hm::archaeological-sequence-configuration *cfg*)))
+    (is (hm::fast-matrix-p cfg))
+    (hm::set-option cfg "General configuration" "fast-matrix" "off")
+    (is (not (hm::fast-matrix-p cfg))))))
 
 (deftest test-assume-correlations-p ()
   "Test that the default configuration returns nil, that setting the option to `yes' returns non-nil, and that setting the option to `foo' returns an error."
   (with-fixture default-config
-    (is (not (hm::assume-correlations-p *cfg*)))
-    (hm::set-option *cfg* "General configuration" "assume-correlations" "yes")
-    (is (hm::assume-correlations-p *cfg*))))
+    (let ((cfg (hm::archaeological-sequence-configuration *cfg*)))
+      (is (not (hm::assume-correlations-p cfg)))
+      (hm::set-option cfg "General configuration" "assume-correlations" "yes")
+      (is (hm::assume-correlations-p cfg)))))
 
 (deftest test-project-directory ()
   "Test that PROJECT-DIRECTORY returns nil when called on the default configuration."
   (with-fixture default-config
-    (is (not (hm::project-directory *cfg*)))))
+    (is (not (hm::project-directory (hm::archaeological-sequence-configuration *cfg*))))))
 
 (deftest test-input-file-name-p ()
   "Test that INPUT-FILE-NAME-P returns nil for all input files given the default
   configuration."
   (with-fixture default-config
-    (is (not (hm:input-file-name-p *cfg* :contexts)))
-    (is (not (hm:input-file-name-p *cfg* :observations)))
-    (is (not (hm:input-file-name-p *cfg* :inferences)))
-    (is (not (hm:input-file-name-p *cfg* :periods)))
-    (is (not (hm:input-file-name-p *cfg* :phases)))
-    (is (not (hm:input-file-name-p *cfg* :events)))
-    (is (not (hm:input-file-name-p *cfg* :event-order)))))
+    (let ((cfg (hm::archaeological-sequence-configuration *cfg*)))
+      (is (not (hm::input-file-name-p cfg :contexts)))
+      (is (not (hm::input-file-name-p cfg :observations)))
+      (is (not (hm::input-file-name-p cfg :inferences)))
+      (is (not (hm::input-file-name-p cfg :periods)))
+      (is (not (hm::input-file-name-p cfg :phases)))
+      (is (not (hm::input-file-name-p cfg :events)))
+      (is (not (hm::input-file-name-p cfg :event-order))))))
 
 (deftest test-file-header-p ()
   "Test that FILE-HEADER-P returns nil for all input files given the default
   configuration."
   (with-fixture default-config
-    (is (not (hm:file-header-p *cfg* :contexts)))
-    (is (not (hm:file-header-p *cfg* :observations)))
-    (is (not (hm:file-header-p *cfg* :inferences)))
-    (is (not (hm:file-header-p *cfg* :periods)))
-    (is (not (hm:file-header-p *cfg* :phases)))
-    (is (not (hm:file-header-p *cfg* :events)))
-    (is (not (hm:file-header-p *cfg* :event-order)))))
+    (let ((cfg (hm::archaeological-sequence-configuration *cfg*)))
+      (is (not (hm::file-header-p cfg :contexts)))
+      (is (not (hm::file-header-p cfg :observations)))
+      (is (not (hm::file-header-p cfg :inferences)))
+      (is (not (hm::file-header-p cfg :periods)))
+      (is (not (hm::file-header-p cfg :phases)))
+      (is (not (hm::file-header-p cfg :events)))
+      (is (not (hm::file-header-p cfg :event-order))))))
 
 (deftest test-graphviz-sequence-graph-attribute ()
   "Test that GRAPHVIZ-SEQUENCE-GRAPH-ATTRIBUTE returns correct values from the
 default configuration."
   (with-fixture default-config
-    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :splines) "ortho"))
-    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :fontsize-subscript) "10"))
-    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :margin) "0.5,0.5"))
-    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :dpi) "96"))
-    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :page) "7,5"))
-    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :ratio) "auto"))
-    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :size) "6,4!"))
-    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :style) "filled"))
-    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :labelloc) "t"))
-    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :label) "Sequence Diagram"))
-    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :fontcolor) "black"))
-    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :fontsize) "14.0"))
-    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :fontname) "Helvetica"))
-    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :bgcolor) "white"))
-    (is (equal (hm::graphviz-sequence-graph-attribute *cfg* :colorscheme) "x11"))))
+    (let ((cfg (hm::archaeological-sequence-configuration *cfg*)))
+      (is (equal (hm::graphviz-sequence-graph-attribute cfg :splines) "ortho"))
+      (is (equal (hm::graphviz-sequence-graph-attribute cfg :fontsize-subscript) "10"))
+      (is (equal (hm::graphviz-sequence-graph-attribute cfg :margin) "0.5,0.5"))
+      (is (equal (hm::graphviz-sequence-graph-attribute cfg :dpi) ""))
+      (is (equal (hm::graphviz-sequence-graph-attribute cfg :page) ""))
+      (is (equal (hm::graphviz-sequence-graph-attribute cfg :ratio) ""))
+      (is (equal (hm::graphviz-sequence-graph-attribute cfg :size) ""))
+      (is (equal (hm::graphviz-sequence-graph-attribute cfg :style) "filled"))
+      (is (equal (hm::graphviz-sequence-graph-attribute cfg :labelloc) "t"))
+      (is (equal (hm::graphviz-sequence-graph-attribute cfg :label) "Sequence Diagram"))
+      (is (equal (hm::graphviz-sequence-graph-attribute cfg :fontcolor) "black"))
+      (is (equal (hm::graphviz-sequence-graph-attribute cfg :fontsize) "14.0"))
+      (is (equal (hm::graphviz-sequence-graph-attribute cfg :fontname) "Helvetica"))
+      (is (equal (hm::graphviz-sequence-graph-attribute cfg :bgcolor) "white"))
+      (is (equal (hm::graphviz-sequence-graph-attribute cfg :colorscheme) "x11")))))
 
 (deftest test-graphviz-sequence-edge-attribute ()
   "Test GRAPHVIZ-SEQUENCE-EDGE-ATTRIBUTE returns correct values from the default
 configuration."
   (with-fixture default-config
-    (is (equal
-         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :penwidth-max))
-         (hm::quotes-around "1.0")))
-    (is (equal
-         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :penwidth-min))
-         (hm::quotes-around "1.0")))
-    (is (equal
-         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :penwidth))
-         (hm::quotes-around "1.0")))
-    (is (equal
-         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :arrowhead))
-         (hm::quotes-around "normal")))
-    (is (equal
-         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :fontcolor))
-         (hm::quotes-around "black")))
-    (is (equal
-         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :fontsize-max))
-         (hm::quotes-around "14.0")))
-    (is (equal
-         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :fontsize-min))
-         (hm::quotes-around "14.0")))
-    (is (equal
-         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :fontsize))
-         (hm::quotes-around "14.0")))
-    (is (equal
-         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :fontname))
-         (hm::quotes-around "Helvetica")))
-    (is (equal
-         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :color))
-         (hm::quotes-around "black")))
-    (is (equal
-         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :style))
-         (hm::quotes-around "solid")))
-    (is (equal
-         (funcall (hm::graphviz-sequence-edge-attribute *cfg* :colorscheme))
-         (hm::quotes-around "x11")))
-    (is (equal
-         (funcall
-          (hm::graphviz-sequence-edge-attribute *cfg* :edge-classify-by))
-         (hm::quotes-around "from")))))
+    (let ((cfg (hm::archaeological-sequence-configuration *cfg*)))
+      (is (equal
+           (funcall (hm::graphviz-sequence-edge-attribute cfg :penwidth-max))
+           (hm::quotes-around "1.0")))
+      (is (equal
+           (funcall (hm::graphviz-sequence-edge-attribute cfg :penwidth-min))
+           (hm::quotes-around "1.0")))
+      (is (equal
+           (funcall (hm::graphviz-sequence-edge-attribute cfg :penwidth))
+           (hm::quotes-around "1.0")))
+      (is (equal
+           (funcall (hm::graphviz-sequence-edge-attribute cfg :arrowhead))
+           (hm::quotes-around "normal")))
+      (is (equal
+           (funcall (hm::graphviz-sequence-edge-attribute cfg :fontcolor))
+           (hm::quotes-around "black")))
+      (is (equal
+           (funcall (hm::graphviz-sequence-edge-attribute cfg :fontsize-max))
+           (hm::quotes-around "14.0")))
+      (is (equal
+           (funcall (hm::graphviz-sequence-edge-attribute cfg :fontsize-min))
+           (hm::quotes-around "14.0")))
+      (is (equal
+           (funcall (hm::graphviz-sequence-edge-attribute cfg :fontsize))
+           (hm::quotes-around "14.0")))
+      (is (equal
+           (funcall (hm::graphviz-sequence-edge-attribute cfg :fontname))
+           (hm::quotes-around "Helvetica")))
+      (is (equal
+           (funcall (hm::graphviz-sequence-edge-attribute cfg :color))
+           (hm::quotes-around "black")))
+      (is (equal
+           (funcall (hm::graphviz-sequence-edge-attribute cfg :style))
+           (hm::quotes-around "solid")))
+      (is (equal
+           (funcall (hm::graphviz-sequence-edge-attribute cfg :colorscheme))
+           (hm::quotes-around "x11")))
+      (is (equal
+           (funcall
+            (hm::graphviz-sequence-edge-attribute cfg :edge-classify-by))
+           (hm::quotes-around "from"))))))
 
 (deftest test-graphviz-sequence-node-attribute ()
   "Test GRAPHVIZ-SEQUENCE-NODE-ATTRIBUTE returns correct values from the default
 configuration."
   (with-fixture default-config
-    (is (equal
-         (funcall (hm::graphviz-sequence-node-attribute *cfg* :penwidth-max))
-         (hm::quotes-around "1.0")))
-    (is (equal
-         (funcall (hm::graphviz-sequence-node-attribute *cfg* :penwidth-min))
-         (hm::quotes-around "1.0")))
-    (is (equal
-         (funcall (hm::graphviz-sequence-node-attribute *cfg* :penwidth))
-         (hm::quotes-around "1.0")))
-    (is (equal
-         (funcall (hm::graphviz-sequence-node-attribute *cfg* :polygon-skew))
-         (hm::quotes-around "0.0")))
-    (is (equal
-         (funcall (hm::graphviz-sequence-node-attribute *cfg* :polygon-sides))
-         (hm::quotes-around "4")))
-    (is (equal
-         (funcall (hm::graphviz-sequence-node-attribute *cfg* :polygon-orientation))
-         (hm::quotes-around "0.0")))
-    (is (equal
-         (funcall (hm::graphviz-sequence-node-attribute *cfg* :polygon-image))
-         (hm::quotes-around "")))
-    (is (equal
-         (funcall (hm::graphviz-sequence-node-attribute *cfg* :polygon-distortion))
-         (hm::quotes-around "0.0")))
-    (is (equal
-         (funcall (hm::graphviz-sequence-node-attribute *cfg* :fontcolor))
-         (hm::quotes-around "black")))
-    (is (equal
-         (funcall (hm::graphviz-sequence-node-attribute *cfg* :fontsize-max))
-         (hm::quotes-around "22.0")))
-    (is (equal
-         (funcall (hm::graphviz-sequence-node-attribute *cfg* :fontsize-min))
-         (hm::quotes-around "6.0")))
-    (is (equal
-         (funcall (hm::graphviz-sequence-node-attribute *cfg* :fontsize))
-         (hm::quotes-around "14.0")))
-    (is (equal
-         (funcall (hm::graphviz-sequence-node-attribute *cfg* :fontname))
-         (hm::quotes-around "Helvetica")))
-    (is (equal
-         (funcall (hm::graphviz-sequence-node-attribute *cfg* :color))
-         (hm::quotes-around "black")))
-    (is (equal
-         (funcall (hm::graphviz-sequence-node-attribute *cfg* :style))
-         (hm::quotes-around "filled")))
-    (is (equal
-         (funcall (hm::graphviz-sequence-node-attribute *cfg* :colorscheme))
-         (hm::quotes-around "x11")))
-    (is (equal
-         (funcall
-          (hm::graphviz-sequence-node-attribute *cfg* :shape))
-         (hm::quotes-around "box")))))
+    (let ((cfg (hm::archaeological-sequence-configuration *cfg*)))
+      (is (equal
+           (funcall (hm::graphviz-sequence-node-attribute cfg :penwidth-max))
+           (hm::quotes-around "1.0")))
+      (is (equal
+           (funcall (hm::graphviz-sequence-node-attribute cfg :penwidth-min))
+           (hm::quotes-around "1.0")))
+      (is (equal
+           (funcall (hm::graphviz-sequence-node-attribute cfg :penwidth))
+           (hm::quotes-around "1.0")))
+      (is (equal
+           (funcall (hm::graphviz-sequence-node-attribute cfg :polygon-skew))
+           (hm::quotes-around "0.0")))
+      (is (equal
+           (funcall (hm::graphviz-sequence-node-attribute cfg :polygon-sides))
+           (hm::quotes-around "4")))
+      (is (equal
+           (funcall (hm::graphviz-sequence-node-attribute cfg :polygon-orientation))
+           (hm::quotes-around "0.0")))
+      (is (equal
+           (funcall (hm::graphviz-sequence-node-attribute cfg :polygon-image))
+           (hm::quotes-around "")))
+      (is (equal
+           (funcall (hm::graphviz-sequence-node-attribute cfg :polygon-distortion))
+           (hm::quotes-around "0.0")))
+      (is (equal
+           (funcall (hm::graphviz-sequence-node-attribute cfg :fontcolor))
+           (hm::quotes-around "black")))
+      (is (equal
+           (funcall (hm::graphviz-sequence-node-attribute cfg :fontsize-max))
+           (hm::quotes-around "22.0")))
+      (is (equal
+           (funcall (hm::graphviz-sequence-node-attribute cfg :fontsize-min))
+           (hm::quotes-around "6.0")))
+      (is (equal
+           (funcall (hm::graphviz-sequence-node-attribute cfg :fontsize))
+           (hm::quotes-around "14.0")))
+      (is (equal
+           (funcall (hm::graphviz-sequence-node-attribute cfg :fontname))
+           (hm::quotes-around "Helvetica")))
+      (is (equal
+           (funcall (hm::graphviz-sequence-node-attribute cfg :color))
+           (hm::quotes-around "black")))
+      (is (equal
+           (funcall (hm::graphviz-sequence-node-attribute cfg :style))
+           (hm::quotes-around "filled")))
+      (is (equal
+           (funcall (hm::graphviz-sequence-node-attribute cfg :colorscheme))
+           (hm::quotes-around "x11")))
+      (is (equal
+           (funcall
+            (hm::graphviz-sequence-node-attribute cfg :shape))
+           (hm::quotes-around "box"))))))
 
 (deftest test-graphviz-sequence-graph-color ()
   (with-fixture default-config
-    (is (equal "/x11/black" (hm::graphviz-sequence-graph-color *cfg* :fontcolor)))
-    (is (equal "/x11/white" (hm::graphviz-sequence-graph-color *cfg* :bgcolor)))))
+    (let ((cfg (hm::archaeological-sequence-configuration *cfg*)))
+      (is (equal "/x11/black" (hm::graphviz-sequence-graph-color cfg :fontcolor)))
+      (is (equal "/x11/white" (hm::graphviz-sequence-graph-color cfg :bgcolor))))))
 
 (deftest test-graphviz-classification ()
   "Test that classifications are read from a user configuration read from disk."
@@ -560,18 +584,18 @@ configuration."
 (deftest test-reachable-limit ()
   "Test that REACHABLE-LIMIT is not set in the default configuration."
   (with-fixture default-config
-    (is (not (hm::reachable-limit *cfg*)))))
+    (is (not (hm::reachable-limit (hm::archaeological-sequence-configuration *cfg*))))))
 
 (deftest test-reachable-from-node ()
   "Test that REACHABLE-FROM-NODE is not set in the default configuration."
   (with-fixture default-config
-    (is (not (hm::reachable-from-node *cfg*)))))
+    (is (not (hm::reachable-from-node (hm::archaeological-sequence-configuration *cfg*))))))
 
 (deftest test-chronology-graph-p ()
   "Test that CHRONOLOGY-GRAPH-P returns nil given the default configuration, and
 that it errors out when set to an invalid value."
   (with-fixture default-config
-    (is (not (hm::chronology-graph-p *cfg*)))))
+    (is (not (hm::chronology-graph-p (hm::archaeological-sequence-configuration *cfg*))))))
 
 ;; (deftest test-include-url-p ()
 ;;   "Test that INCLUDE-URL-P returns nil given the default configuration, and
@@ -586,76 +610,80 @@ that it errors out when set to an invalid value."
   "Test that SEQUENCE-CLASSIFIER returns the values given in the default
   configuration."
   (with-fixture default-config
-    (is (not (hm::sequence-classifier *cfg* :edge-style-by)))
-    (is (not (hm::sequence-classifier *cfg* :edge-arrowhead-by)))
-    (is (not (hm::sequence-classifier *cfg* :edge-penwidth-by)))
-    (is (not (hm::sequence-classifier *cfg* :edge-fontsize-by)))
-    (is (not (hm::sequence-classifier *cfg* :edge-fontcolor-by)))
-    (is (not (hm::sequence-classifier *cfg* :edge-color-by)))
-    (is (not (hm::sequence-classifier *cfg* :node-polygon-skew-by)))
-    (is (not (hm::sequence-classifier *cfg* :node-polygon-sides-by)))
-    (is (not (hm::sequence-classifier *cfg* :node-polygon-orientation-by)))
-    (is (not (hm::sequence-classifier *cfg* :node-polygon-image-by)))
-    (is (not (hm::sequence-classifier *cfg* :node-polygon-distortion-by)))
-    (is (not (hm::sequence-classifier *cfg* :node-style-by)))
-    (is (not (hm::sequence-classifier *cfg* :node-penwidth-by)))
-    (is (not (hm::sequence-classifier *cfg* :node-color-by)))
-    (is (eq :units (hm::sequence-classifier *cfg* :node-shape-by)))
-    (is (not (hm::sequence-classifier *cfg* :node-fontcolor-by)))
-    (is (not (hm::sequence-classifier *cfg* :node-fillcolor-by)))))
+    (let ((cfg (hm::archaeological-sequence-configuration *cfg*)))
+      (is (not (hm::sequence-classifier cfg :edge-style-by)))
+      (is (not (hm::sequence-classifier cfg :edge-arrowhead-by)))
+      (is (not (hm::sequence-classifier cfg :edge-penwidth-by)))
+      (is (not (hm::sequence-classifier cfg :edge-fontsize-by)))
+      (is (not (hm::sequence-classifier cfg :edge-fontcolor-by)))
+      (is (not (hm::sequence-classifier cfg :edge-color-by)))
+      (is (not (hm::sequence-classifier cfg :node-polygon-skew-by)))
+      (is (not (hm::sequence-classifier cfg :node-polygon-sides-by)))
+      (is (not (hm::sequence-classifier cfg :node-polygon-orientation-by)))
+      (is (not (hm::sequence-classifier cfg :node-polygon-image-by)))
+      (is (not (hm::sequence-classifier cfg :node-polygon-distortion-by)))
+      (is (not (hm::sequence-classifier cfg :node-style-by)))
+      (is (not (hm::sequence-classifier cfg :node-penwidth-by)))
+      (is (not (hm::sequence-classifier cfg :node-color-by)))
+      (is (eq :units (hm::sequence-classifier cfg :node-shape-by)))
+      (is (not (hm::sequence-classifier cfg :node-fontcolor-by)))
+      (is (not (hm::sequence-classifier cfg :node-fillcolor-by))))))
 
 (deftest test-lookup-graphviz-option ()
   "Test that LOOKUP-GRAPHVIZ-OPTION returns values from the default configuration."
   (with-fixture default-config
-    (is (equal "filled"
-               (hm::lookup-graphviz-option *cfg* :node :style :sequence)))
-    (is (equal "solid"
-               (hm::lookup-graphviz-option *cfg* :edge :style :sequence)))
-    (is (equal "x11"
-               (hm::lookup-graphviz-option *cfg* :edge :colorscheme :sequence)))
-    (is (equal "x11"
-               (hm::lookup-graphviz-option *cfg* :node :colorscheme :sequence)))
-    (is (equal "0"
-               (hm::lookup-graphviz-option *cfg* :node :origin :sequence
-                                           :node-color-by :reachable)))
-    (is (equal "1"
-               (hm::lookup-graphviz-option *cfg* :node :reachable :sequence
-                                                       :node-color-by :reachable)))
-    (is (equal "2"
-               (hm::lookup-graphviz-option *cfg* :node :not-reachable :sequence
-                                           :node-color-by :reachable)))))
+    (let ((cfg (hm::archaeological-sequence-configuration *cfg*)))
+      (is (equal "filled"
+                 (hm::lookup-graphviz-option cfg :node :style :sequence)))
+      (is (equal "solid"
+                 (hm::lookup-graphviz-option cfg :edge :style :sequence)))
+      (is (equal "x11"
+                 (hm::lookup-graphviz-option cfg :edge :colorscheme :sequence)))
+      (is (equal "x11"
+                 (hm::lookup-graphviz-option cfg :node :colorscheme :sequence)))
+      (is (equal "0"
+                 (hm::lookup-graphviz-option cfg :node :origin :sequence
+                                                         :node-color-by :reachable)))
+      (is (equal "1"
+                 (hm::lookup-graphviz-option cfg :node :reachable :sequence
+                                                         :node-color-by :reachable)))
+      (is (equal "2"
+                 (hm::lookup-graphviz-option cfg :node :not-reachable :sequence
+                                                         :node-color-by :reachable))))))
 
 (deftest test-reset-option ()
   "Test that GET-ALL-CONFIGURATION-OPTIONS works and that RESET-OPTION changes
 the configuration."
-  (let ((default-config (hm:default-configuration)))
-    (with-fixture default-config
-      (is (equal (get-all-configuration-options *cfg*)
-                 (get-all-configuration-options default-config)))
-      (reset-option default-config "General configuration" "legend" "on")
-      (is (not (equal (get-all-configuration-options *cfg*)
-                      (get-all-configuration-options default-config)))))))
+  (with-fixture default-config
+    (let ((cfg (hm::archaeological-sequence-configuration *cfg*)))
+      (is (equal (hm::get-all-configuration-options cfg)
+                 (hm::get-all-configuration-options (hm::default-configuration))))
+      (hm::set-option cfg "General configuration" "legend" "on")
+      (is (not (equal (hm::get-all-configuration-options cfg)
+                      (hm::get-all-configuration-options (hm::default-configuration))))))))
 
 (deftest test-set-input-file ()
   "Test whether SET-INPUT-FILE function correctly sets options in sections Input
 files and Input file headers."
   (with-fixture default-config
-    (let* ((file-name-string "test/assets/configurations/contexts-eg.csv"))
+    (let* ((file-name-string "test/assets/configurations/contexts-eg.csv")
+           (cfg (hm::archaeological-sequence-configuration *cfg*)))
       (set-input-file *cfg* "contexts" file-name-string t)
       (set-input-file *cfg* "observations" file-name-string nil)
-      (is (equal (hm::input-file-name-p *cfg* :contexts) file-name-string))
-      (is (equal (hm::input-file-name-p *cfg* :observations) file-name-string))
-      (is (hm::get-option *cfg* "Input file headers" "contexts" :type :boolean))
-      (is (not (hm::get-option *cfg* "Input file headers" "observations"
+      (is (equal (hm::input-file-name-p cfg :contexts) file-name-string))
+      (is (equal (hm::input-file-name-p cfg :observations) file-name-string))
+      (is (hm::get-option cfg "Input file headers" "contexts" :type :boolean))
+      (is (not (hm::get-option cfg "Input file headers" "observations"
                            :type :boolean))))))
 
-(deftest test-set-dot-file ()
-  "Test that TEST_SET_DOT_FILE works."
-  (with-fixture default-config
-    (set-dot-file *cfg* "chronology-dot" "foo.dot" nil)
-    (set-dot-file *cfg* "sequence-dot" "bar.dot" nil)
-    (is (equal (hm::get-option *cfg* "Output files" "chronology-dot") "foo.dot"))
-    (is (equal (hm::get-option *cfg* "Output files" "sequence-dot") "bar.dot"))))
+;; (deftest test-set-dot-file ()
+;;   "Test that TEST_SET_DOT_FILE works."
+;;   (with-fixture default-config
+;;     (let ((cfg (hm::archaeological-sequence-configuration *cfg*)))
+;;       (set-dot-file cfg "chronology-dot" "foo.dot" nil)
+;;       (set-dot-file cfg "sequence-dot" "bar.dot" nil)
+;;       (is (equal (hm::get-option cfg "Output files" "chronology-dot") "foo.dot"))
+;;       (is (equal (hm::get-option cfg "Output files" "sequence-dot") "bar.dot")))))
 
 ;;; Color functions
 
@@ -711,27 +739,29 @@ files and Input file headers."
             (uiop:merge-pathnames* "test-config.ini" *path*))
           (config-from-file nil))
       (with-fixture default-config
-        (write-configuration *cfg* path-name)
-        (setf config-from-file (read-configuration-from-files nil path-name))
-        (is (equal (get-configuration-sections *cfg*)
-                   (get-configuration-sections config-from-file)))
-        (is (equal (get-all-configuration-options *cfg*)
-                   (get-all-configuration-options config-from-file)))))))
+        (let ((cfg (hm::archaeological-sequence-configuration *cfg*)))
+          (write-configuration *cfg* path-name)
+          (setf config-from-file (read-configuration-from-files nil path-name))
+          (is (equal (hm::get-configuration-sections cfg)
+                     (hm::get-configuration-sections config-from-file)))
+          (is (equal (hm::get-all-configuration-options cfg)
+                     (hm::get-all-configuration-options config-from-file))))))))
 
 (deftest read-write-split-configuration ()
   "Test that configurations written to two files are read back in correctly."
   (with-fixtures (hm-test-config-path default-config)
     (let ((gen-path-name (uiop:merge-pathnames* "test-general-config.ini" *path*))
           (gv-path-name (uiop:merge-pathnames* "test-graphviz-config.ini" *path*))
-          (config-from-file nil))
-      (write-general-configuration *cfg* gen-path-name)
-      (write-Graphviz-style-configuration *cfg* gv-path-name)
+          (config-from-file nil)
+          (cfg (hm::archaeological-sequence-configuration *cfg*)))
+      (hm::write-general-configuration *cfg* gen-path-name)
+      (hm::write-Graphviz-style-configuration *cfg* gv-path-name)
       (setf config-from-file
             (read-configuration-from-files nil gen-path-name gv-path-name))
-      (is (equal (get-configuration-sections *cfg*)
-                 (get-configuration-sections config-from-file)))
-      (is (equal (get-all-configuration-options *cfg*)
-                 (get-all-configuration-options config-from-file))))))
+      (is (equal (hm::get-configuration-sections cfg)
+                 (hm::get-configuration-sections config-from-file)))
+      (is (equal (hm::get-all-configuration-options cfg)
+                 (hm::get-all-configuration-options config-from-file))))))
 
 ;; Data structure tests
 
@@ -740,7 +770,7 @@ files and Input file headers."
 
 (deftest test-roskams-h-structure-config ()
   (with-fixture roskams-h-structure
-    (is (not (configuration-errors? *cfg*)))))
+    (is (not (hm::configuration-errors? *cfg*)))))
 
 (deftest test-roskams-h-structure-graph ()
   (with-fixture roskams-h-structure
@@ -749,17 +779,17 @@ files and Input file headers."
 
 (deftest test-roskams-h-structure-configure-sequence ()
   (with-fixture roskams-h-structure
-    (is (typep (hm:configure-archaeological-sequence
+    (is (typep (hm::configure-archaeological-sequence
                 (hm::make-archaeological-sequence) *cfg* nil)
                'hm::archaeological-sequence))))
 
-(deftest test-roskams-h-structure-graph-nodes-edges ()
-  (with-fixture roskams-h-structure
-    (let ((g (hm::make-new-sequence-graph *cfg* nil)))
-      (is (equal (graph:nodes g) '(|1| |2| |3| |4| |5|)))
-      (is (equal
-           (graph:edges g)
-           '((|1| |3|) (|1| |4|) (|1| |5|) (|2| |3|) (|2| |5|) (|3| |5|) (|4| |5|)))))))
+;; (deftest test-roskams-h-structure-graph-nodes-edges ()
+;;   (with-fixture roskams-h-structure
+;;     (let ((g (hm::make-new-sequence-graph *cfg* nil)))
+;;       (is (equal (graph:nodes g) '(|1| |2| |3| |4| |5|)))
+;;       (is (equal
+;;            (graph:edges g)
+;;            '((|1| |3|) (|1| |4|) (|1| |5|) (|2| |3|) (|2| |5|) (|3| |5|) (|4| |5|)))))))
 
 
 ;; Tests using Roskams H sequence
@@ -850,7 +880,7 @@ resulting pdf file for viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
-      (hm::make-graphics-file cfg :sequence "pdf" :open "open" :verbose nil))))
+      (hm::make-graphics-file cfg :sequence "pdf" :verbose nil))))
 
 (deftest test-adjacent ()
   "Test that adjacent classifies node fill color, shape, and pen width, and edge
@@ -863,7 +893,7 @@ resulting pdf file for viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
-      (hm::make-graphics-file cfg :sequence "pdf" :open "open" :verbose nil))))
+      (hm::make-graphics-file cfg :sequence "pdf" :verbose nil))))
 
 (deftest test-distance ()
   "Test that distance classifies node fill color, shape, and pen width, and edge
@@ -876,7 +906,7 @@ resulting pdf file for viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
-      (hm::make-graphics-file cfg :sequence "pdf" :open "open" :verbose nil))))
+      (hm::make-graphics-file cfg :sequence "pdf" :verbose nil))))
 
 (deftest test-levels ()
   "Test that levels classifies node fill color, shape, and pen width, and edge
@@ -889,7 +919,7 @@ resulting pdf file for viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
-      (hm::make-graphics-file cfg :sequence "pdf" :open "open" :verbose nil))))
+      (hm::make-graphics-file cfg :sequence "pdf" :verbose nil))))
 
 
 (deftest test-periods ()
@@ -903,7 +933,7 @@ resulting pdf file for viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
-      (hm::make-graphics-file cfg :sequence "pdf" :open "open" :verbose nil))))
+      (hm::make-graphics-file cfg :sequence "pdf" :verbose nil))))
 
 (deftest test-phases ()
   "Test that phases classifies node fill color, shape, and pen width, and edge
@@ -916,7 +946,7 @@ resulting pdf file for viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
-      (hm::make-graphics-file cfg :sequence "pdf" :open "open" :verbose nil))))
+      (hm::make-graphics-file cfg :sequence "pdf" :verbose nil))))
 
 (deftest test-units ()
   "Test that units classifies node fill color, shape, and pen width, and edge
@@ -929,7 +959,7 @@ resulting pdf file for viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
-      (hm::make-graphics-file cfg :sequence "pdf" :open "open" :verbose nil))))
+      (hm::make-graphics-file cfg :sequence "pdf" :verbose nil))))
 
 (deftest test-polygon-distortion ()
   "Test that distance classifies polygon distortion, then writes a sequence
@@ -941,7 +971,7 @@ opens the resulting pdf file for viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
-      (hm::make-graphics-file cfg :sequence "pdf" :open "open" :verbose nil))))
+      (hm::make-graphics-file cfg :sequence "pdf" :verbose nil))))
 
 (deftest test-polygon-orientation ()
   "Test that distance classifies polygon orientation, then writes a sequence
@@ -953,7 +983,7 @@ opens the resulting pdf file for viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
-      (hm::make-graphics-file cfg :sequence "pdf" :open "open" :verbose nil))))
+      (hm::make-graphics-file cfg :sequence "pdf" :verbose nil))))
 
 (deftest test-polygon-sides ()
   "Test that distance classifies polygon sides, then writes a sequence graph dot
@@ -965,7 +995,7 @@ resulting pdf file for viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
-      (hm::make-graphics-file cfg :sequence "pdf" :open "open" :verbose nil))))
+      (hm::make-graphics-file cfg :sequence "pdf" :verbose nil))))
 
 (deftest test-polygon-skew ()
   "Test that distance classifies polygon skew, then writes a sequence graph dot
@@ -977,7 +1007,7 @@ resulting pdf file for viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
-      (hm::make-graphics-file cfg :sequence "pdf" :open "open" :verbose nil))))
+      (hm::make-graphics-file cfg :sequence "pdf" :verbose nil))))
 
 (deftest test-correlations ()
   "Test that correlations are made correctly for periods, then writes a sequence
@@ -989,7 +1019,7 @@ opens the resulting pdf file for viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
-      (hm::make-graphics-file cfg :sequence "pdf" :open "open" :verbose nil))))
+      (hm::make-graphics-file cfg :sequence "pdf" :verbose nil))))
 
 (deftest test-chronology ()
   "Test the chronology graph. Checks whether the dot file exists, compiles it
@@ -1000,7 +1030,7 @@ with dot, and opens the resulting pdf file for viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-chronology-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "chronology-dot")))
-      (hm::make-graphics-file cfg :chronology "pdf" :open "open" :verbose nil))))
+      (hm::make-graphics-file cfg :chronology "pdf" :verbose nil))))
 
 (deftest test-urls ()
   "Test that urls are inserted properly in the sequence graph. Checks whether
@@ -1012,7 +1042,7 @@ viewing."
       (uiop:delete-file-if-exists old-file)
       (hm::write-sequence-graph-to-dot-file *sequence* nil)
       (is (probe-file (hm::output-file-name cfg "sequence-dot")))
-      (hm::make-graphics-file cfg :sequence "svg" :open "open" :verbose nil))))
+      (hm::make-graphics-file cfg :sequence "svg" :verbose nil))))
 
 ;; (deftest test-bldg-1-5 ()
 ;;   "Test that a large project actually runs, then writes a sequence graph dot
@@ -1028,3 +1058,8 @@ viewing."
 ;;          (hm::output-file-name
 ;;           (hm::archaeological-sequence-configuration *sequence*)
 ;;           "sequence-dot")))))
+
+(deftest test-fas ()
+  "Test feedback arc set."
+  (with-fixture cycle-graph
+      (is (equal (array-fas *cycle-graph* nil) '(c b)))))
