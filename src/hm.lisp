@@ -95,8 +95,8 @@ cycles are found.  The error message contains a list of suspicious nodes."
     (when (graph:cycles graph)
       (setf fvs (array-fas graph verbose))
       (when verbose
-        (format t "Directed graph ~a is cyclical, suspect nodes ~a.~&" graph fvs))
-      (error "Error: Directed graph ~a is cyclical.~&" graph))
+        (format t "Directed graph ~a is cyclical, check nodes ~a.~&" graph fvs))
+      (error "Error: Directed graph is cyclical, check nodes ~a.~&" fvs))
     (when verbose (format t "No cycles found in directed graph ~a.~&" graph))))
 
 (defun assume-correlations (graph cfg &optional (verbose t))
