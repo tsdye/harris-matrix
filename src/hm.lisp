@@ -61,17 +61,23 @@ the possibly modified GRAPH."
     ret))
 
 (defun add-arcs (graph cfg &optional (verbose t))
-  "Add arcs to a graph, GRAPH, using the information in the configuration CFG. If
-VERBOSE, then advertise the activity. Returns the possibly modified GRAPH."
+  "Add arcs to a graph, GRAPH, using the information in the configuration CFG.
+Check that both nodes are present in GRAPH and error out if not. When VERBOSE,
+then advertise the activity. Returns the possibly modified GRAPH."
   (let ((ret (graph:copy graph))
         (obs (read-table (input-file-name cfg :observations)
                          (file-header-p cfg :observations) verbose))
         (count 0))
     (when verbose (format t "Adding arcs to the sequence graph.~&"))
     (dolist (arc obs)
-      (incf count)
-      (graph:add-edge ret (list (ensure-symbol (nth 0 arc))
-                                (ensure-symbol (nth 1 arc)))))
+      (let ((younger (ensure-symbol (nth 0 arc)))
+            (older (ensure-symbol (nth 1 arc))))
+        (incf count)
+        (unless (graph:has-node-p ret younger)
+          (error "Error: Younger node ~a absent from graph." younger))
+        (unless (graph:has-node-p ret older)
+          (error "Error: Older node ~a absent from graph." older))
+        (graph:add-edge ret (list younger older))))
     (when verbose (format t "~:d arcs added to the sequence graph.~&" count))
     ret))
 
@@ -81,9 +87,10 @@ VERBOSE, then advertise the activity. Returns the possibly modified GRAPH."
   (let ((graph (new-graph)))
     (setf graph (add-nodes graph cfg verbose))
     (setf graph (add-arcs graph cfg verbose))
-    (check-cycles graph verbose)
-    (when (assume-correlations-p cfg)
-      (setf graph (assume-correlations graph cfg verbose)))
+    (if (assume-correlations-p cfg)
+      (let ((terms (correlation-terms cfg)))
+        (setf graph (assume-correlations graph cfg :verbose verbose :terms terms)))
+      (check-cycles graph verbose))
     (setf graph (transitive-reduction-2 graph verbose))
     graph))
 
@@ -99,41 +106,67 @@ cycles are found.  The error message contains a list of suspicious nodes."
       (error "Error: Directed graph is cyclical, check nodes ~a.~&" fvs))
     (when verbose (format t "No cycles found in directed graph ~a.~&" graph))))
 
-(defun assume-correlations (graph cfg &optional (verbose t))
+(defun assume-correlations (graph cfg &key (verbose t) (terms 2))
   "Given the information in a configuration CFG, possibly merge and rename the
-  nodes of GRAPH. Check for cycles and error out if present, otherwise return
-  the possibly modified GRAPH."
+  nodes of GRAPH. Checks that both correlated nodes are in GRAPH and errors out
+  if not. Checks for cycles and error out if present, otherwise return the
+  possibly modified GRAPH and an fset map of user nodes and correlated nodes.
+  If :VERBOSE then write messages to standard output. :TERMS refers to the
+  number of terms in the assumption. 2 is the standard stratigraphic case. 3 and
+  4 are horizontal stratigraphic cases where 3 assumes two terms are correlated
+  and older than the third term, and 4 consists of two pairs, one or the other
+  of which can be assumed and the other two are both younger than the two
+  correlated terms."
   (let ((ret (graph:copy graph))
         (input-file-name (input-file-name cfg :inferences))
         (file-header (file-header-p cfg :inferences))
-        (inferences)
-        (node-map (fset:empty-map)))
+        (node-map (fset:empty-map))
+        (count 0))
     (if input-file-name
-        (setf inferences (read-table input-file-name file-header verbose))
+        (progn
+          (when verbose (format t "Making inferences.~&"))
+          (cl-csv:do-csv (part input-file-name :skip-first-p file-header)
+            (let ((first-term (ensure-symbol (nth 0 part)))
+                  (second-term (ensure-symbol (nth 1 part))))
+              (loop while (fset:domain-contains? node-map first-term)
+                    do (setf first-term (fset:lookup node-map first-term)))
+              (loop while (fset:domain-contains? node-map second-term)
+                    do (setf second-term (fset:lookup node-map second-term)))
+              (unless (graph:has-node-p ret first-term)
+                (error "Error: Correlated node ~a absent from graph." first-term))
+              (unless (graph:has-node-p ret second-term)
+                (error "Error: Correlated node ~a absent from graph." second-term))
+              (let ((new-node (correlated-node first-term second-term)))
+                (graph:merge-nodes ret second-term first-term :new new-node)
+                (setf node-map (fset:with node-map first-term new-node))
+                (setf node-map (fset:with node-map second-term new-node))
+                (incf count)))))
         (error "Error: No inference table specified."))
-    (when verbose (format t "Making inferences.~&"))
-    (dolist (part inferences)
-      (loop while (fset:domain-contains? node-map (nth 0 part))
-        do (setf (nth 0 part) (fset:lookup node-map (nth 0 part))))
-      (loop while (fset:domain-contains? node-map (nth 1 part))
-        do (setf (nth 1 part) (fset:lookup node-map (nth 1 part))))
-      (let ((new-node (correlated-node (nth 0 part) (nth 1 part))))
-        (fset:with node-map (nth 0 part) new-node)
-        (fset:with node-map (nth 1 part) new-node)
-        (graph:merge-nodes ret (ensure-symbol (nth 1 part))
-                           (ensure-symbol (nth 0 part))
-                           :new new-node)
-        (setf node-map (fset:with node-map (nth 0 part) new-node))
-        (setf node-map (fset:with node-map (nth 1 part) new-node))))
-    (when verbose (format t "Made ~:d inferences.~&" (length inferences)))
+    (when (= terms 3)
+      (cl-csv:do-csv (part input-file-name :skip-first-p file-header)
+        (let ((first-term (ensure-symbol (nth 0 part)))
+              (third-term (ensure-symbol (nth 2 part))))
+          (loop while (fset:domain-contains? node-map first-term)
+                do (setf first-term (fset:lookup node-map first-term)))
+          (graph:add-edge ret (list third-term first-term)))))
+    (when (= terms 4)
+      (cl-csv:do-csv (part input-file-name :skip-first-p file-header)
+        (let ((first-term (ensure-symbol (nth 0 part)))
+              (third-term (ensure-symbol (nth 2 part)))
+              (fourth-term (ensure-symbol (nth 3 part))))
+          (loop while (fset:domain-contains? node-map first-term)
+                do (setf first-term (fset:lookup node-map first-term)))
+          (graph:add-edge ret (list third-term first-term))
+          (graph:add-edge ret (list fourth-term first-term)))))
+    (when verbose (format t "Made ~:d inferences.~&" count))
     (check-cycles ret verbose)
-    ret))
+    (values ret node-map)))
 
-(defun correlated-node (node-1 node-2 &optional (as-string nil))
-  "Given two correlated node symbols, NODE-1 and NODE-2, return a new
+(defun correlated-node (first-node second-node &optional as-string)
+  "Given two correlated node symbols, FIRST-NODE and SECOND-NODE, return a new
 symbol for the correlated nodes.  If AS-STRING is non-nil, return the
 correlated node symbol as a string."
-  (let ((new-node (symbolicate node-1 "=" node-2)))
+  (let ((new-node (symbolicate first-node "=" second-node)))
     (if as-string (string new-node) new-node)))
 
 (defun graphviz-make-ranks (cfg &optional (verbose t))

@@ -51,6 +51,7 @@
 '("General configuration" "project-directory" :none :none :none :none :none "")
 '("General configuration" "legend" :none :none :all :none :none "off")
 '("General configuration" "assume-correlations" :none :none :sequence :none :none "no")
+'("General configuration" "correlation-terms" :none :none :sequence :none :none "2")
 '("General configuration" "fast-matrix" :none :none :sequence :none :none "on")
 '("Graph analysis configuration" "distance-from" :node :distance-from :sequence :none :distance "")
 '("Graph analysis configuration" "adjacent-from" :edge :origin :sequence :none :adjacent "")
@@ -343,6 +344,10 @@
 
 (defun boolean-string-p (candidate)
   (fset:contains? (boolean-strings) candidate))
+
+(defun correlation-terms (cfg)
+  "Returns the numeric value of correlation terms from the user's configuration, CFG."
+  (get-option cfg "General configuration" "correlation-terms" :type :number))
 
 (defun penwidth-min (cfg element)
   "Returns penwidth-min for the ELEMENT from the user's configuration, CFG.
