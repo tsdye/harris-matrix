@@ -145,10 +145,19 @@ cycles are found.  The error message contains a list of suspicious nodes."
     (when (= terms 3)
       (cl-csv:do-csv (part input-file-name :skip-first-p file-header)
         (let ((first-term (ensure-symbol (nth 0 part)))
-              (third-term (ensure-symbol (nth 2 part))))
-          (loop while (fset:domain-contains? node-map first-term)
-                do (setf first-term (fset:lookup node-map first-term)))
-          (graph:add-edge ret (list third-term first-term)))))
+              (second-term (ensure-symbol (nth 1 part)))
+              (third-term (ensure-symbol (nth 2 part)))
+              (flag (cond ((string= "true" (nth 3 part)) t)
+                          ((string= "false" (nth 3 part)) nil)
+                          (t (error "Value of INFER is incorrect, ~a" (nth 3 part))))))
+          (if flag
+              (progn
+                (loop while (fset:domain-contains? node-map first-term)
+                      do (setf first-term (fset:lookup node-map first-term)))
+                (graph:add-edge ret (list third-term first-term)))
+              (progn
+                (graph:add-edge ret (list first-term third-term))
+                (graph:add-edge ret (list second-term third-term)))))))
     (when (= terms 4)
       (cl-csv:do-csv (part input-file-name :skip-first-p file-header)
         (let ((first-term (ensure-symbol (nth 0 part)))
