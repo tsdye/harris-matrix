@@ -10,7 +10,7 @@
 (in-package  #:hm)
 
 (defun array-fas (graph &optional (verbose t))
-  "Estimate the feedback arc set of GRAPH using the method of Eades et al. 1993."
+  "Estimate the feedback arc set of GRAPH using the method of Eades et al. 1993.  Return a list containing the feedback node set."
   (let* ((n-nodes (length (graph:nodes graph)))
          (n-classes (- (* 2 n-nodes) 3))
          (bins (make-array n-classes :initial-element -1))
