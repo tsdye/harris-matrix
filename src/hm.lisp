@@ -100,7 +100,8 @@ cycles are found. The error message contains a list of suspicious nodes, which
 will contain only inferred nodes if PRUNE-FVS is non-nil."
   (let ((fvs))
     (when verbose (format t "Checking directed graph ~a for cycles.~&" graph))
-    (when (graph:cycles graph)
+    (when (graph:basic-cycles graph)
+      (when verbose (format t "Cycles detected, calculating feedback arc set.~&"))
       (setf fvs (array-fas graph verbose))
       (when prune-fvs (setf fvs (remove-if-not (lambda (x) (find #\= (string x))) fvs)))
       (when verbose
@@ -355,7 +356,7 @@ empty graph. If VERBOSE, then advertise progress."
        (remove-duplicates events) :length 2))
     ;; Step 6 of the algorithm
     (when verbose (format t "Checking the chronology graph for cycles.~&"))
-    (when (graph:cycles ret)
+    (when (graph:basic-cycles ret)
       (error "Error: The chronology graph is cyclical.~&Nodes: ~a~&Edges: ~a~&"
              (graph:nodes ret) (graph:edges ret)))
     (when verbose (format t "Performing transitive reduction of the chronology graph.~&"))
