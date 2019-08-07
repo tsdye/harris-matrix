@@ -149,14 +149,10 @@ A configuration.
 * Description
 Reads the initialization files FILE-NAMES and returns a configuration. Errors
 out if one or more initialization files were not read. If VERBOSE is non-nil,
-prints a status message.
-* Example
-#+begin_src lisp
-(read-configuration-from-files t \"my-config.ini\")
-#+end_src"
+prints a status message."
   (let ((config (make-default-or-empty-configuration (master-table))))
     (dolist (file file-names)
-      (when (null (probe-file file))
+      (when (and file (null (probe-file file)))
         (error "Error: Unable to find file ~s.~&" file)))
     (when verbose
       (format t "Read ~r initialization file~:p: ~{~a~^, ~}.~&"

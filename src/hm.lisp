@@ -512,11 +512,11 @@ the archaeological sequence, SEQ."
       (cons :fontcolor (graphviz-chronology-node-attribute cfg :fontcolor))))
     (when verbose (format t "Wrote ~a.~%" out-file))))
 
-(defun load-project (cfg-file &optional (verbose t))
+(defun load-project (cfg-file &key (verbose t) (style-file))
   "Given a path to the user's configuration file, CFG-FILE, read the file,
 configure the archaeological sequence, check it for errors, and return it."
   (let ((seq (hm::make-archaeological-sequence))
-        (cfg (hm:read-configuration-from-files verbose cfg-file)))
+        (cfg (hm:read-configuration-from-files verbose cfg-file style-file)))
     (hm::configure-archaeological-sequence seq cfg verbose)))
 
 (defun run-sequence (seq &optional (verbose t) display (cmd "open"))
@@ -564,7 +564,7 @@ configure the archaeological sequence, check it for errors, and return it."
                  display))
         (make-graphics-file cfg :chronology display :open cmd :verbose verbose)))))
 
-(defun run-project (cfg-file &key (verbose t) (sequence-display "png")
+(defun run-project (cfg-file &key (style) (verbose t) (sequence-display "png")
                                (chronology-display "png") (sequence-cmd "xdg-open")
                                (chronology-cmd "xdg-open") (draw-sequence t)
                                (draw-chronology t) (delete-sequence nil)
@@ -591,13 +591,9 @@ it is displayed. If DRAW-CHRONOLOGY is non-nil, then create a sequence graph in
 the format indicated by CHRONOLOGY-DISPLAY and open the graphics file with the
 shell command, CHRONOLOGY-CMD. If DELETE-CHRONOLOGY is non-nil, then delete the
 graphics file after it is displayed. If VERBOSE is non-nil, then advertise
-progress.
-* Example
-#+begin_src lisp
-(run-project \"my-config.ini\" :verbose nil :sequence-cmd \"evince\")
-#+end_src"
+progress."
   (memoize-functions)
-  (let* ((seq (load-project cfg-file verbose))
+  (let* ((seq (load-project cfg-file :verbose verbose :style-file style))
          (cfg (archaeological-sequence-configuration seq)))
     (when draw-sequence
       (run-sequence seq verbose sequence-display sequence-cmd)
