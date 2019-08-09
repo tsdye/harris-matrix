@@ -150,15 +150,15 @@ A configuration.
 Reads the initialization files FILE-NAMES and returns a configuration. Errors
 out if one or more initialization files were not read. If VERBOSE is non-nil,
 prints a status message."
-  (let ((config (make-default-or-empty-configuration (master-table))))
-    (dolist (file file-names)
-      (when (and file (null (probe-file file)))
+  (let ((config (make-default-or-empty-configuration (master-table)))
+        (files (remove nil file-names)))
+    (dolist (file files)
+      (when (null (probe-file file))
         (error "Error: Unable to find file ~s.~&" file)))
+    (read-files config files)
     (when verbose
       (format t "Read ~r initialization file~:p: ~{~a~^, ~}.~&"
-              (length file-names) file-names))
-    (dolist (file file-names)
-      (read-files config (list file)))
+              (length files) files))
     config))
 
 ;; output files
