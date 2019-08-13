@@ -77,18 +77,9 @@ give notice."
       ret)))
 
 (defun write-default-configuration (file-name)
-  "* Argument
- - file-name :: A string or pathname.
-* Returns
- Nothing.  Called for its side-effects.
-* Description
- Write the default configuration to the file, FILE-NAME.  Returns an error if
-  the directory part of FILE-NAME cannot be found.
-* Example
-#+begin_src lisp
-(write-default-configuration <path/to/default-config.ini>)
-#+end_src
-"
+  "Given a string or path name to a file, FILE-NAME, write the default
+  configuration to it. Returns an error if the directory part of FILE-NAME
+  cannot be found."
   (let* ((cfg (make-default-or-empty-configuration (master-table)))
          (out-dir (directory-namestring file-name))
          (out-file (file-namestring file-name)))
@@ -100,19 +91,10 @@ give notice."
       (write-stream cfg stream))))
 
 (defun write-configuration (seq file-name)
-  "* Arguments
- - seq :: An archaeological sequence.
- - file-name :: A string or pathname.
-* Returns
-Nothing.  Called for its side-effects.
-* Description
-Write configuration associated with the archaeological sequence, SEQ, to the
-file, FILE-NAME, in the project directory associated with SEQ.
-* Example
-#+begin_src lisp
- (write-configuration *my-sequence* \"my-config.ini\")
-#+end_src
-"
+  "Given an archaeological sequence, SEQ, and a string naming a file,
+FILE-NAME, write the configuration associated with the archaeological sequence
+to the file, FILE-NAME, in the project directory specified by the user's
+configuration.  FILE-NAME is silently overwritten if it exists."
   (let* ((cfg (archaeological-sequence-configuration seq))
          (out-file (uiop:merge-pathnames* (project-directory cfg) file-name)))
     (with-open-file (stream out-file :direction :output :if-exists :supersede)
@@ -141,15 +123,10 @@ associated with SEQ."
       (write-stream cfg stream))))
 
 (defun read-configuration-from-files (verbose &rest file-names)
-  "* Arguments
- - verbose :: Boolean.
- - file-names :: One or more strings or pathnames.
-* Returns
-A configuration.
-* Description
-Reads the initialization files FILE-NAMES and returns a configuration. Errors
-out if one or more initialization files were not read. If VERBOSE is non-nil,
-prints a status message."
+  "Given a boolean value, VERBOSE, and one or more strings or path names,
+FILE-NAMES, to user .ini files, read and parse FILE-NAMES and return a
+configuration. Errors out if one or more initialization files were not read. If
+VERBOSE is non-nil, prints a status message."
   (let ((config (make-default-or-empty-configuration (master-table)))
         (files (remove nil file-names)))
     (dolist (file files)
@@ -164,21 +141,10 @@ prints a status message."
 ;; output files
 
 (defun write-classifier (classifier-type seq &optional (verbose t))
-  "* Arguments
- - classifier-type :: A keyword.
- - seq :: An archaeological sequence.
- - verbose :: Boolean.
-* Returns
-Nothing.  Called for its side-effects.
-* Description
-Write the classifier, CLASSIFIER-TYPE, to a file specified in the user's
-configuration stored in the archaeological sequence, SEQ. If verbose, indicate
-that a file was written.
-* Example
-#+begin_src lisp
-(write-classifier :levels *my-sequence* nil)
-#+end_src
-"
+  "Given a keyword, CLASSIFIER-TYPE, that indicates one of the classifiers
+recognized by hm, write the classifier to a file specified in the user's
+configuration. If the boolean argument, VERBOSE, is non-nil then write to
+standard output an indication that a file was written."
   (let ((classifier (make-classifier classifier-type seq verbose))
         (cfg (archaeological-sequence-configuration seq))
         (out-file (classifier-out-file classifier-type seq verbose)))

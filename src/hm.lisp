@@ -705,44 +705,19 @@ for the =hm= package, run the project described by the appropriate =.ini= file.
                           :delete-chronology delete-chronology)))
 
 (defun show-classifiers ()
-  "* Arguments
-None.
-* Returns
-Nothing.  Called for its side effects.
-* Description
-Write a list of classifiers to standard output.
-* Example
-#+begin_src lisp
-(show-classifiers)
-#+end_src"
+  "Write a list of classifiers to standard output."
   (fset:do-set (x (classifiers))
     (format t "~(~A~%~)" x)))
 
 (defun show-classifiable-attributes ()
-  "* Arguments
-None.
-* Returns
-Nothing.  Called for its side-effects.
-* Description
-Write a list of classifiable attributes to standard output.
-* Example
-#+begin_src lisp
-(show-classifiable-attributes)
-#+end_src"
+  "Write a list of classifiable attributes to standard output."
   (fset:do-set (x (classifiable-attributes))
     (format t "~(~A~%~)" x)))
 
 (defun show-map (attribute)
-  "* Arguments
-A keyword, ATTRIBUTE, one of :edge-style, :node-style, :node-shape, or :arrow-shape.
-* Returns
-Nothing.  Called for its side-effects
-* Description
-Write a lookup map of attributes to standard output.  Raise an error if ATTRIBUTES is out of range.
-* Example
-#+begin_src lisp
-(show-map :edge-style)
-#+end_src"
+  "Given a keyword, ATTRIBUTE, one of :edge-style, :node-style, :node-shape, or
+:arrow-shape, write a lookup map of attributes to standard output. Raise an
+error if ATTRIBUTE is out of range."
   (let ((map (case attribute
                (:edge-style (graphviz-edge-style-map))
                (:node-style (graphviz-node-style-map))

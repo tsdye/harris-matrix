@@ -774,22 +774,8 @@ restrictions, nil otherwise."
   (and (chronology-graph-p cfg) (assume-correlations-p cfg)))
 
 (defun reset-option (seq section-name option-name value)
-  "* Arguments
- - seq :: An archaeological sequence.
- - section-name :: A string.
- - option-name :: A string.
- - value :: A string.
-* Returns
-Nothing.  Called for its side-effects.
-* Description
-Assign a value, VALUE, to the option, OPTION-NAME, in configurations section,
-SECTION-NAME, in the configuration associated with the archaeological sequence,
-SEQ. Ensures section and option names are not inadvertently created when resetting
-an option.
-* Example
-#+begin_src lisp
-(reset-option *my-sequence* \"General configuration\" \"chronology-graph-draw\" \"no\")
-#+end_src"
+  "Given an archaeological sequence, SEQ, strings with the name of a section, SECTION-NAME, and the name of an option, OPTION-NAME, in the user's .ini file, and a string, VALUE, with a new value for the option, assign VALUE to OPTION-NAME in SECTION-NAME in the configuration associated with SEQ.
+Errors out if either the section or option name does not exist in the .ini file."
   (let ((cfg (archaeological-sequence-configuration seq)))
     (let ((section-list (sections cfg)))
       (assert (member section-name section-list :test #'equal)
@@ -851,22 +837,11 @@ periods, or phases."
                (nth 0 correlation) (nth 1 correlation))))))
 
 (defun set-input-file (seq option file-name header)
-  "* Arguments
- - seq :: An archaeological sequence.
- - option :: A string.
- - file-name :: A string or pathname.
- - header :: Boolean
-* Returns
-Nothing.  Called for its side-effects.
-* Description
- If OPTION is recognized, then FILE-NAME and HEADER are registered with the
-configuration associated with the archaeological sequence, SEQ. HEADER is
-interpreted as a boolean.
-* Example
-#+begin_src lisp
-(set-input-file \"contexts\" \"roskams-h-contexts.ini\" t)
-#+end_src
-"
+  "Given an archaeological sequence, SEQ, a string, OPTION, naming one of the
+options in the 'Input files' section of the user's .ini file, and a boolean,
+HEADER, that indicates whether the new input file has a header line, if OPTION is
+recognized, then FILE-NAME and HEADER are registered with the configuration
+associated with SEQ.  Errors out if OPTION is not recognized."
   (let* ((cfg (archaeological-sequence-configuration seq))
          (option-list (options cfg "Input files")))
     (assert (member option option-list :test #'equal)
@@ -876,23 +851,11 @@ interpreted as a boolean.
     (set-option cfg "Input file headers" option (if header "yes" "no"))))
 
 (defun set-output-file (seq option file-name &optional (verbose t))
-  "* Arguments
-  - seq :: An archaeological sequence.
-  - option :: A string.
-  - file-name :: A string or pathname.
-  - verbose :: Boolean.
-* Returns
-  Nothing.  Called for its side-effects.
-* Description
-  Registers the output file, FILE-NAME, with the OPTION in the
-configuration associated with the archaeological sequence, SEQ. Checks if OPTION
-is known and errors out if not. If FILE-NAME exists and VERBOSE is non-nil, then asks
-about overwriting it.
-* Example
-#+begin_src lisp
-(set-output-file *my-seq* \"observations\" \"my-observations.csv\")
-#+end_src
-"
+  "Given an archaeological sequence, SEQ, a string, OPTION, that names an option
+in the 'Output files' section of the user's .ini file, and a string, FILE-NAME,
+with a file name, registers FILE-NAME with the OPTION in the configuration
+associated with SEQ. Checks if OPTION is known and errors out if not. If
+FILE-NAME exists and VERBOSE is non-nil, then asks the user about overwriting it."
   (let* ((cfg (archaeological-sequence-configuration seq))
          (option-list (options cfg "Output files")))
     (assert (member option option-list :test #'equal)
@@ -919,19 +882,10 @@ about overwriting it.
           (when verbose (format t "Option ~s set to `yes'.~&" option))))))
 
 (defun show-configuration-options (seq section)
-  "* Arguments
- - seq :: An archaeological sequence.
- - section :: A string.
-* Returns
-A list of strings.
-* Description
-Print the options in section SECTION of configuration associated with
-the archaeological sequence, SEQ. Errors out if the configuration is not valid or
-SECTION isn't found in the configuration.
-* Example
-#+begin_src lisp
-(show-configuration-options *my-sequence* \"General configuration\")
-#+end_src"
+  "Given an archaeological sequence, SEQ, and a string, SECTION, that names a
+section of the user's .init file, write the options in SECTION to standard
+output. Errors out if the configuration in SEQ is not valid or SECTION isn't
+found in the configuration."
   (let ((cfg (archaeological-sequence-configuration seq)))
     (unless (typep cfg 'config) (error "Error: ~a is not a configuration." cfg))
     (assert (has-section-p cfg section) (section)
@@ -948,20 +902,7 @@ SORT is non-nil, or unsorted otherwise.  Assumes that CFG is a configuration."
     section-list))
 
 (defun show-configuration-sections (seq &optional (sort t))
-  "* Arguments
- - seq :: An archaeological sequence.
- - sort :: Boolean.
-* Returns
-A list of strings.
-* Description
-Print out the sections in the configuration associated with the
-archaeological sequence, SE, by default in sorted order. If SORT is nil, then
-print out the unsorted section list. Errors out if the configuration associated
-with SEQ is not valid.
-* Example
-#+begin_src lisp
-(show-configuration-sections *my-sequence* nil)
-#+end_src"
+  "Given an archaeological sequence, SEQ, write the sections in the configuration associated with SEQ, by default in sorted order. If SORT is nil, then do not sort the sections. Errors out if the configuration associated with SEQ is not valid."
   (let ((cfg (archaeological-sequence-configuration seq)))
     (unless (typep cfg 'config) (error "Error: ~a is not a configuration." cfg))
     (let ((section-list (get-configuration-sections cfg sort)))
