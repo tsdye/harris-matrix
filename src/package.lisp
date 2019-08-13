@@ -21,5 +21,4 @@
    :read-configuration-from-files
    :run-project
    :run-project/example
-   :write-classifier
-   :array-fas))
+   :write-classifier))
