@@ -84,30 +84,33 @@ then advertise the activity. Returns the possibly modified GRAPH."
 (defun make-new-sequence-graph (cfg &optional (verbose t))
   "Given a configuration CFG, make a new digraph instance, populate it with
   nodes and arcs from the files specified in the configuration, and return it."
-  (let ((graph (new-graph)))
+  (let ((graph (new-graph))
+        (cycles))
     (setf graph (add-nodes graph cfg verbose))
     (setf graph (add-arcs graph cfg verbose))
-    (if (assume-correlations-p cfg)
+    (setf cycles (check-cycles graph :verbose verbose :prune-fvs nil))
+    (when cycles (write-cycles-to-file cfg cycles))
+    (when (assume-correlations-p cfg)
       (let ((terms (correlation-terms cfg)))
-        (setf graph (assume-correlations graph cfg :verbose verbose :terms terms)))
-      (check-cycles graph :verbose verbose :prune-fvs nil))
+        (setf graph (assume-correlations graph cfg :verbose verbose :terms terms))))
     (setf graph (transitive-reduction-2 graph verbose))
     graph))
 
 (defun check-cycles (graph &key (verbose t) (prune-fvs t))
-  "Reports an error when cycles are present in GRAPH, or returns nil if no
-cycles are found. The error message contains a list of suspicious nodes, which
-will contain only inferred nodes if PRUNE-FVS is non-nil."
+  "Returns a list of nodes when cycles are present in GRAPH, or returns nil if
+no cycles are found. The list of nodes will contain only inferred nodes if
+PRUNE-FVS is non-nil."
   (let ((fvs))
     (when verbose (format t "Checking directed graph ~a for cycles.~&" graph))
-    (when (graph:basic-cycles graph)
-      (when verbose (format t "Cycles detected, calculating feedback arc set.~&"))
-      (setf fvs (array-fas graph verbose))
-      (when prune-fvs (setf fvs (remove-if-not (lambda (x) (find #\= (string x))) fvs)))
-      (when verbose
-        (format t "Directed graph ~a is cyclical, check nodes ~a.~&" graph fvs))
-      (error "Error: Directed graph is cyclical, check nodes ~a.~&" fvs))
-    (when verbose (format t "No cycles found in directed graph ~a.~&" graph))))
+    (if (graph:basic-cycles graph)
+        (progn
+          (when verbose (format t "Cycles detected, calculating feedback arc set.~&"))
+          (setf fvs (array-fas graph verbose))
+          (when prune-fvs (setf fvs (remove-if-not (lambda (x) (find #\= (string x))) fvs)))
+          (when verbose
+            (format t "Directed graph ~a is cyclical, check nodes ~a.~&" graph fvs)))
+        (when verbose (format t "No cycles found in directed graph ~a.~&" graph)))
+    fvs))
 
 (defun assume-correlations (graph cfg &key (verbose t) (terms 2))
   "Given the information in a configuration CFG, possibly merge and rename the
@@ -124,7 +127,8 @@ will contain only inferred nodes if PRUNE-FVS is non-nil."
         (input-file-name (input-file-name cfg :inferences))
         (file-header (file-header-p cfg :inferences))
         (node-map (fset:empty-map))
-        (count 0))
+        (count 0)
+        (cycles))
     (if input-file-name
         (when verbose
           (format t "Reading inference file ~a.~&" (enough-namestring input-file-name))
@@ -183,7 +187,8 @@ will contain only inferred nodes if PRUNE-FVS is non-nil."
              (graph:add-edge ret (list fourth-term first-term))
              (incf count)))))
     (when verbose (format t "Made ~:d inferences.~&" count))
-    (check-cycles ret :verbose verbose :prune-fvs t)
+    (setf cycles (check-cycles ret :verbose verbose :prune-fvs t))
+    (when cycles (write-cycles-to-file cfg cycles))
     (values ret node-map)))
 
 (defun correlated-node (first-node second-node &optional as-string)

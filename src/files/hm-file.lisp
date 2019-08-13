@@ -354,3 +354,15 @@ by the dot program."
         (run (format nil "dot -T~a ~a -o~a" format dot-file output-file)))
     (when (and open (fset:contains? can-open format))
       (run (format nil "~a ~a" open output-file)))))
+
+(defun write-cycles-to-file (cfg cycles &key (verbose t))
+  "Given the information in a configuration, CFG, and a list of nodes, CYCLES,
+write a comma separated value file with the feedback vertex set. When VERBOSE,
+write a confirmation that the file was written."
+  (let* ((file-name (get-option cfg "Output files" "feedback-vertex-set"))
+         (out-file (uiop:merge-pathnames* (project-directory cfg) file-name)))
+    (with-open-file (stream out-file :direction :output
+                                     :if-exists :overwrite
+                                     :if-does-not-exist :create)
+      (cl-csv:write-csv cycles :stream stream))
+    (when verbose (format t "Wrote feedback vertex set to ~a.~&" (enough-namestring out-file)))))
