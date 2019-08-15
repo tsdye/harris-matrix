@@ -606,27 +606,10 @@ non-nil, then advertise progress."
                                       (chronology-cmd "xdg-open") (draw-sequence t)
                                       (draw-chronology t) (delete-sequence t)
                                       (delete-chronology t))
-  "* Arguments
- - example :: A keyword, one of :catal-hoyuk, :catal-hoyuk-levels, :catal-hoyuk-distance, :roskams-h, :roskams-h-solarized-light, :roskams-h-solarized-dark, :roskams-jumps, :complex-h-structure, :complex-h-structure-reachable, :fig-12, :fig-12-correlations, :fig-12-periods.
- - verbose :: Boolean.
- - sequence-display :: A string indicating a Graphviz =dot= output file format.
- - chronology-display :: A string indicating a Graphviz =dot= output file format.
- - sequence-cmd :: A string naming the application used to open the sequence graph.
- - chronology-cmd :: A string naming the application used to open the chronology graph.
- - draw-sequence :: Boolean.
- - draw-chronology :: Boolean.
- - delete-sequence :: Boolean.  Delete the sequence graph file after it is displayed.
- - delete-chronology :: Boolean. Delete the chronology graph file after it is displayed.
-* Returns
-An archaeological sequence.
-* Description
-Given a keyword, EXAMPLE, that indicates one of the example projects defined
+  "Given a keyword, EXAMPLE, that indicates one of the example projects defined
 for the =hm= package, run the project described by the appropriate =.ini= file.
-* Example
-#+begin_src lisp
-  (run-project/example :roskams-h :delete-sequence nil)
-#+end_src
-"
+Returns an archaeological sequence. The keyword parameters are as in the
+function, run-project."
 
   (let ((cfg-file (case example
                     (:fig-12-polygon
