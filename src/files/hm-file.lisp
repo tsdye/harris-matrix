@@ -331,4 +331,4 @@ write a confirmation that the file was written."
                                      :if-exists :supersede
                                      :if-does-not-exist :create)
       (cl-csv:write-csv cycles :stream stream))
-    (when verbose (format t "Wrote feedback vertex set to ~a.~&" (enough-namestring out-file)))))
+    (when verbose (format t "Wrote feedback arc set to ~a.~&" (enough-namestring out-file)))))
