@@ -100,17 +100,21 @@ then advertise the activity. Returns the possibly modified GRAPH."
   "Returns a list of nodes when cycles are present in GRAPH, or returns nil if
 no cycles are found. The list of nodes will contain only inferred nodes if
 PRUNE-FVS is non-nil."
-  (let ((fvs))
+  (let ((fas))
     (when verbose (format t "Checking directed graph ~a for cycles.~&" graph))
     (if (graph:basic-cycles graph)
         (progn
           (when verbose (format t "Cycles detected, calculating feedback arc set.~&"))
-          (setf fvs (array-fas graph verbose))
-          (when prune-fvs (setf fvs (remove-if-not (lambda (x) (find #\= (string x))) fvs)))
+          (setf fas (feedback-arc-set graph))
+          (when prune-fvs
+            (setf fas (remove-if-not
+                       (lambda (x) (or (find #\= (string (first x)))
+                                       (find #\= (string (second x)))))
+                       fas)))
           (when verbose
-            (format t "Directed graph ~a is cyclical, check nodes ~a.~&" graph fvs)))
+            (format t "Directed graph ~a is cyclical, check arcs ~a.~&" graph fas)))
         (when verbose (format t "No cycles found in directed graph ~a.~&" graph)))
-    fvs))
+    fas))
 
 (defun assume-correlations (graph cfg &key (verbose t) (terms 2))
   "Given the information in a configuration CFG, possibly merge and rename the
