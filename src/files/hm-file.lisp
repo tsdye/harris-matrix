@@ -291,7 +291,7 @@ specifies an output graphics file format recognized by Graphviz dot."
 (defun make-graphics-file (cfg graph format &key open (verbose t))
   "Run the dot program to make a graphics file of type, FORMAT, based on
 information in the user's configuration, CFG, for the specified GRAPH type.
-GRAPH is one of :sequence, :chronology. FORMAT is an output format recognized
+GRAPH is one of :sequence, :chronology. FORMAT is anq output format recognized
 by the dot program."
   (unless (image-file-format-p format)
     (error "Error: ~s is not a valic Graphviz dot image file format.~&" format))
