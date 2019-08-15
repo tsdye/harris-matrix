@@ -44,18 +44,17 @@ give notice."
                                  (pathname name))))
     (progn
       (when verbose
-        (format t "Reading table from ~a.~a.~&" (pathname-name name)
-                (pathname-type name)))
+        (format t "Reading table from ~a.~&" (enough-namestring name)))
       (cl-csv:read-csv in-file :skip-first-p header))
-    (error "Error: Unable to read ~a.~&" in-file)))
+    (error "Error: Unable to read table from ~a.~&" (enough-namestring name))))
 
 (defun read-context-table (cfg &optional (verbose t))
   "Reads the context table specified in the configuration CFG and returns an fset map where the keys are symbols for the context labels and the values are context structures.  Errors out if the input file cannot be read or a context label contains the `=' character."
   (let* ((in-file (input-file-name cfg :contexts))
          (header? (file-header-p cfg :contexts))
          (in-file-path (probe-file in-file)))
-    (unless in-file-path (error "Error: Unable to locate ~a.~&" in-file))
-    (when verbose (format t "Reading context table from ~a.~&" in-file))
+    (unless in-file-path (error "Error: Unable to locate ~a.~&" (enough-namestring in-file)))
+    (when verbose (format t "Reading context table from ~a.~&" (enough-namestring in-file)))
     (let ((context-list
             (cl-csv:read-csv in-file-path
                              :skip-first-p header?
@@ -204,7 +203,7 @@ can't be found, nil otherwise."
           (let ((in-file (uiop:merge-pathnames* file-name dir)))
             (unless (probe-file in-file)
               (push file-name missing)
-              (format t "Warning: The file ~s is missimg from ~s.~&" in-file dir))))))
+              (format t "Warning: The file ~s is missing from ~s.~&" (enough-namestring in-file) dir))))))
     missing))
 
 (defun dot-output-format-map ()
@@ -292,14 +291,14 @@ specifies an output graphics file format recognized by Graphviz dot."
 (defun make-graphics-file (cfg graph format &key open (verbose t))
   "Run the dot program to make a graphics file of type, FORMAT, based on
 information in the user's configuration, CFG, for the specified GRAPH type.
-GRAPH is one of :sequence, :chronology. FORMAT is any output format recognized
+GRAPH is one of :sequence, :chronology. FORMAT is an output format recognized
 by the dot program."
   (unless (image-file-format-p format)
     (error "Error: ~s is not a valic Graphviz dot image file format.~&" format))
   (unless (fset:contains? (fset:set :sequence :chronology) graph)
     (error "Error: ~a is not a recognized graph type.~&" graph))
   (unless (typep cfg 'config)
-    (error "Error: ~a is not a user configuration file.~&" cfg))
+    (error "Error: ~a is not a user configuration file.~&" (enough-namestring cfg)))
   (let* ((ext (image-file-extension format))
          (dot-file (namestring
                     (truename
@@ -311,12 +310,11 @@ by the dot program."
          (two-outputs (fset:set "imap" "cmapx" "imap_np" "cmapx_np"))
          (output-file (ppcre:regex-replace "[.]dot" (copy-seq dot-file)
                                            (format nil ".~a" ext))))
-    (when verbose (format t "Creating ~a.~&" output-file))
+    (when verbose (format t "Creating ~a.~&" (enough-namestring output-file)))
     (if (fset:contains? two-outputs format)
         (let ((gif-file (ppcre:regex-replace "[.]dot" (copy-seq dot-file) ".gif")))
           (run (format nil "dot -T~a -o~a -Tgif -o~a ~a"
-                       format output
-                       -file gif-file dot-file)))
+                       format output-file gif-file dot-file)))
         (run (format nil "dot -T~a ~a -o~a" format dot-file output-file)))
     (when (and open (fset:contains? can-open format))
       (run (format nil "~a ~a" open output-file)))))
