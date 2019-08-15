@@ -131,7 +131,7 @@ VERBOSE is non-nil, prints a status message."
         (files (push cfg-file cfg-other)))
     (dolist (file files)
       (when (null (probe-file file))
-        (error "Error: Unable to find file ~s.~&" file)))
+        (error "Error: Unable to find file ~s.~&" (enough-namestring file))))
     (read-files config files)
     (when verbose
       (format t "Read ~r initialization file~:p: ~{~a~^, ~}.~&"
