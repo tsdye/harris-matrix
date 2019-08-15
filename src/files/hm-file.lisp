@@ -122,13 +122,13 @@ associated with SEQ."
     (with-open-file (stream out-file :direction :output :if-exists :supersede)
       (write-stream cfg stream))))
 
-(defun read-configuration-from-files (verbose &rest file-names)
-  "Given a boolean value, VERBOSE, and one or more strings or path names,
+(defun read-configuration-from-files (verbose cfg-file cfg-other)
+  "Given a boolean value, VERBOSE, and a list of strings or path names,
 FILE-NAMES, to user .ini files, read and parse FILE-NAMES and return a
 configuration. Errors out if one or more initialization files were not read. If
 VERBOSE is non-nil, prints a status message."
   (let ((config (make-default-or-empty-configuration (master-table)))
-        (files (remove nil file-names)))
+        (files (push cfg-file cfg-other)))
     (dolist (file files)
       (when (null (probe-file file))
         (error "Error: Unable to find file ~s.~&" file)))

@@ -18,7 +18,8 @@
                #:py-configparser
                #:cl-colors
                #:fare-memoization
-               #:inferior-shell)
+               #:inferior-shell
+               #:unix-opts)
   :components ((:static-file "COPYING")
                (:file "src/package")
                (:file "src/macros/hm-macros")
@@ -30,4 +31,12 @@
                (:file "src/data-structures/hm-data-structures")
                (:file "src/memo/hm-memo")
                (:file "src/fas/hm-fas")
-               (:file "src/hm")))
+               (:file "src/cli/hm-cli")
+               (:file "src/hm"))
+
+:build-operation "program-op" ;; leave as is
+
+:build-pathname "./builds/hm"
+
+:entry-point "hm:hm-main")
+

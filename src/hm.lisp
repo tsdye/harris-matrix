@@ -517,12 +517,13 @@ the archaeological sequence, SEQ."
       (cons :fontcolor (graphviz-chronology-node-attribute cfg :fontcolor))))
     (when verbose (format t "Wrote ~a.~%" out-file))))
 
-(defun load-project (cfg-file &key (verbose t) (style-file))
-  "Given a path to the user's configuration file, CFG-FILE, read the file,
+(defun load-project (cfg-file cfg-others &key (verbose t))
+  "Given a path to the user's configuration file, CFG-FILE, and a list to other configuration files, CFG-OTHERS, read the file(s),
 configure the archaeological sequence, check it for errors, and return it."
   (let ((seq (hm::make-archaeological-sequence))
-        (cfg (hm:read-configuration-from-files verbose cfg-file style-file)))
+        (cfg (hm:read-configuration-from-files verbose cfg-file cfg-others)))
     (hm::configure-archaeological-sequence seq cfg verbose)))
+
 
 (defun run-sequence (seq &optional (verbose t) display (cmd "open"))
   "Given an archaeological sequence, SEQ, carry out its instructions, and write
@@ -569,36 +570,25 @@ configure the archaeological sequence, check it for errors, and return it."
                  display))
         (make-graphics-file cfg :chronology display :open cmd :verbose verbose)))))
 
-(defun run-project (cfg-file &key (style) (verbose t) (sequence-display "png")
+(defun run-project (cfg-file cfg-others &key (verbose t) (sequence-display "png")
                                (chronology-display "png") (sequence-cmd "xdg-open")
                                (chronology-cmd "xdg-open") (draw-sequence t)
-                               (draw-chronology t) (delete-sequence nil)
-                               (delete-chronology nil))
-  "* Arguments
- - cfg-file :: A string or pathname.
- - verbose :: Boolean.
- - sequence-display :: A string indicating a Graphviz =dot= output file format.
- - chronology-display :: A string indicating a Graphviz =dot= output file format.
- - sequence-cmd :: A string naming the application used to open the sequence graph.
- - chronology-cmd :: A string naming the application used to open the chronology graph.
- - draw-sequence :: Boolean.
- - draw-chronology :: Boolean.
- - delete-sequence :: Boolean.  Delete the sequence graph file after it is displayed.
- - delete-chronology :: Boolean. Delete the chronology graph file after it is displayed.
-* Returns
-An archaeological sequence.
-* Description
-Run the project specified in the user's configuration file, CFG-FILE. If
-DRAW-SEQUENCE is non-nil, then create a sequence graph in the format indicated
-by SEQUENCE-DISPLAY and open the graphics file with the shell command,
+                               (draw-chronology t) delete-sequence
+                               delete-chronology)
+  "Given one configuration file, CFG-FILE, and possibly a list of other configuration
+files, CFG-OTHERS, run the project they specify. If DRAW-SEQUENCE is non-nil,
+then create a sequence graph in the format indicated by the string,
+SEQUENCE-DISPLAY, which indicates a valid Graphviz dot output file format, and
+open the graphics file with the shell command specified by the string,
 SEQUENCE-CMD. If DELETE-SEQUENCE is non-nil, then delete the graphics file after
 it is displayed. If DRAW-CHRONOLOGY is non-nil, then create a sequence graph in
-the format indicated by CHRONOLOGY-DISPLAY and open the graphics file with the
-shell command, CHRONOLOGY-CMD. If DELETE-CHRONOLOGY is non-nil, then delete the
-graphics file after it is displayed. If VERBOSE is non-nil, then advertise
-progress."
+the format indicated by the string, CHRONOLOGY-DISPLAY, which indicates a valid
+Graphviz dot output file format, and open the graphics file with the shell
+command specified by the string, CHRONOLOGY-CMD. If DELETE-CHRONOLOGY is
+non-nil, then delete the graphics file after it is displayed. If VERBOSE is
+non-nil, then advertise progress."
   (memoize-functions)
-  (let* ((seq (load-project cfg-file :verbose verbose :style-file style))
+  (let* ((seq (load-project cfg-file cfg-others :verbose verbose))
          (cfg (archaeological-sequence-configuration seq)))
     (when draw-sequence
       (run-sequence seq verbose sequence-display sequence-cmd)
@@ -697,7 +687,7 @@ for the =hm= package, run the project described by the appropriate =.ini= file.
                       (asdf:system-source-directory :hm)))
                     (t (error "Error: The ~a project is not known.~&" example)))))
     (
-     run-project cfg-file :verbose verbose :sequence-display sequence-display
+     run-project cfg-file nil :verbose verbose :sequence-display sequence-display
                           :chronology-display chronology-display
                           :sequence-cmd sequence-cmd :chronology-cmd chronology-cmd
                           :draw-sequence draw-sequence :draw-chronology draw-chronology
