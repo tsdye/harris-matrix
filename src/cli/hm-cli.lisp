@@ -95,10 +95,10 @@
       ;; logic to process them.
       (when-option (options :help)
         (opts:describe
-         :prefix "hm--stratigraphic and chronologic directed graphs for archaeology"
+         :prefix "Write Graphviz dot files for archaeological sequence diagrams and Bayesian chronological models"
          :suffix ""
          :usage-of "hm"
-         :args     "<configuration files>")
+         :args     "<configuration file(s)>")
         (opts:exit 0))
       (when-option (options :verbose)
         (format t "Running in quiet mode~%")
