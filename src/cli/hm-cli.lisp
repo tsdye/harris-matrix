@@ -101,7 +101,7 @@
          :args     "<configuration file(s)>")
         (opts:exit 0))
       (when-option (options :verbose)
-        (format t "Running in quiet mode~%")
+        (format t "Running in quiet mode.~%")
         (setf verbose nil))
       (when-option (options :sequence-display)
         (if (image-file-format-p it)
