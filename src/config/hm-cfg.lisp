@@ -448,6 +448,17 @@ or nil if CFG contains a value not interpreted by py-configparser as a boolean."
   (let ((value (get-option cfg "General configuration" "project-directory")))
     (if (emptyp value) nil value)))
 
+(defun set-project-directory (candidate)
+  "If CANDIDATE string indicates an extant directory, then set the global *PROJECT-DIRECTORY* parameter, or else return an error."
+  (if (uiop:directory-exists-p candidate)
+      (setq *project-directory* (uiop:native-namestring candidate))
+      (error "The path, ~a, does not exist.~&" candidate)))
+
+(defun get-project-directory ()
+  (if (and *project-directory* (uiop:directory-exists-p *project-directory*))
+      *project-directory*
+      (error "The path, ~a, does not exist.~&" *project-directory*)))
+
 (defun input-file-name-p (cfg content)
   "Return a boolean indicating whether or not the user's configuration, CFG,
   includes a file name for CONTENT. CONTENT is a string, one of `contexts',
@@ -708,7 +719,7 @@ advertise the output file name."
                  (:units (get-option cfg section "units"))
                  (:levels (get-option cfg section "levels"))
                  (t (error "Error: ~a is not a classifier.~&" classifier-type))))
-         (ret (uiop:merge-pathnames* file (get-project-directory cfg))))
+         (ret (uiop:merge-pathnames* file (get-project-directory-or-default cfg))))
     (when verbose (format t "Writing to ~a.~&" (enough-namestring ret)))
     ret))
 

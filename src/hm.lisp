@@ -33,6 +33,8 @@ behavior indicated in the user's configuration."
       (chronology-node-map seq verbose)
       (chronology-edge-map seq verbose)))
 
+(defparameter *project-directory* nil "A string or pathname to the project directory.  Functions that set and get it ensure that the directory exists.")
+
 (defun quotes-around (string)
   "Ensure there are double quotes around STRING for output to dot."
   (if (emptyp string) "\"\""
@@ -525,8 +527,13 @@ the archaeological sequence, SEQ."
   "Given a path to the user's configuration file, CFG-FILE, and a list to other configuration files, CFG-OTHERS, read the file(s),
 configure the archaeological sequence, check it for errors, and return it."
   (let ((seq (hm::make-archaeological-sequence))
-        (cfg (hm:read-configuration-from-files verbose cfg-file cfg-others)))
-    (hm::configure-archaeological-sequence seq cfg verbose)))
+        (cfg))
+    (if (uiop:file-exists-p cfg-file)
+        (progn
+          (setq *project-directory* (uiop:pathname-directory-pathname cfg-file))
+          (setf cfg (hm:read-configuration-from-files verbose cfg-file cfg-others))
+          (hm::configure-archaeological-sequence seq cfg verbose))
+        (error "The file, ~a, does not exist.~&" cfg-file))))
 
 
 (defun run-sequence (seq &optional (verbose t) display (cmd "open"))
@@ -537,7 +544,7 @@ configure the archaeological sequence, check it for errors, and return it."
   existing file. If DISPLAY is set to a string with a valid dot file format,
   then run dot and display the resulting graphic file with the command, CMD."
   (let* ((cfg (hm::archaeological-sequence-configuration seq))
-         (old-file (probe-file (hm::output-file-name cfg :sequence-dot))))
+         (old-file (uiop:probe-file* (hm::output-file-name cfg :sequence-dot))))
     (if verbose
         (when (and old-file (y-or-n-p "Overwrite ~a?" (enough-namestring old-file)))
           (uiop:delete-file-if-exists old-file))

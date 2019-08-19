@@ -95,7 +95,7 @@ FILE-NAME, write the configuration associated with the archaeological sequence
 to the file, FILE-NAME, in the project directory specified by the user's
 configuration.  FILE-NAME is silently overwritten if it exists."
   (let* ((cfg (archaeological-sequence-configuration seq))
-         (out-file (uiop:merge-pathnames* (project-directory cfg) file-name)))
+         (out-file (uiop:merge-pathnames* (get-project-directory) file-name)))
     (with-open-file (stream out-file :direction :output :if-exists :supersede)
       (write-stream cfg stream))))
 
@@ -104,7 +104,7 @@ configuration.  FILE-NAME is silently overwritten if it exists."
 archaeological sequence, SEQ, to the file, FILE-NAME, in the project directory
 associated with SEQ."
   (let* ((cfg (copy-structure (archaeological-sequence-configuration seq)))
-         (out-file (uiop:merge-pathnames* (project-directory cfg) file-name)))
+         (out-file (uiop:merge-pathnames* (get-project-directory) file-name)))
     (dolist (section (sections cfg))
       (unless (Graphviz-section-p section) (remove-section cfg section)))
     (with-open-file (stream out-file :direction :output :if-exists :supersede)
@@ -115,7 +115,7 @@ associated with SEQ."
 archaeological sequence, SEQ, to the file, FILE-NAME, in the project directory
 associated with SEQ."
   (let* ((cfg (copy-structure (archaeological-sequence-configuration seq)))
-         (out-file (uiop:merge-pathnames* (project-directory cfg) file-name)))
+         (out-file (uiop:merge-pathnames* (get-project-directory) file-name)))
     (dolist (section (sections cfg))
       (when (Graphviz-section-p section) (remove-section cfg section)))
     (with-open-file (stream out-file :direction :output :if-exists :supersede)
@@ -129,7 +129,7 @@ VERBOSE is non-nil, prints a status message."
   (let ((config (make-default-or-empty-configuration (master-table)))
         (files (push cfg-file cfg-other)))
     (dolist (file files)
-      (when (null (probe-file file))
+      (when (null (uiop:probe-file* file))
         (error "Error: Unable to find file ~s.~&" (enough-namestring file))))
     (read-files config files)
     (when verbose
@@ -167,10 +167,10 @@ standard output an indication that a file was written."
     (when verbose (format t "Wrote classifier ~a to ~a.~&"
        classifier-type (enough-namestring out-file)))))
 
-(defun get-project-directory (cfg)
+(defun get-project-directory-or-default (cfg)
   "Check if the user's project directory exists, if so, return a path to it. If
 not, return a path to the default project directory."
-  (let ((user (probe-file (project-directory cfg))))
+  (let ((user (uiop:probe-file* (get-project-directory))))
     (or user
         (uiop:merge-pathnames* "resources/default-project/"
                                (asdf:system-source-directory :hm)))))
@@ -180,16 +180,16 @@ not, return a path to the default project directory."
   if the file does not exist. CONTENT is a keyword, one of :contexts,
   :observations, :inferences, :periods, :phases, :events, or
   :event-order."
-  (probe-file (uiop:merge-pathnames*
-               (get-option cfg "Input files" (string-downcase (string content)))
-               (project-directory cfg))))
+  (uiop:probe-file* (uiop:merge-pathnames*
+                     (get-option cfg "Input files" (string-downcase (string content)))
+                     (get-project-directory))))
 
 
 (defun output-file-name (cfg content)
   "Return the file path for CONTENT from the user's configuration, CFG. CONTENT
   is a keyword, one of :sequence-dot or :chronology-dot."
   (uiop:merge-pathnames* (get-option cfg "Output files" (string-downcase (string content)))
-                         (project-directory cfg)))
+                         (get-project-directory)))
 
 (defun unable-to-find-input-files? (cfg)
   "Returns non-nil if input files specified in the configuration CFG
@@ -197,10 +197,9 @@ can't be found, nil otherwise."
   (let ((option-list (options cfg "Input files"))
         (missing))
     (dolist (option option-list)
-      (let ((file-name (get-option cfg "Input files" option))
-            (dir (project-directory cfg)))
+      (let ((file-name (get-option cfg "Input files" option)))
         (unless (or (emptyp file-name) (not file-name))
-          (let ((in-file (uiop:merge-pathnames* file-name dir)))
+          (let ((in-file (uiop:merge-pathnames* file-name (get-project-directory))))
             (unless (probe-file in-file)
               (push file-name missing)
               (format t "Warning: The file ~s is missing from ~s.~&" (enough-namestring in-file) dir))))))
@@ -280,11 +279,10 @@ can't be found, nil otherwise."
 CFG. GRAPH is one of :chronology :sequence, and FORMAT is a string that
 specifies an output graphics file format recognized by Graphviz dot."
   (let ((ext (image-file-extension format))
-        (dot-file (namestring
-                   (truename
-                    (output-file-name
-                     cfg (case graph (:sequence :sequence-dot)
-                               (:chronology :chronology-dot)))))))
+        (dot-file (uiop:native-namestring
+                   (output-file-name
+                    cfg (case graph (:sequence :sequence-dot)
+                              (:chronology :chronology-dot))))))
     (uiop:delete-file-if-exists (ppcre:regex-replace "[.]dot" dot-file
                                                      (format nil ".~a" ext)))))
 
@@ -300,11 +298,10 @@ by the dot program."
   (unless (typep cfg 'config)
     (error "Error: ~a is not a user configuration file.~&" (enough-namestring cfg)))
   (let* ((ext (image-file-extension format))
-         (dot-file (namestring
-                    (truename
-                     (output-file-name
-                      cfg (case graph (:sequence :sequence-dot)
-                                (:chronology :chronology-dot))))))
+         (dot-file (uiop:native-namestring
+                    (output-file-name
+                     cfg (case graph (:sequence :sequence-dot)
+                               (:chronology :chronology-dot)))))
          (can-open
            (fset:set "jpg" "jpe" "jp2" "jpeg" "png" "pdf" "tif" "tiff" "gif" "svg"))
          (two-outputs (fset:set "imap" "cmapx" "imap_np" "cmapx_np"))
@@ -324,7 +321,7 @@ by the dot program."
 write a comma separated value file with the feedback arc set. When VERBOSE,
 write a confirmation that the file was written."
   (let* ((file-name (get-option cfg "Output files" "feedback-vertex-set"))
-         (out-file (uiop:merge-pathnames* (project-directory cfg) file-name)))
+         (out-file (uiop:merge-pathnames* (get-project-directory) file-name)))
     (with-open-file (stream out-file :direction :output
                                      :if-exists :supersede
                                      :if-does-not-exist :create)
