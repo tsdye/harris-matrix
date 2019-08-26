@@ -13,26 +13,26 @@
   (let ((good-vertex-sequence (gr dag)))
     (eades-fas good-vertex-sequence dag)))
 
-(defun gr (dag)
+(defun gr (cyclic)
   "Eades' et al. (1993) greedy algorithm for a 'good' vertex sequence. Given a
-DAG with cycles, returns a list of nodes."
-  (let ((g (graph:copy dag))
-        (s1)
-        (s2)
+CYCLIC graph, returns a list of nodes."
+  (let ((g (graph:copy cyclic))
+        (s1 (fset:empty-seq))
+        (s2 (fset:empty-seq))
         (dmax))
     (loop while (graph:nodes g)
           do (dolist (node (graph:nodes g))
                (when (graph:receiverp g node)
-                 (push node s2)
+                 (setq s2 (fset:with-first s2 node))
                  (graph:delete-node g node)))
              (dolist (node (graph:nodes g))
                (when (graph:transmitterp g node)
-                 (push node s1)
+                 (setq s1 (fset:with-last s1 node))
                  (graph:delete-node g node)))
-             (setf dmax (max-degree g))
-             (push dmax s1)
+             (setq dmax (max-degree g))
+             (setq s1 (fset:with-last s1 dmax))
              (graph:delete-node g dmax))
-    (append (reverse s1) s2)))
+    (fset:convert 'list (fset:concat s1 s2))))
 
 (defun max-degree (dag)
   "Given a DAG, returns a node whose degree is a maximum in DAG."
