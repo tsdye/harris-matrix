@@ -148,7 +148,7 @@ standard output an indication that a file was written."
         (cfg (archaeological-sequence-configuration seq))
         (out-file (classifier-out-file classifier-type seq verbose)))
     (with-open-file (stream out-file :direction :output
-                                     :if-exists :overwrite
+                                     :if-exists :supersede
                                      :if-does-not-exist :create)
       (when (out-file-header-p classifier-type cfg)
         (cl-csv:write-csv-row (list "node" (string-downcase classifier-type))
